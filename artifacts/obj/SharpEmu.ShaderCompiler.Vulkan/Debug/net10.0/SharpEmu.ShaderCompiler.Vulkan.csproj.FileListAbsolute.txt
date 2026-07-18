@@ -1,0 +1,13 @@
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.deps.json
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.dll
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.pdb
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.csproj.AssemblyReference.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.GeneratedMSBuildEditorConfig.editorconfig
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.AssemblyInfoInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.AssemblyInfo.cs
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/SharpEmu.3D3D78F9.Up2Date
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/refint/SharpEmu.ShaderCompiler.Vulkan.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/SharpEmu.ShaderCompiler.Vulkan.pdb
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler.Vulkan/Debug/net10.0/ref/SharpEmu.ShaderCompiler.Vulkan.dll

@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SharpEmu.Logging</name>
+    </assembly>
+    <members>
+        <member name="T:SharpEmu.Logging.BuildInfo">
+            <summary>
+            Build provenance for the running emulator, populated at compile time from
+            GitHub Actions environment variables via <c>[AssemblyMetadata]</c> and
+            surfaced as a touchHLE-style banner at the top of the log.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Logging.BuildInfo.CommitSha">
+            <summary>Short commit hash the build was produced from, or <c>null</c>.</summary>
+        </member>
+        <member name="P:SharpEmu.Logging.BuildInfo.Branch">
+            <summary>Branch the build was produced from, or <c>null</c>.</summary>
+        </member>
+        <member name="P:SharpEmu.Logging.BuildInfo.Repository">
+            <summary>Repository slug (<c>owner/name</c>) the build came from, or <c>null</c>.</summary>
+        </member>
+        <member name="P:SharpEmu.Logging.BuildInfo.WorkflowRunUrl">
+            <summary>URL of the GitHub Actions workflow run that produced the build, or <c>null</c>.</summary>
+        </member>
+        <member name="P:SharpEmu.Logging.BuildInfo.Configuration">
+            <summary>Build configuration (e.g. <c>Debug</c> or <c>Release</c>), or <c>null</c>.</summary>
+        </member>
+        <member name="P:SharpEmu.Logging.BuildInfo.IsOfficialRelease">
+            <summary>
+            Whether this build is an official release: a Release-configuration CI build
+            from the canonical repository, produced by a push to <c>main</c> or a manual
+            workflow dispatch (matching the CI <c>release</c> job). All other builds
+            (pull requests, forks, feature branches, and local/Debug builds) are
+            considered unofficial.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Logging.BuildInfo.Banner">
+             <summary>
+             The multi-line banner, e.g.
+             <code>
+             SharpEmu UNOFFICIAL f11ac59 — https://github.com/sharpemu/sharpemu
+            
+             Built from branch "main" of "sharpemu/sharpemu" by GitHub Actions workflow run https://github.com/sharpemu/sharpemu/actions/runs/123.
+             </code>
+             Official release builds drop the <c>UNOFFICIAL</c> tag. Falls back to a
+             local-build line when no CI provenance is present.
+             </summary>
+        </member>
+        <member name="T:SharpEmu.Logging.CompositeLogSink">
+            <summary>
+            Dispatches each <see cref="T:SharpEmu.Logging.LogEntry"/> to every child sink.
+            Exceptions thrown by a child are swallowed so one failing sink
+            (e.g. a closed file) cannot silence the others.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Logging.HostSystemInfo">
+            <summary>Provides best-effort information about the host system.</summary>
+        </member>
+        <member name="P:SharpEmu.Logging.HostSystemInfo.CpuName">
+            <summary>Host CPU name, or a safe fallback when it cannot be determined.</summary>
+        </member>
+        <member name="P:SharpEmu.Logging.HostSystemInfo.GpuName">
+            <summary>Preferred physical GPU name, or a safe fallback when it cannot be determined.</summary>
+        </member>
+        <member name="P:SharpEmu.Logging.HostSystemInfo.Summary">
+            <summary>Returns a concise description of the host hardware for diagnostic logs.</summary>
+        </member>
+        <member name="T:SharpEmu.Logging.IDiagnosticSink">
+            <summary>
+            Diagnostic Event Bus - Central pub/sub interface for runtime diagnostics.
+            All emulator subsystems (CPU, HLE, Memory, GPU, Thread) publish events through this sink.
+            The DebugIntelligenceEngine implements this to aggregate and analyze events.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Logging.IDiagnosticSink.Publish(SharpEmu.Logging.DiagnosticEvent@)">
+            <summary>
+            Publishes a diagnostic event from any subsystem.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Logging.IDiagnosticSink.Flush">
+            <summary>
+            Flushes all buffered diagnostics to storage.
+            Must be safe to call from signal handlers (no allocations).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Logging.IDiagnosticSink.GeneratePackage">
+            <summary>
+            Generates the final diagnostic package (reports, ZIP, etc.)
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Logging.IDiagnosticSink.IsActive">
+            <summary>
+            Returns true if the engine is active and accepting events.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Logging.DiagnosticEvent">
+            <summary>
+            Represents a single diagnostic event from any subsystem.
+            Designed to be stack-allocatable and copyable (struct for zero-allocation hot path).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Logging.DiagnosticEvent.#ctor(SharpEmu.Logging.DiagnosticEventType,System.Double,System.String,System.String,System.UInt64,System.UInt64,System.Int32,System.Object)">
+            <summary>
+            Represents a single diagnostic event from any subsystem.
+            Designed to be stack-allocatable and copyable (struct for zero-allocation hot path).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Logging.DiagnosticEvent.VideoOutOpen(System.Int32)">
+            <summary>
+            Boot-stage event: VideoOut was opened by the guest.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Logging.DiagnosticEvent.AgcInit">
+            <summary>
+            Boot-stage event: AGC was initialized.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Logging.DiagnosticEventType">
+            <summary>
+            Categories of diagnostic events.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Logging.DiagStopwatch">
+            <summary>
+            High-resolution timestamp helper for diagnostics.
+            Made public so other SharpEmu assemblies (Diagnostics, Core, Libs) can use it
+            without needing to declare their own.
+            Named 'DiagStopwatch' to avoid clashing with System.Diagnostics.Stopwatch.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Logging.SharpEmuLog.MinimumLevel">
+            <summary>
+            Entries below this level are dropped. When a SHARPEMU_LOG_FILE sink is
+            active it only limits the console — the file receives every level.
+            <see cref="F:SharpEmu.Logging.LogLevel.None"/> disables logging entirely, file included.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Logging.SharpEmuLog.Shutdown">
+            <summary>
+            Disposes the active sink if it implements <see cref="T:System.IDisposable"/>.
+            Call at shutdown to flush file buffers. Logging after this call
+            continues to work for non-disposable sinks (e.g. <see cref="T:SharpEmu.Logging.ConsoleLogSink"/>).
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Logging.SharpEmuLog.MinimumLevelFilterSink">
+            <summary>
+            Forwards only entries at or above <see cref="P:SharpEmu.Logging.SharpEmuLog.MinimumLevel"/>. Wraps
+            the console sink when a file sink captures all levels.
+            </summary>
+        </member>
+    </members>
+</doc>

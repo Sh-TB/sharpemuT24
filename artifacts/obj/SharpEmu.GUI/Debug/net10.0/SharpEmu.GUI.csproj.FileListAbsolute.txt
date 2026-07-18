@@ -1,0 +1,15 @@
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.GUI.deps.json
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.GUI.dll
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.GUI.pdb
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/SharpEmu.GUI.csproj.AssemblyReference.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/Avalonia/Resources.Inputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/Avalonia/resources
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/SharpEmu.GUI.GeneratedMSBuildEditorConfig.editorconfig
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/SharpEmu.GUI.AssemblyInfoInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/SharpEmu.GUI.AssemblyInfo.cs
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/SharpEmu.GUI.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/SharpEmu.0F9C6D1E.Up2Date
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/SharpEmu.GUI.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/refint/SharpEmu.GUI.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/SharpEmu.GUI.pdb
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.GUI/Debug/net10.0/ref/SharpEmu.GUI.dll

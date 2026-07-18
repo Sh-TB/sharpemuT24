@@ -1,0 +1,283 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SharpEmu.Core</name>
+    </assembly>
+    <members>
+        <member name="T:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator">
+             <summary>
+             Pure software implementations of the BMI1, BMI2 and ABM general-purpose-register
+             bit-manipulation instructions.
+            
+             The direct-execution backend runs guest PS5 code natively on the host CPU. The PS5's
+             Zen 2 cores implement BMI1/BMI2/ABM, but a host CPU that predates those extensions raises
+             #UD (STATUS_ILLEGAL_INSTRUCTION) when it meets one of these opcodes. This class provides the
+             register-only arithmetic so the exception handler can finish the instruction in software and
+             resume, instead of aborting the title.
+            
+             The methods deliberately operate on plain integers rather than on the OS CONTEXT record so the
+             semantics can be unit-tested in isolation; the unsafe register/memory plumbing lives in the
+             backend adapter. Each method returns the result already masked to the operand width and, where
+             the instruction is defined to touch flags, updates <paramref name="eflags"/> in place. Flags
+             documented as "undefined" by the vendor manuals are left untouched so behaviour stays
+             deterministic across hosts.
+             </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Andn(System.UInt64,System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize,System.UInt32@)">
+            <summary>ANDN: <c>dest = (~src1) &amp; src2</c>. CF and OF are cleared.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Blsi(System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize,System.UInt32@)">
+            <summary>BLSI: isolate the lowest set bit, <c>dest = (-src) &amp; src</c>. CF = (src != 0).</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Blsmsk(System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize,System.UInt32@)">
+            <summary>BLSMSK: mask up to and including the lowest set bit, <c>dest = (src - 1) ^ src</c>. CF = (src == 0).</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Blsr(System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize,System.UInt32@)">
+            <summary>BLSR: reset the lowest set bit, <c>dest = (src - 1) &amp; src</c>. CF = (src == 0).</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Bextr(System.UInt64,System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize,System.UInt32@)">
+            <summary>
+            BEXTR: extract <c>len</c> bits of <paramref name="src"/> starting at bit <c>start</c>, where
+            start = control[7:0] and len = control[15:8]. Only ZF (per result) and cleared CF/OF are defined.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Bzhi(System.UInt64,System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize,System.UInt32@)">
+            <summary>
+            BZHI: zero the bits of <paramref name="src"/> from bit position <c>index[7:0]</c> upward.
+            CF is set when the requested position is at or beyond the operand width.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Tzcnt(System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize,System.UInt32@)">
+            <summary>TZCNT: count trailing zero bits. If src == 0 the result is the operand width and CF is set.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Lzcnt(System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize,System.UInt32@)">
+            <summary>LZCNT: count leading zero bits. If src == 0 the result is the operand width and CF is set.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Rorx(System.UInt64,System.Int32,SharpEmu.Core.Cpu.Emulation.GprOperandSize)">
+            <summary>RORX: rotate <paramref name="src"/> right by <paramref name="count"/> (masked to the operand width). No flags.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Sarx(System.UInt64,System.Int32,SharpEmu.Core.Cpu.Emulation.GprOperandSize)">
+            <summary>SARX: arithmetic shift right by <paramref name="count"/> (masked to the operand width). No flags.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Shlx(System.UInt64,System.Int32,SharpEmu.Core.Cpu.Emulation.GprOperandSize)">
+            <summary>SHLX: logical shift left by <paramref name="count"/> (masked to the operand width). No flags.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Shrx(System.UInt64,System.Int32,SharpEmu.Core.Cpu.Emulation.GprOperandSize)">
+            <summary>SHRX: logical shift right by <paramref name="count"/> (masked to the operand width). No flags.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Pdep(System.UInt64,System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize)">
+            <summary>PDEP: deposit contiguous low bits of <paramref name="src"/> into the positions selected by <paramref name="mask"/>. No flags.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Emulation.BmiInstructionEmulator.Pext(System.UInt64,System.UInt64,SharpEmu.Core.Cpu.Emulation.GprOperandSize)">
+            <summary>PEXT: gather the bits of <paramref name="src"/> selected by <paramref name="mask"/> into contiguous low bits. No flags.</summary>
+        </member>
+        <member name="T:SharpEmu.Core.Cpu.Emulation.GprOperandSize">
+            <summary>
+            Operand width for the emulated general-purpose-register instructions. The numeric value is the
+            bit width, so it can double as the "count leading/trailing zeros of an all-zero source" result.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.ResumeBlockedNestedGuestCallback(SharpEmu.HLE.CpuContext,System.String,SharpEmu.Core.Cpu.Native.DirectExecutionBackend.GuestNativeCallExitReason@,System.String@)">
+            <summary>
+            Completes a nested guest callback which blocked in an HLE import. The
+            outer guest entry is still executing managed HLE code, so returning a
+            successful callback result here would abandon the callback continuation
+            and let a noreturn operation such as pthread_exit unwind through live
+            libc cleanup state. Temporarily expose the owning guest thread as blocked,
+            let the normal scheduler wake it, and resume the callback continuation on
+            this executor until it either returns or fails.
+            </summary>
+        </member>
+        <member name="F:SharpEmu.Core.Cpu.Native.DirectExecutionBackend._diagnosticsActive">
+            <summary>
+            Quick-check flag to avoid method calls when diagnostics are inactive.
+            </summary>
+        </member>
+        <member name="F:SharpEmu.Core.Cpu.Native.DirectExecutionBackend._instructionSampleCounter">
+            <summary>
+            Sampling counter for CPU trace.
+            </summary>
+        </member>
+        <member name="F:SharpEmu.Core.Cpu.Native.DirectExecutionBackend._importVerifyCounter">
+            <summary>
+            Counter for import verification.
+            </summary>
+        </member>
+        <member name="F:SharpEmu.Core.Cpu.Native.DirectExecutionBackend._opcodeBuffer">
+            <summary>
+            Pre-allocated buffer for opcode capture.
+            </summary>
+        </member>
+        <member name="F:SharpEmu.Core.Cpu.Native.DirectExecutionBackend._registerBuffer">
+            <summary>
+            Pre-allocated buffer for register snapshot (16 registers × 8 bytes = 128 bytes).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.RecordInstructionExecuted(SharpEmu.HLE.CpuContext,System.UInt64,System.Int32,System.UInt64,System.Int32)">
+            <summary>
+            Records a CPU execution checkpoint at an import dispatch point.
+            Called from DirectExecutionBackend.Imports.DispatchImport().
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.CaptureCrashContextFromSignal(System.String,System.UInt64,System.Void*)">
+            <summary>
+            Captures crash context from signal handler.
+            Uses Win64 CONTEXT offsets (PosixSignals.cs synthesizes a Win64 CONTEXT
+            even on Linux/macOS, so we always use the same layout).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.WarmUpPosixSignalPath">
+            <summary>
+            Runs the signal-recovery path once with fabricated inputs before the
+            handlers are installed. The first entry into the handler must not
+            require JIT compilation (a fault can interrupt arbitrary runtime
+            states), and under Rosetta 2 the signal trampoline cannot enter x86
+            code that has never been executed (and therefore never translated): a
+            cold handler is silently never invoked and the faulting instruction
+            retries forever.
+            </summary>
+        </member>
+        <member name="F:SharpEmu.Core.Cpu.Native.DirectExecutionBackend._perfHleHistogram">
+            <summary>
+            Stub: Flag for whether HLE performance histogram is enabled.
+            Originally a Dictionary for accumulating timings, but DirectExecutionBackend.Imports.cs
+            uses it as a bool flag ("if (_perfHleHistogram) { ... }").
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.IsUnresolvedSentinel(System.UInt64)">
+            <summary>
+            Stub: Returns true if the given address is the "unresolved sentinel".
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.DumpRecentImportTrace">
+            <summary>
+            Stub: Dumps the recent import trace to stderr.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.RecordRecentImportTrace(System.Int64,System.String,System.UInt64,System.UInt64,System.UInt64,System.UInt64)">
+            <summary>
+            Stub: Records a recent import trace entry.
+            Accepts the 6-argument form used by DirectExecutionBackend.Imports.cs.
+            First parameter is `long` (sequence number) to match upstream usage.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.RecordPerfHleCall(System.String)">
+            <summary>
+            Stub: Records HLE performance metrics.
+            Accepts a single nid argument (the upstream form, no timing).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.RecordPerfHleCall(System.String,System.Int64)">
+            <summary>
+            Stub: Overload that accepts timing.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.TryReadStackU64(System.UInt64,System.UInt64@)">
+            <summary>
+            Stub: Reads a 64-bit value from the guest stack.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.IsLikelyReturnAddress(System.UInt64)">
+            <summary>
+            Stub: Heuristic for determining if an address is a valid return address.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.TryGetPlausibleReturnFromStack(System.UInt64,System.UInt64@)">
+            <summary>
+            Stub: Tries to get a plausible return address from the stack.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.ProbeReturnRip(System.UInt64,System.Object)">
+            <summary>
+            Stub: Probes a return RIP for validity.
+            Accepts 2 arguments (rip and an optional context/state).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.RecordPerfHleDispatchTime(System.Int64)">
+            <summary>
+            Stub: Records HLE dispatch timing (used by perf-histogram path).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.TryGetPlausibleReturnFromStack(System.UInt64,System.UInt64@,System.UInt64@)">
+            <summary>
+            Stub: Tries to get a plausible return address from the stack.
+            Accepts the 3-argument form: (rsp, out retRip, out nextRsp).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.IsReadableProtection(System.UInt32)">
+            <summary>
+            Stub: Returns true if memory protection allows reads.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.IsExecutableProtection(System.UInt32)">
+            <summary>
+            Stub: Returns true if memory protection allows execution.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.ScanSuspiciousResolverPointers(System.UInt64,System.UInt64)" -->
+        <member name="M:SharpEmu.Core.Cpu.Native.DirectExecutionBackend.ParseOptionalHexAddress(System.String)">
+            <summary>
+            Stub: Parses an optional hex address from an environment variable.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Core.Cpu.Native.NullHostFaultHandling">
+            <summary>
+            Placeholder for hosts whose fault bridge is installed directly by the
+            execution backend. POSIX uses its sigaction bridge and never calls these
+            Windows-shaped registration methods.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Core.Cpu.Native.PosixHostStubs">
+            <summary>
+            POSIX replacements for the kernel32 helpers the native backend embeds in
+            emitted x86-64 code. Every stub exposed here follows the Win64 calling
+            convention the emitted call sites were written for (first argument in
+            ECX, result in RAX, Win64 non-volatile registers preserved), so the
+            emission code stays identical across platforms.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.PosixHostStubs.TlsAlloc">
+            <summary>Allocates a pthread TLS key, mirroring kernel32!TlsAlloc.</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.PosixHostStubs.GetCurrentThreadId">
+            <summary>Stable numeric id of the calling thread (kernel32!GetCurrentThreadId).</summary>
+        </member>
+        <member name="M:SharpEmu.Core.Cpu.Native.PosixHostStubs.CreateWin64ToSysVThunk(System.IntPtr)">
+            <summary>
+            Wraps a managed callback (compiled for the SysV ABI on POSIX .NET) in a
+            thunk that accepts up to four integer arguments in the Win64 ABI the
+            emitted x86-64 call sites use. Win64 passes args in rcx/rdx/r8/r9 and
+            treats rdi/rsi as non-volatile; SysV expects rdi/rsi/rdx/rcx and
+            clobbers them, so the thunk saves rdi/rsi, shuffles the registers, keeps
+            the stack 16-byte aligned for the call, and forwards the rax result.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Core.Cpu.Native.Windows.Win64ContextOffsets">
+            <summary>
+            Byte offsets into the Win64 CONTEXT record delivered to vectored exception
+            handlers. The handlers read/write guest registers directly at these offsets
+            (no managed CONTEXT struct exists); a future POSIX backend gets a sibling
+            class for its mcontext layout.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Core.Cpu.Native.Windows.WindowsFaultCodes">
+            <summary>
+            Windows NTSTATUS exception codes and EXCEPTION_RECORD access-type values the
+            fault handlers filter on. Values are the same numbers the handlers previously
+            compared as bare literals; only the spelling changed.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Core.Cpu.Native.Windows.WindowsFaultHandling">
+            <summary>
+            Vectored-exception-handler installation and the handler pre-filter thunk.
+            The thunk is inherently Windows-shaped (TEB stack-limit reads via gs:,
+            NTSTATUS pre-filtering, Win64 calling convention) and moved here whole from
+            DirectExecutionBackend; a POSIX backend supplies a sibling built around
+            sigaction/sigaltstack instead.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Core.Loader.SelfImage.TlsStaticOffset">
+            <summary>Variant II distance from the thread pointer to this module's static TLS base.</summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,13 @@
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.ShaderCompiler.deps.json
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.ShaderCompiler.dll
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Debug/net10.0/SharpEmu.ShaderCompiler.pdb
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.csproj.AssemblyReference.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.GeneratedMSBuildEditorConfig.editorconfig
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.AssemblyInfoInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.AssemblyInfo.cs
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.68232950.Up2Date
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/refint/SharpEmu.ShaderCompiler.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.pdb
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/ref/SharpEmu.ShaderCompiler.dll

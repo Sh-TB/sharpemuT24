@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SharpEmu.Diagnostics.Contracts</name>
+    </assembly>
+    <members>
+        <member name="T:SharpEmu.Diagnostics.Contracts.DiagnosticAdapter">
+            <summary>
+            Static adapter that the Emulator Core/Libs/HLE use to publish diagnostic events.
+            This is the ONLY entry point from Core/Libs/HLE into the Diagnostics subsystem.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Diagnostics.Contracts.DiagnosticAdapter.IsActive">
+            <summary>
+            True if any diagnostic bus is registered and active.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Diagnostics.Contracts.DiagnosticAdapter.Bus">
+            <summary>
+            The currently-registered event bus, or null.
+            (Libs/HLE use this to call Publish directly with custom events.)
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.DiagnosticAdapter.RegisterBus(SharpEmu.Diagnostics.Contracts.IDiagnosticEventBus)">
+            <summary>
+            Registers the diagnostic event bus (called by SharpEmu.CLI at startup).
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.ICpuDiagnosticSource">
+            <summary>
+            Provides CPU execution data to the Diagnostics subsystem.
+            Implemented by SharpEmu.Core.Cpu.Native.DirectExecutionBackend.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Diagnostics.Contracts.ICpuDiagnosticSource.IsActive">
+            <summary>True if diagnostics are currently active.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.ICpuDiagnosticSource.RecordInstruction(System.UInt64,System.ReadOnlySpan{System.Byte},System.ReadOnlySpan{System.Byte},System.UInt64,System.Int32,System.UInt64)">
+            <summary>Records a CPU instruction checkpoint at an import dispatch point.</summary>
+            <param name="rip">Return instruction pointer (where guest will resume)</param>
+            <param name="opcode">Raw opcode bytes at RIP (up to 16 bytes)</param>
+            <param name="registers">Register snapshot (16 GP registers, 128 bytes)</param>
+            <param name="memoryAddress">Memory operand address (0 if none)</param>
+            <param name="memoryAccess">0=none, 1=read, 2=write, 4=execute</param>
+            <param name="memoryValue">Value read/written (if applicable)</param>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.ICpuDiagnosticSource.RecordInstructionLightweight(System.UInt64)">
+            <summary>Lightweight RIP-only checkpoint (no opcode/register capture).</summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.RegisterSnapshot">
+            <summary>
+            Register snapshot data structure (value type, no allocations).
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.IGpuDiagnosticSource">
+            <summary>
+            Provides GPU/AGC execution data to the Diagnostics subsystem.
+            Implemented by SharpEmu.Libs.Agc.AgcExports.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IGpuDiagnosticSource.RecordSubmit(System.UInt64,System.UInt32)">
+            <summary>Records a GPU command buffer submission (sceAgcDriverSubmitDcb/Acb).</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IGpuDiagnosticSource.RecordDraw(System.UInt32,System.UInt32,System.UInt64)">
+            <summary>Records a draw call.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IGpuDiagnosticSource.RecordDispatch(System.UInt32,System.UInt32,System.UInt32)">
+            <summary>Records a compute dispatch.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IGpuDiagnosticSource.RecordShaderCompiled(System.UInt64,System.Byte[],System.String,System.Boolean,System.String)">
+            <summary>Records a shader compilation event.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IGpuDiagnosticSource.RecordResourceCreated(System.UInt64,System.String,System.UInt64,System.String)">
+            <summary>Records a GPU resource creation (texture/buffer/render target).</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IGpuDiagnosticSource.RecordResourceDestroyed(System.UInt64)">
+            <summary>Records a GPU resource destruction.</summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.IMemoryDiagnosticSource">
+            <summary>
+            Provides memory allocation data to the Diagnostics subsystem.
+            Implemented by SharpEmu.Core.Memory.PhysicalVirtualMemory.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IMemoryDiagnosticSource.RecordAllocation(System.UInt64,System.UInt64,System.String,System.UInt64)">
+            <summary>Records a guest memory allocation.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IMemoryDiagnosticSource.RecordFree(System.UInt64)">
+            <summary>Records a guest memory free.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IMemoryDiagnosticSource.RecordAccess(System.UInt64,System.UInt64,System.Int32,System.UInt64)">
+            <summary>Records a guest memory access (sampled, for watchpoints).</summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.IThreadDiagnosticSource">
+            <summary>
+            Provides thread state data to the Diagnostics subsystem.
+            Implemented by SharpEmu.Libs.Kernel.KernelPthreadCompatExports.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IThreadDiagnosticSource.RecordStateChange(System.Int32,System.String,System.String)">
+            <summary>Records a thread state change.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IThreadDiagnosticSource.RecordMutexAcquire(System.Int32,System.UInt64)">
+            <summary>Records a mutex acquisition.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IThreadDiagnosticSource.RecordMutexRelease(System.Int32,System.UInt64)">
+            <summary>Records a mutex release.</summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.ICrashDiagnosticSource">
+            <summary>
+            Provides crash capture functionality.
+            Implemented by SharpEmu.Core.Cpu.Native.DirectExecutionBackend (signal handler).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.ICrashDiagnosticSource.QueueCrash(System.String,System.UInt64,System.UInt64,SharpEmu.Diagnostics.Contracts.RegisterSnapshot@)">
+            <summary>
+            [SIGNAL-SAFE] Queues crash data for async writing.
+            MUST NOT do any heap allocations, file I/O, or take locks.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.ISyscallDiagnosticSource">
+            <summary>
+            Provides syscall/HLE call tracking.
+            Implemented by SharpEmu.Core.Cpu.Native.DirectExecutionBackend.Imports.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.ISyscallDiagnosticSource.RecordCall(System.String,System.String,System.String,System.Int64,System.Int64,System.Int32,System.UInt64[])">
+            <summary>Records a syscall/HLE export call.</summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.IFileIoDiagnosticSource">
+            <summary>
+            Provides file I/O tracking.
+            Implemented by SharpEmu.Libs.Kernel.KernelMemoryCompatExports.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.IBootStageDiagnosticSource">
+            <summary>
+            Provides boot stage milestone tracking.
+            Implemented by SharpEmu.Core.Runtime.SharpEmuRuntime.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IBootStageDiagnosticSource.RecordBootStage(System.String,System.String)">
+            <summary>Records a boot stage milestone (e.g., "SelfImage", "EntryPoint").</summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.DiagnosticProfile">
+            <summary>
+            Diagnostic profiling levels - controls how much data is collected.
+            </summary>
+        </member>
+        <member name="F:SharpEmu.Diagnostics.Contracts.DiagnosticProfile.Normal">
+            <summary>Minimal tracking - only boot stages and crashes.</summary>
+        </member>
+        <member name="F:SharpEmu.Diagnostics.Contracts.DiagnosticProfile.Compatibility">
+            <summary>Standard compatibility testing.</summary>
+        </member>
+        <member name="F:SharpEmu.Diagnostics.Contracts.DiagnosticProfile.DeepDebug">
+            <summary>Full debugging - event log, detailed heap, all thread transitions.</summary>
+        </member>
+        <member name="F:SharpEmu.Diagnostics.Contracts.DiagnosticProfile.Developer">
+            <summary>Developer mode - everything including full event trace.</summary>
+        </member>
+        <member name="F:SharpEmu.Diagnostics.Contracts.DiagnosticProfile.Forensic">
+            <summary>Forensic mode - maximum data capture for crash reproduction.</summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.Contracts.IDiagnosticEventBus">
+            <summary>
+            Central event bus for diagnostic events.
+            Implemented by SharpEmu.Diagnostics.DebugIntelligenceEngine.
+            Core/Libs/HLE PUBLISH events to this; Diagnostics CONSUMES.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Diagnostics.Contracts.IDiagnosticEventBus.IsActive">
+            <summary>True if the event bus is active (diagnostics enabled).</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IDiagnosticEventBus.Publish(SharpEmu.Logging.DiagnosticEvent)">
+            <summary>Publishes a generic diagnostic event.</summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.Contracts.IDiagnosticEventBus.Flush">
+            <summary>Flushes pending events to disk.</summary>
+        </member>
+    </members>
+</doc>

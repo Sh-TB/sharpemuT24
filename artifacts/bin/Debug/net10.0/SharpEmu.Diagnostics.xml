@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SharpEmu.Diagnostics</name>
+    </assembly>
+    <members>
+        <member name="T:SharpEmu.Diagnostics.CpuTraceRecorder">
+            <summary>
+            Records CPU instruction checkpoints (RIP + opcode + registers) at import
+            dispatch points. Uses a ring buffer to bound memory usage.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.CpuTraceRecorder.RecordInstruction(System.UInt64,System.ReadOnlySpan{System.Byte},System.ReadOnlySpan{System.Byte},System.UInt64,System.Int32,System.UInt64)">
+            <summary>
+            Records an instruction checkpoint. Called from ICpuDiagnosticSource.RecordInstruction.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.CpuTraceRecorder.RecordInstructionLightweight(System.UInt64)">
+            <summary>
+            Records a lightweight RIP-only checkpoint.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.CpuTraceRecorder.ExportText">
+            <summary>
+            Exports the trace as human-readable text.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.CpuTraceRecorder.ExportJson">
+            <summary>
+            Exports the trace as JSON.
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.DebugIntelligenceEngine">
+            <summary>
+            Central diagnostic engine - implements IDiagnosticEventBus.
+            Singleton instance accessible via DebugIntelligenceEngine.Current.
+            </summary>
+        </member>
+        <member name="P:SharpEmu.Diagnostics.DebugIntelligenceEngine.Current">
+            <summary>
+            Gets the current active diagnostic engine, or null if diagnostics are disabled.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.DebugIntelligenceEngine.CreateSession(System.String,System.String,SharpEmu.Diagnostics.Contracts.DiagnosticProfile)">
+            <summary>
+            Creates and activates a new diagnostic session.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.DebugIntelligenceEngine.GeneratePackage">
+            <summary>
+            Generates a complete crash package ZIP file.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.DebugIntelligenceEngine.AnalyzeRootCause">
+            <summary>
+            Analyzes root cause of crash (basic implementation).
+            </summary>
+        </member>
+        <member name="T:SharpEmu.Diagnostics.DiagnosticProfileExtensions">
+            <summary>
+            Diagnostic profile enum (alias for the one in Contracts).
+            </summary>
+        </member>
+        <member name="M:SharpEmu.Diagnostics.SignalSafeCrashWriter.QueueCrash(System.String,System.UInt64,System.UInt64,SharpEmu.Diagnostics.Contracts.RegisterSnapshot@)">
+            <summary>
+            [SIGNAL-SAFE] Queues crash data for async writing.
+            
+            CRITICAL RULES:
+            - NO heap allocations
+            - NO file I/O
+            - NO locks (uses Interlocked only)
+            - NO Console.Error.WriteLine
+            </summary>
+        </member>
+    </members>
+</doc>

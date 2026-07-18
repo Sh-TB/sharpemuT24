@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SharpEmu</name>
+    </assembly>
+    <members>
+        <member name="T:SharpEmu.CLI.DiagnosticEngine">
+            <summary>
+            Crash Export Pipeline - "Black Box" for SharpEmu
+            Ensures diagnostic data is flushed to disk even on crash.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.#ctor(System.String,System.String)">
+            <summary>
+            Creates a new DiagnosticEngine instance with fixed directory structure.
+            </summary>
+            <param name="gameName">Game identifier (e.g., PPSA02929 or eboot.bin filename)</param>
+            <param name="baseDirectory">Optional base directory (defaults to ./SharpEmu/diagnostics)</param>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.RecordImport(System.String,System.String,System.UInt64)">
+            <summary>
+            Records an import call event.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.RecordThread(System.Int32,System.String,System.String)">
+            <summary>
+            Records thread state change.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.UpdateThreadCount(System.Int32)">
+            <summary>
+            Updates active thread count.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.RecordMemory(System.String,System.UInt64,System.UInt64,System.String)">
+            <summary>
+            Records memory operation.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.RecordGpu(System.String,System.String)">
+            <summary>
+            Records GPU/Vulkan operation.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.RecordGpuTimelineEvent(System.Double,System.String,System.String)">
+            <summary>
+            Records a GPU timeline event (from HeadlessVideoPresenter).
+            These events track the lifecycle of GPU operations.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.ImportGpuReport(System.Object)">
+            <summary>
+            Imports GPU diagnostics report from HeadlessVideoPresenter.
+            Call this when session ends or on crash.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.RecordAgcFrameSummary(System.Int32,System.Int64,System.Int64,System.Int32,System.Int64)">
+            <summary>
+            Records AGC frame summary for diagnostics.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.RecordError(System.String,System.String,System.String)">
+            <summary>
+            Records an error or crash event.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.Flush">
+            <summary>
+            Flushes all collected diagnostics to disk.
+            Call this in finally blocks!
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.DiagnosticEngine.GeneratePackage">
+            <summary>
+            Generates complete diagnostic package (ZIP with all logs).
+            Call this before exit!
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.Program.CheckHostArchitecture">
+            <summary>
+            The supported host execution model, checked before any emulation
+            starts: the CPU backend executes guest x86-64 code natively, so the
+            host process must be x86-64 — win-x64/linux-x64 on x64 hardware, or
+            osx-x64 under Rosetta 2 on Apple Silicon (Rosetta translates the
+            whole process, so it still reports as X64 here). An arm64 process
+            (e.g. the osx-arm64 build) can browse the GUI but cannot run games;
+            failing up front distinguishes that from MoltenVK, signal-handler,
+            or guest-memory startup problems.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.Program.ConfigureMoltenVkDefaults">
+            <summary>
+            Applies MoltenVK performance defaults before the Vulkan loader is
+            loaded. Existing user-provided values always take precedence.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.Program.PreloadMacVulkanLoader">
+            <summary>
+            Makes a Vulkan loader visible to GLFW's dlopen("libvulkan.1.dylib").
+            Homebrew's Vulkan libraries are arm64-only and cannot load into this
+            x86-64 (Rosetta 2) process, so a universal libMoltenVK.dylib placed
+            next to the executable (named libvulkan.1.dylib) is preloaded here;
+            dyld then resolves GLFW's bare-name dlopen to the loaded image.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.Program.UseUtf8ConsoleOutput">
+            <summary>
+            Makes console writes UTF-8 so the GUI's pipe reader (and any modern
+            terminal) decodes non-ASCII text correctly. Without this, redirected
+            output falls back to the OS ANSI code page and characters like "—"
+            arrive mangled.
+            </summary>
+        </member>
+        <member name="M:SharpEmu.CLI.Program.ResolveDiagnosticProfile">
+            <summary>
+            Resolves the diagnostic profile from environment variables.
+            SHARPEMU_DIAG_PROFILE=compat|deep|dev|normal (default: compat)
+            </summary>
+        </member>
+    </members>
+</doc>
