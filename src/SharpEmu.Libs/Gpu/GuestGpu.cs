@@ -8,7 +8,6 @@ namespace SharpEmu.Libs.Gpu;
 /// <summary>
 /// Process-wide access point for the guest-GPU backend, mirroring HostPlatform for the
 /// host seam: static HLE export classes resolve the renderer through <see cref="Current"/>.
-/// Vulkan is the only backend today; Metal/DX12 slot in here.
 /// </summary>
 internal static class GuestGpu
 {
