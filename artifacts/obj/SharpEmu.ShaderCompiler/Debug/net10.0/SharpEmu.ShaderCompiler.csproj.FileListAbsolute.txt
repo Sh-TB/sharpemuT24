@@ -6,6 +6,7 @@
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.AssemblyInfoInputs.cache
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.AssemblyInfo.cs
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.sourcelink.json
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.68232950.Up2Date
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/SharpEmu.ShaderCompiler.dll
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.ShaderCompiler/Debug/net10.0/refint/SharpEmu.ShaderCompiler.dll

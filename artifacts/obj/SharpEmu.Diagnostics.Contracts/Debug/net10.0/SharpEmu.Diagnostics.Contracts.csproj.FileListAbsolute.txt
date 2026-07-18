@@ -7,6 +7,7 @@
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics.Contracts/Debug/net10.0/SharpEmu.Diagnostics.Contracts.AssemblyInfoInputs.cache
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics.Contracts/Debug/net10.0/SharpEmu.Diagnostics.Contracts.AssemblyInfo.cs
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics.Contracts/Debug/net10.0/SharpEmu.Diagnostics.Contracts.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics.Contracts/Debug/net10.0/SharpEmu.Diagnostics.Contracts.sourcelink.json
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics.Contracts/Debug/net10.0/SharpEmu.5E4544E4.Up2Date
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics.Contracts/Debug/net10.0/SharpEmu.Diagnostics.Contracts.dll
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics.Contracts/Debug/net10.0/refint/SharpEmu.Diagnostics.Contracts.dll

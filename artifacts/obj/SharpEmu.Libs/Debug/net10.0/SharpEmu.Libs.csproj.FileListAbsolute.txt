@@ -7,6 +7,7 @@
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Debug/net10.0/SharpEmu.Libs.AssemblyInfoInputs.cache
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Debug/net10.0/SharpEmu.Libs.AssemblyInfo.cs
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Debug/net10.0/SharpEmu.Libs.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Debug/net10.0/SharpEmu.Libs.sourcelink.json
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Debug/net10.0/SharpEmu.7149F5F6.Up2Date
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Debug/net10.0/SharpEmu.Libs.dll
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Debug/net10.0/refint/SharpEmu.Libs.dll

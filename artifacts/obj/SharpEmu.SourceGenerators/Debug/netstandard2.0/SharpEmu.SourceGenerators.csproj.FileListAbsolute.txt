@@ -6,5 +6,6 @@
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Debug/netstandard2.0/SharpEmu.SourceGenerators.AssemblyInfoInputs.cache
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Debug/netstandard2.0/SharpEmu.SourceGenerators.AssemblyInfo.cs
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Debug/netstandard2.0/SharpEmu.SourceGenerators.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Debug/netstandard2.0/SharpEmu.SourceGenerators.sourcelink.json
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Debug/netstandard2.0/SharpEmu.SourceGenerators.dll
 /home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Debug/netstandard2.0/SharpEmu.SourceGenerators.pdb

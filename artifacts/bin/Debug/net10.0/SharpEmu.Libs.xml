@@ -424,7 +424,6 @@
             <summary>
             Process-wide access point for the guest-GPU backend, mirroring HostPlatform for the
             host seam: static HLE export classes resolve the renderer through <see cref="P:SharpEmu.Libs.Gpu.GuestGpu.Current"/>.
-            Vulkan is the only backend today; Metal/DX12 slot in here.
             </summary>
         </member>
         <member name="T:SharpEmu.Libs.Gpu.GuestDrawTexture">
