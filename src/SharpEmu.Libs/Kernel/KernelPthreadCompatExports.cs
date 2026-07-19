@@ -674,7 +674,7 @@ public static class KernelPthreadCompatExports
         LibraryName = "libKernel")]
     public static int PthreadRenameNpPOSIX(CpuContext ctx) => PthreadRename(ctx);
 
-    private static int PthreadMutexInitCore(CpuContext ctx, ulong mutexAddress, ulong attrAddress)
+    internal static int PthreadMutexInitCore(CpuContext ctx, ulong mutexAddress, ulong attrAddress)
     {
         if (mutexAddress == 0)
         {
@@ -742,7 +742,7 @@ public static class KernelPthreadCompatExports
         return (int)OrbisGen2Result.ORBIS_GEN2_OK;
     }
 
-    private static int PthreadMutexLockCore(CpuContext ctx, ulong mutexAddress, bool tryOnly)
+    internal static int PthreadMutexLockCore(CpuContext ctx, ulong mutexAddress, bool tryOnly)
     {
         if (mutexAddress == 0)
         {
@@ -923,7 +923,7 @@ public static class KernelPthreadCompatExports
         return hostResult;
     }
 
-    private static int PthreadMutexUnlockCore(CpuContext ctx, ulong mutexAddress, bool requireOwner)
+    internal static int PthreadMutexUnlockCore(CpuContext ctx, ulong mutexAddress, bool requireOwner)
     {
         if (mutexAddress == 0)
         {
@@ -1368,7 +1368,7 @@ public static class KernelPthreadCompatExports
         return ctx.Memory.TryWrite(address, bytes);
     }
 
-    private static int PthreadCondInitCore(CpuContext ctx, ulong condAddress)
+    internal static int PthreadCondInitCore(CpuContext ctx, ulong condAddress)
     {
         if (condAddress == 0)
         {
