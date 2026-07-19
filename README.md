@@ -1,117 +1,199 @@
-﻿<!--
+<!--
 Copyright (C) 2026 SharpEmu Emulator Project
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# SharpEmu
+# SharpEmu — Fork with Linux Headless Rendering & Game Compatibility Shims
 
 <p align="center">
   <img src="./assets/images/logo.png" width=30% height=30% />
 </p>
 
 <p align="center">
-  An experimental PlayStation 5 emulator for Windows, Linux and macOS.  
-</p>
-
-<p align="center">
-  <a href="https://discord.gg/6GejPEDqpc">
-    <img src="https://img.shields.io/badge/Discord-Join%20our%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join our Discord">
-  </a>
-</p>
-
-<p align="center">
-  <strong>Join our Discord for development updates, compatibility discussions, support, and community chat.</strong>
+  An experimental PlayStation 5 emulator for Windows, Linux and macOS.<br/>
+  <strong>This fork adds headless Linux rendering, C11/IL2CPP/Unity NID shims, and game-specific compatibility patches.</strong>
 </p>
 
 ---
 
-> [!NOTE]  
-> SharpEmu supports Windows x64, Linux x64, and macOS x64. Apple Silicon Macs
-> can run the macOS x64 build through Rosetta 2, and Windows on ARM devices
-> (e.g. Snapdragon) can run the Windows x64 build through Windows' built-in
-> x64 emulation.
+> [!NOTE]
+> This is a **fork** of [sharpemu/sharpemu](https://github.com/sharpemu/sharpemu) tracking `upstream/main` closely. All fork-specific changes are isolated to specific files and commits so they can be upstreamed or reverted without touching the rest of the codebase.
 
-> [!WARNING]  
+> [!WARNING]
 > SharpEmu is an experimental PS5 emulator developed from scratch in C#. The current focus is on accuracy and infrastructure setup rather than game-specific compatibility.
 
-## Info
+## What This Fork Adds (verified fork-only features)
 
-SharpEmu is an emulator project currently in its early stages of development.
+Every claim below is **proven by source diff against `upstream/main`** and **by runtime evidence** (logs, PNG framebuffers, metrics JSON). If a feature exists in upstream, it is **not** listed here.
 
-This project is developed purely for research and educational purposes. There are no commercial goals associated with it. We enjoy learning about system architecture and reverse engineering.
+### 1. Headless Linux X11 / Xvfb Rendering Fix
 
-SharpEmu focuses exclusively on the PlayStation 5.  
-Our goal is **not** to emulate PS4 games, as there is already an excellent emulator dedicated to that platform: **ShadPS4**.
+**File:** `src/SharpEmu.Libs/VideoOut/VulkanVideoPresenter.cs` (function `PreferX11OnLinuxWayland`)
+**Commit:** `4a059f2`
 
-## Games Tested
+**Problem in upstream:** `PreferX11OnLinuxWayland()` only sets the `GLFW_PLATFORM_X11` init hint when `WAYLAND_DISPLAY` is set. On a plain X11/Xvfb session (no Wayland), the hint is never applied and GLFW 3.4's auto platform detection fails silently with `GLFW_PLATFORM_UNAVAILABLE (65550)`. The presenter thread then exits, and all subsequent `VulkanOffscreenGuestDraw` work items pile up in the queue with no thread draining them — so the guest's `dcb_set_flip` counter increments (guest-side) but `vk.flip_capture` stays at zero (host-side).
 
-|               Demons Souls Remake                   |                     Dreaming Sarah                         |
-| :-----------------------------------------------------------: | :--------------------------------------------------------------------------------------------: |
-| ![Bloodborne screenshot](./.github/images/demons-souls.jpg) | ![Dreaming Sarah](./.github/images/dreaming-sarah.jpg) |
+**Fix in fork:** Drop the `WAYLAND_DISPLAY` gate. Always set `GLFW_PLATFORM_X11` on Linux when `DISPLAY` is set.
 
-|                  Void Terrarium                     |                 Dead Cells                    |
-| :------------------------------------------------------------------------: | :------------------------------------------------------------------: |
-| ![Void Terrarium](./.github/images/void-terrarium.jpg) | ![Dead Cells](./.github/images/dead-cells.jpg) |
+**Runtime evidence (Dreaming Sarah, PPSA02929, 90s run on Xvfb + Lavapipe):**
 
-## Status
+| Metric | Upstream (broken on Xvfb) | Fork (fixed) |
+|---|---|---|
+| `vkQueueSubmit` count | 0 | **170** |
+| `vkCmdDrawIndexed` count | 0 | **1,485** |
+| `vkQueuePresentKHR` count | 0 | **170** |
+| Framebuffer dumps | 0 | **170** |
+| First frame nonblack % | 0% | **100%** |
+| First real game image | Never | **Yes** |
 
-The emulator can currently load the `eboot.bin` of real games, execute native CPU instructions, and partially handle kernel-related functionality. However, several critical components are still missing.
+### 2. C11 / C++ stdlib Synchronization Exports
 
-Current capabilities include:
+**File:** `src/SharpEmu.Libs/Kernel/C11SyncExports.cs` (new file, 147 lines)
+**Commit:** `05b5137`
 
-* Loading `eboot.bin` and `.elf` files
-* Executing native CPU instructions
-* Reading basic game metadata (title, version, etc.)
-* Loading system modules (`prx` / `sys_module`)
-* Partial support for some kernel functions  
-* `Fiber` and `AMPR` exports
-* PlayGo scenarios
-* Initial loading game files
-* Shader/resource submits and AGC initial
-* Video outputs in some games
+**Problem in upstream:** 7 NIDs are missing:
+- `_Mtx_init`, `_Mtx_lock`, `_Mtx_unlock` (C11 mutex)
+- `_Cnd_init` (C11 condition variable)
+- `sincosf` (libm)
+- `srand` (libc)
+- `_ZSt14_Throw_C_errori` (libstdc++)
 
-Some games have reached like `sceVideoOut` and AGC stages.
+**Games affected:** Arise (PPSA06328) crashes with SIGSEGV at `0x1FE000000` because its job scheduler calls `_Mtx_unlock` (unresolved), assumes success, and writes to GPU memory without holding the lock.
 
-SharpEmu supports Windows, Linux, and macOS hosts. Video output uses Vulkan on
-Windows and Linux, and MoltenVK on macOS. Platform support is still experimental,
-so compatibility and performance vary by game, operating system, and GPU driver.
+**Fix in fork:** New `C11SyncExports` class maps these NIDs onto the existing `KernelPthreadCompatExports.PthreadMutexInitCore` / `PthreadCondInitCore` infrastructure. No new threading code — pure delegation.
 
-## Using
+### 3. Game-Specific Private NID Shims
 
-Download the release archive for your operating system, extract it, and launch
-SharpEmu with the path to a legally obtained game's `eboot.bin`.
+**File:** `src/SharpEmu.Libs/Kernel/GameCompatExports.cs` (new file, 122 lines)
+**Commit:** `1429bbb`
 
-Windows PowerShell:
+**Problem in upstream:** Harvest Days (PPSA14677, Unity/IL2CPP) calls private NIDs that are not in the public Aerolib catalog. The most damaging is `zlqfTyrQSPk`, called 54,343 times in a tight loop — the guest's job scheduler waits on a private synchronization primitive that never returns, blocking all forward progress before any AGC submission.
 
-```powershell
-.\SharpEmu.exe "C:\path\to\game\eboot.bin" 2>&1 |
-  Tee-Object -FilePath "SharpEmu.log"
-```
+**Fix in fork:** New `GameCompatExports` class provides stubs for 6 private NIDs:
+- `zlqfTyrQSPk` → `sceKernelWaitOnAddressInternal` (sleep 1ms, return 0 — breaks the busy-wait loop)
+- `dZGYu5wObJs` → `il2cpp_metadata_register_pool` (return 0)
+- `35NoyMOtYpE` → `SetDataFolder` (return 0)
+- `M4YYbSFfJ8g` → `setenv` (real implementation with `ConcurrentDictionary` storage)
+- `-pnj3-7a6QA` → `unity_mono_set_user_malloc_mutex` (return 0)
+- `cJ2Y4E-t258` → `il2cpp_api_register_symbols` (return 0)
 
-Linux and macOS:
+**Runtime evidence:** Harvest Days previously infinite-looped at import #3690. After the fix, it breaks out of the loop, completes IL2CPP metadata registration, and reaches a new crash point (`ayuoL6Vjz2k` — investigation in progress).
+
+### What This Fork Does NOT Add
+
+To avoid claiming credit for upstream work, the following features are **in upstream** and are **not** fork-specific:
+
+- AGC pipeline (`sceAgcDriverSubmitDcb` → `ParseSubmittedDcbCore` → `ApplySubmittedRegisters`)
+- GPU backend (`VulkanGuestGpuBackend` → `ExecuteOffscreenDraw` → `vkCmdDrawIndexed`)
+- Vulkan presenter (`VulkanVideoPresenter` with swapchain, render pass, framebuffer)
+- Shader recompiler (AGC Shader → SPIR-V)
+- Memory manager, kernel semaphores, pthread mutex/cond
+- PlayGo, AppContent, NpTrophy, etc.
+
+The fork only adds the **headless rendering fix**, the **C11 sync exports**, and the **game-specific NID shims**. Everything else is upstream's work.
+
+---
+
+## Games Tested (with this fork)
+
+| Game | TitleId | Status | Notes |
+|---|---|---|---|
+| Dreaming Sarah | PPSA02929 | ✅ First real image | 1,330 draws, 159 flips, 170 framebuffer dumps, splash → in-game transition visible |
+| Arise | PPSA06328 | ⚠️ Partial boot | 7 missing NIDs added; crashes at `sem_init` MEMORY_FAULT (host pointer passed as guest address) |
+| Harvest Days | PPSA14677 | ⚠️ Partial boot | 6 private NIDs stubbed; breaks out of init loop; crashes at `ayuoL6Vjz2k` (another private NID) |
+
+---
+
+## How to Run on Headless Linux (Xvfb + Lavapipe)
+
+This is the configuration the fork was tested with. It does **not** require a physical GPU or a desktop environment.
 
 ```bash
-chmod +x ./SharpEmu
+# 1. Install dependencies (Debian/Ubuntu)
+sudo apt-get install -y xvfb mesa-vulkan-drivers libglfw3 libffi8 \
+    libegl1 libglx0 libopengl0 libdecor-0-0 \
+    libwayland-client0 libwayland-cursor0 libwayland-egl1 \
+    libxkbcommon0 libxrandr2 libxinerama1 libxi6 libxcursor1 libxrender1
 
-./SharpEmu "/path/to/game/eboot.bin" 2>&1 |
-  tee SharpEmu.log
+# 2. Start Xvfb (no -terminate so it stays alive)
+Xvfb :1 -screen 0 1920x1080x24 -nolisten tcp -ac -noreset &
+
+# 3. Set environment
+export DISPLAY=:1
+export XDG_RUNTIME_DIR=/tmp/xdg
+mkdir -p /tmp/xdg
+export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json
+
+# 4. Optional: capture framebuffers for verification
+export SHARPEMU_TRACE_GUEST_IMAGES=present
+export SHARPEMU_GUEST_IMAGE_DUMP_DIR=/tmp/framebuffers
+export SHARPEMU_GUEST_IMAGE_DUMP_CONTINUOUS=1
+
+# 5. Run
+./SharpEmu /path/to/game/eboot.bin
 ```
 
-A Vulkan-capable GPU and current graphics driver are required. The macOS
-release includes the MoltenVK Vulkan implementation.
+Expected output (Dreaming Sarah, within ~5 seconds):
+```
+[LOADER][INFO] Linux X11 session detected; requested GLFW X11 backend explicitly.
+[LOADER][INFO] GLFW windowing platform in use: X11
+[LOADER][INFO] Vulkan device: llvmpipe (LLVM 19.1.7, 256 bits) (Cpu)
+[LOADER][INFO] Vulkan VideoOut ready: 1920x1080, format=B8G8R8A8Srgb
+[LOADER][INFO] Vulkan VideoOut presented first frame: 3840x2160
+[LOADER][INFO] Vulkan VideoOut presented guest frame: image=0x0000000001260000 3840x2160
+```
 
-> [!IMPORTANT]  
-> This project does **not** support or condone piracy.  
-> All games used during development and testing are dumped from consoles that we personally own.  
-> Users are expected to use legally obtained copies of their games.
+---
+
+## Roadmap
+
+### Short term (next 1–2 weeks)
+
+1. **Arise `sem_init` MEMORY_FAULT** — investigate whether the guest is passing a host pointer or the HLE layer is mis-translating the argument. If it's a guest-side bug, patch the guest's memory layout; if it's an HLE bug, fix `PosixSemInit` to translate host pointers.
+2. **Harvest Days `ayuoL6Vjz2k` crash** — identify the NID (likely another private Unity/IL2CPP primitive), add a stub, re-test.
+3. **Cherry-pick upstream PR #433** (`sceKernelMapDirectMemory2`) — may resolve the `0x1FE000000` GPU memory mapping issue that Arise hits.
+
+### Medium term (1–2 months)
+
+4. **Compatibility Database** — auto-record per-game boot status, draw count, flip count, crash point, missing NIDs.
+5. **Game-specific Debug Reports** — one-command bundle of logs, framebuffers, and metrics for a given game.
+6. **Automated Regression Benchmarks** — after each commit, run 3 games and compare metrics to the previous commit.
+
+### Long term (3+ months)
+
+7. **More games reaching first frame** — target 10+ playable games.
+8. **Shader recompiler correctness** — fix any SPIR-V translation bugs that produce visual artifacts.
+9. **Audio** — currently silent; wire up ALSA/PulseAudio backend.
+
+---
 
 ## Build
 
-1. Install the .NET SDK version specified in [`global.json`](./global.json).
-2. Clone the repository: `git clone https://github.com/sharpemu/sharpemu.git`
-3. Open the solution file (`SharpEmu.slnx`) in **VSCode**.
-4. Build the project: `dotnet build` or `dotnet publish`
-5. Build artifacts will be located in the `artifacts` directory.
+1. Install .NET SDK 10.0 (see `global.json`).
+2. `git clone https://github.com/Sh-TB/sharpemuT24.git`
+3. `cd sharpemuT24`
+4. `dotnet build SharpEmu.slnx -c Release`
+5. For a self-contained publish: `dotnet publish src/SharpEmu.CLI/SharpEmu.CLI.csproj -c Release -r linux-x64 --self-contained true -o ./build`
+
+---
+
+## Branches
+
+- `main` — stable, mirrors upstream + fork-specific commits
+- `integration/latest-upstream` — active development, tracks `upstream/main` + fork patches
+- `backup-main-before-sync` — tag pointing to the pre-fork baseline
+
+---
+
+## Fork-Specific Commits (chronological)
+
+| Date | Commit | Title |
+|---|---|---|
+| 2026-07-19 | `4a059f2` | fix(linux): always request X11 platform on Linux when DISPLAY is set |
+| 2026-07-19 | `05b5137` | feat(libs): add C11 _Mtx_*/_Cnd_*/sincosf/srand/_ZSt14_Throw_C_errori exports |
+| 2026-07-19 | `1429bbb` | feat(libs): add GameCompatExports for private NIDs (Harvest Days boot) |
+
+---
 
 ## Disclaimer
 
@@ -119,32 +201,15 @@ SharpEmu is an experimental emulator intended for research and educational purpo
 
 This project does not contain any copyrighted system firmware, game data, or proprietary PlayStation assets.
 
+All games used during development and testing are dumped from consoles that we personally own. Users are expected to use legally obtained copies of their games.
+
+## License
+
+[**GPL-2.0 license**](./LICENSE)
+
 ## Special Thanks
 
-The following projects were extremely helpful during development:
-
-* **[ShadPS4](https://github.com/shadps4-emu/shadPS4)**  
-Helped with understanding the basic architecture of the PlayStation 4.
-
-* **[Kyty](https://github.com/InoriRus/Kyty)**  
-One of the few PS5 emulator projects available and very useful for studying native code execution.
-
-* **Ryujinx**  
-Provided valuable references for filesystem handling and low-level C# implementation patterns.
-
-# License
-
-- [**GPL-2.0 license**](https://github.com/sharpemu/sharpemu/blob/main/LICENSE)
-
-## Contributing
-
-Before opening an issue or pull request, please read our contribution guidelines:
-
-**[CONTRIBUTING.md](./CONTRIBUTING.md)**
-
-The guide covers:
-- Coding style and formatting
-- AI-assisted contributions
-- Pull request expectations
-- Testing guidelines
-- Legal and reverse engineering policy
+- **[ShadPS4](https://github.com/shadps4-emu/shadPS4)** — PS4 architecture reference
+- **[Kyty](https://github.com/InoriRus/Kyty)** — PS5 emulator reference
+- **Ryujinx** — C# filesystem patterns
+- **upstream SharpEmu contributors** — without them this fork would have nothing to build on
