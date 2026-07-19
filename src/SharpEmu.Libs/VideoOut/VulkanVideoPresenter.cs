@@ -2054,16 +2054,27 @@ internal static unsafe class VulkanVideoPresenter
             return;
         }
 
-        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY")))
-        {
-            return;
-        }
-
-        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")))
+        var hasWayland = !string.IsNullOrEmpty(
+            Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"));
+        var hasXDisplay = !string.IsNullOrEmpty(
+            Environment.GetEnvironmentVariable("DISPLAY"));
+        if (hasWayland && !hasXDisplay)
         {
             Console.Error.WriteLine(
                 "[LOADER][WARN] Wayland session without an X server (DISPLAY unset); " +
                 "cannot steer GLFW to XWayland. Set SHARPEMU_ENABLE_WAYLAND=1 to use native Wayland.");
+            return;
+        }
+
+        // On Linux, GLFW 3.4's auto platform detection can fail silently when
+        // both Wayland and X11 are present (or when the bundled libglfw has
+        // its platform detection confused by an absent Wayland socket). For
+        // an Xvfb-backed headless dev box (no Wayland), the explicit X11 hint
+        // is the only way glfwInit succeeds. Always request X11 when DISPLAY
+        // is set; this is the root-cause fix for the
+        // "Failed to detect any supported platform" seen on Xvfb-only Linux.
+        if (!hasXDisplay)
+        {
             return;
         }
 
@@ -2078,7 +2089,9 @@ internal static unsafe class VulkanVideoPresenter
                 System.Runtime.InteropServices.NativeLibrary.GetExport(glfw, "glfwInitHint");
             initHint(GlfwPlatformHint, GlfwPlatformX11);
             Console.Error.WriteLine(
-                "[LOADER][INFO] Wayland session detected; requested GLFW X11/XWayland backend.");
+                hasWayland
+                    ? "[LOADER][INFO] Wayland session detected; requested GLFW X11/XWayland backend."
+                    : "[LOADER][INFO] Linux X11 session detected; requested GLFW X11 backend explicitly.");
         }
         catch (Exception exception)
         {
@@ -2202,7 +2215,7 @@ internal static unsafe class VulkanVideoPresenter
             {
                 if (_latestPresentation is { } rej &&
                     rej.GuestImageAddress != 0 &&
-					rej.Sequence != presentedSequence &&
+                                        rej.Sequence != presentedSequence &&
                     _tracedGuestImagePresentRejections.Add(rej.Sequence))
                 {
                     var reason = rej.Sequence == presentedSequence
@@ -2246,14 +2259,14 @@ internal static unsafe class VulkanVideoPresenter
 
     private static readonly HashSet<long> _tracedGuestImagePresentRejections = new();
 
-	private static bool HasPendingGuestPresentation(long presentedSequence)
-	{
-		lock (_gate)
-		{
-			return _pendingGuestImagePresentations.Count > 0 ||
-				_latestPresentation is { } latest && latest.Sequence > presentedSequence;
-		}
-	}
+        private static bool HasPendingGuestPresentation(long presentedSequence)
+        {
+                lock (_gate)
+                {
+                        return _pendingGuestImagePresentations.Count > 0 ||
+                                _latestPresentation is { } latest && latest.Sequence > presentedSequence;
+                }
+        }
 
     private static long EnqueueGuestWorkLocked(object work)
     {
@@ -12406,17 +12419,17 @@ internal static unsafe class VulkanVideoPresenter
 
             if (!TryTakePresentation(_presentedSequence, out var presentation))
             {
-				if (_pendingHostSplashReplay is { } splash)
-				{
-					presentation = splash;
-					_pendingHostSplashReplay = null;
-				}
-				else
-				{
-				// A render-loop tick with no newer flip is normal. Warn only when
-				// an actual queued presentation is waiting on unfinished guest work.
+                                if (_pendingHostSplashReplay is { } splash)
+                                {
+                                        presentation = splash;
+                                        _pendingHostSplashReplay = null;
+                                }
+                                else
+                                {
+                                // A render-loop tick with no newer flip is normal. Warn only when
+                                // an actual queued presentation is waiting on unfinished guest work.
                 if (ShouldTracePresentedGuestImageContentsForDiagnostics() &&
-					HasPendingGuestPresentation(_presentedSequence) &&
+                                        HasPendingGuestPresentation(_presentedSequence) &&
                     _presentNotTakenLoggedSequence != _presentedSequence)
                 {
                     _presentNotTakenLoggedSequence = _presentedSequence;
@@ -12426,7 +12439,7 @@ internal static unsafe class VulkanVideoPresenter
                 }
 
                 return;
-				}
+                                }
             }
 
             if (_hostSurface is not null)
@@ -14868,15 +14881,15 @@ internal static unsafe class VulkanVideoPresenter
                         $"present-{seq:D4}-{_extent.Width}x{_extent.Height}-{_swapchainFormat}.bgra");
                     File.WriteAllBytes(path, bytes.ToArray());
                     Console.Error.WriteLine($"[LOADER][TRACE] vk.swapchain_dump path={path}");
-					// Continuous readback is intentionally opt-in: each 1080p frame
-					// is several megabytes and synchronously waits for the GPU.
-					if (string.Equals(
-							Environment.GetEnvironmentVariable("SHARPEMU_GUEST_IMAGE_DUMP_CONTINUOUS"),
-							"1",
-							StringComparison.Ordinal))
-					{
-						_tracedPresentedSwapchain = false;
-					}
+                                        // Continuous readback is intentionally opt-in: each 1080p frame
+                                        // is several megabytes and synchronously waits for the GPU.
+                                        if (string.Equals(
+                                                        Environment.GetEnvironmentVariable("SHARPEMU_GUEST_IMAGE_DUMP_CONTINUOUS"),
+                                                        "1",
+                                                        StringComparison.Ordinal))
+                                        {
+                                                _tracedPresentedSwapchain = false;
+                                        }
                 }
             }
             finally
