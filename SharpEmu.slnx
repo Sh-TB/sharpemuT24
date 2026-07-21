@@ -1,0 +1,25 @@
+<!--
+Copyright (C) 2026 SharpEmu Emulator Project
+SPDX-License-Identifier: GPL-2.0-or-later
+-->
+
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SharpEmu.CLI/SharpEmu.CLI.csproj" />
+    <Project Path="src/SharpEmu.Core/SharpEmu.Core.csproj" />
+    <Project Path="src/SharpEmu.Diagnostics.Contracts/SharpEmu.Diagnostics.Contracts.csproj" />
+    <Project Path="src/SharpEmu.Diagnostics/SharpEmu.Diagnostics.csproj" />
+    <Project Path="src/SharpEmu.GUI/SharpEmu.GUI.csproj" />
+    <Project Path="src/SharpEmu.HLE/SharpEmu.HLE.csproj" />
+    <Project Path="src/SharpEmu.Libs/SharpEmu.Libs.csproj" />
+    <Project Path="src/SharpEmu.Logging/SharpEmu.Logging.csproj" />
+    <Project Path="src/SharpEmu.ShaderCompiler/SharpEmu.ShaderCompiler.csproj" />
+    <Project Path="src/SharpEmu.ShaderCompiler.Vulkan/SharpEmu.ShaderCompiler.Vulkan.csproj" />
+    <Project Path="src/SharpEmu.SourceGenerators/SharpEmu.SourceGenerators.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SharpEmu.Libs.Tests/SharpEmu.Libs.Tests.csproj" />
+    <Project Path="tests/SharpEmu.SourceGenerators.Tests/SharpEmu.SourceGenerators.Tests.csproj" />
+    <Project Path="tests/SharpEmu.Diagnostics.Tests/SharpEmu.Diagnostics.Tests.csproj" />
+  </Folder>
+</Solution>
