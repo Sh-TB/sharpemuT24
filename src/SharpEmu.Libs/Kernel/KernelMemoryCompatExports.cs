@@ -1950,8 +1950,9 @@ public static partial class KernelMemoryCompatExports
         var hostPath = ResolveGuestPath(guestPath);
         if (IsReadOnlyGuestMutationPath(guestPath))
         {
-            LogOpenTrace($"mkdir readonly path='{guestPath}' host='{hostPath}'");
-            return (int)OrbisGen2Result.ORBIS_GEN2_ERROR_PERMISSION_DENIED;
+            LogOpenTrace($"mkdir readonly path='{guestPath}' host='{hostPath}' (pretending success)");
+            ctx[CpuRegister.Rax] = 0;
+            return (int)OrbisGen2Result.ORBIS_GEN2_OK;
         }
 
         try

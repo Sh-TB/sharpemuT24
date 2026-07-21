@@ -13,6 +13,7 @@ public static class KernelSemaphoreCompatExports
     private const int MaxSemaphoreNameLength = 128;
     private static readonly ConcurrentDictionary<uint, KernelSemaphoreState> _semaphores = new();
     private static int _nextSemaphoreHandle = 1;
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<ulong, uint> _posixSemaphoreAddresses = new();
 
     private sealed class KernelSemaphoreState
     {
@@ -71,11 +72,8 @@ public static class KernelSemaphoreCompatExports
             Count = initialCount,
         };
 
-        if (!TryWriteUInt32(ctx, semaphoreAddress, handle))
-        {
-            _semaphores.TryRemove(handle, out _);
-            return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_ERROR_MEMORY_FAULT);
-        }
+        _posixSemaphoreAddresses[semaphoreAddress] = handle;
+        TryWriteUInt32(ctx, semaphoreAddress, handle);
 
         if (_traceSema)
         {
@@ -415,11 +413,8 @@ public static class KernelSemaphoreCompatExports
             MaxCount = int.MaxValue,
             Count = initialCount,
         };
-        if (!TryWriteUInt32(ctx, semaphoreAddress, handle))
-        {
-            _semaphores.TryRemove(handle, out _);
-            return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_ERROR_MEMORY_FAULT);
-        }
+        _posixSemaphoreAddresses[semaphoreAddress] = handle;
+        TryWriteUInt32(ctx, semaphoreAddress, handle);
 
         if (_traceSema)
         {
