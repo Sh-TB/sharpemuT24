@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SharpEmu.Diagnostics.Contracts")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.0.1.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.1+a7834e6c01b74ee47f700c5d563c12a5c95ee71d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.1+580dbfa35385ed0c8ba7f33c23e14828545a857f")]
 [assembly: System.Reflection.AssemblyProductAttribute("SharpEmu.Diagnostics.Contracts")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SharpEmu.Diagnostics.Contracts")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.0.1.0")]

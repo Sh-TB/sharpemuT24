@@ -48,5 +48,18 @@ public static class GameCompatExports
     [SysAbiExport(Nid = "hsi9drzHR2k", ExportName = "hsi9drzHR2k_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
     public static int HarvestMemOp2(CpuContext ctx) => ctx.SetReturn(0);
 
+    // Harvest Days: unresolved NIDs causing crashes
+    [SysAbiExport(Nid = "AcslpN1jHR8", ExportName = "AcslpN1jHR8_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libScePad")]
+    public static int PadDeviceClassGetExtendedInfo(CpuContext ctx) => ctx.SetReturn(0);
+
+    [SysAbiExport(Nid = "5TjaJwkLWxE", ExportName = "5TjaJwkLWxE_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libScePad")]
+    public static int HarvestStub5Tja(CpuContext ctx) => ctx.SetReturn(0);
+
+    [SysAbiExport(Nid = "3BytPOQgVKc", ExportName = "3BytPOQgVKc_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libKernel")]
+    public static int HarvestStub3Byt(CpuContext ctx) => ctx.SetReturn(0);
+
+    [SysAbiExport(Nid = "pztV4AF18iI", ExportName = "pztV4AF18iI_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libKernel")]
+    public static int HarvestStubPztV(CpuContext ctx) => ctx.SetReturn(0);
+
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _envVars = new();
 }
