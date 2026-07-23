@@ -1,0 +1,88 @@
+{"c2dictionary":true,"data": {
+
+"COMMENT #0": "I have to run sounds through my new system in order for these to work, so I may not have done it for everything yet...",
+"COMMENT #0b": "You have to be EXTREMELY careful with this syntax, or the engine will just start ignoring it",
+
+"COMMENT #-1": "Some global options here. The global attens can be positive if you want. I see youve used some positive ones already. That's fine too.",
+"master_atten": -10,
+"music_atten": 0,
+
+"COMMENT #1": "You can write the atten for a cue",
+"COMMENT #1b": "Although the distinction between a cue and a wave is somewhat unclear",
+"atten:water_swim": -20,
+"atten:water_splash": -14,
+"atten:selectback": -2,
+"atten:select2": -1,
+"atten:select": -1,
+"atten:notification": -3,
+"atten:error": -1,
+"atten:select_effect": -1,
+"atten:speech": -2,
+"atten:jump": -8,
+"atten:ElevatorCall": 9,
+"atten:ElevatorDone": 7,
+"atten:elevator": 10,
+"atten:elevatorDOOR": 5,
+"atten:crank": 7,
+"atten:m0puzzledone": 11,
+"atten:Hit_Hurt44": -6,
+"atten:lavaswitch": 6,
+"atten:bus": 4,
+"atten:starbell": -2,
+
+"COMMENT #2": "You can set the variation count for a cue",
+"variations:water_swim": 5,
+"variations:scream": 3,
+"variations:fall": 7,
+"variations:jump": 3,
+
+"COMMENT #3": "You can also write the atten for each wave. By the way, these are additive with the atten for the cue",
+"atten:fall_03": -5,
+"atten:fall_05": -5,
+"atten:fall_06": -5,
+
+"COMMENT #4": "Ducking parameters can be set. For easy testing, You can make 'select' duck",
+"COMMENT #4b": "Please set all four parameters. The time values are in seconds.",
+"duck_duration:itemget1": 3,
+"duck_atten:itemget1": -9,
+"duck_attack:itemget1": 0.1,
+"duck_release:itemget1": 0.4,
+
+"duck_duration:itemget2": 0.4,
+"duck_atten:itemget2": -6,
+"duck_attack:itemget2": 0.05,
+"duck_release:itemget2": 0.2,
+
+"duck_duration:itemget3": 0.9,
+"duck_atten:itemget3": -9,
+"duck_attack:itemget3": 0.1,
+"duck_release:itemget3": 0.3,
+
+"duck_duration:select_effect": 0.7,
+"duck_atten:select_effect": -3,
+"duck_attack:select_effect": 0.1,
+"duck_release:select_effect": 0.4,
+
+"duck_duration:selectback": 0.5,
+"duck_atten:selectback": -3,
+"duck_attack:selectback": 0.05,
+"duck_release:selectback": 0.2,
+
+"duck_duration:select2": 0.5,
+"duck_atten:select2": -3,
+"duck_attack:select2": 0.05,
+"duck_release:select2": 0.2,
+
+"duck_duration:deselect_effect": 0.7,
+"duck_atten:deselect_effect": -3,
+"duck_attack:deselect_effect": 0.05,
+"duck_release:deselect_effect": 0.4,
+
+"COMMENT #5": "Some special parameters are here",
+
+"COMMENT #5a": "Used for when you land while having the umbrella open",
+"atten:fall_quiet_adjust": -7,
+
+"COMMENT #5b": "Due to the umbrella being a bit spazzy, opens which happen soon after other opens are quieted so it's not annoying",
+"atten:umbrella_soft_adjust": -7
+}}
