@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SharpEmu.Logging")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.0.1.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.1+1e4a9d24c643d209aeb7211b5cda7ab6ead53ecb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.1+a7834e6c01b74ee47f700c5d563c12a5c95ee71d")]
 [assembly: System.Reflection.AssemblyProductAttribute("SharpEmu.Logging")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SharpEmu.Logging")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.0.1.0")]

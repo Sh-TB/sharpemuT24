@@ -513,7 +513,29 @@ public sealed partial class DirectExecutionBackend
                         }
                         WriteCtxU64(contextRecord, 56, 0x202);
                         WriteCtxU64(contextRecord, 248, rip + (ulong)instructionLength);
-                        if (_unmappedReadRecoveries <= 5 || _unmappedReadRecoveries % 100 == 0)
+                        if (_unmappedReadRecoveries <= 5)
+                        {
+                                // Detailed logging for first 5 faults: full register dump
+                                var rax = ReadCtxU64(contextRecord, 120);
+                                var rbx = ReadCtxU64(contextRecord, 144);
+                                var rcx = ReadCtxU64(contextRecord, 128);
+                                var rdx = ReadCtxU64(contextRecord, 136);
+                                var rsi = ReadCtxU64(contextRecord, 168);
+                                var rdi = ReadCtxU64(contextRecord, 176);
+                                var r8 = ReadCtxU64(contextRecord, 184);
+                                var r9 = ReadCtxU64(contextRecord, 192);
+                                var r15 = ReadCtxU64(contextRecord, 240);
+                                var rsp = ReadCtxU64(contextRecord, 152);
+                                var threadHandle = SharpEmu.HLE.GuestThreadExecution.CurrentGuestThreadHandle;
+                                Console.Error.WriteLine(
+                                        $"[UNMAPPED] #{_unmappedReadRecoveries} {(accessType == 0 ? "READ" : "WRITE")} " +
+                                        $"rip=0x{rip:X16} fault=0x{faultAddress:X16} " +
+                                        $"instr='{instruction}' len={instructionLength}\n" +
+                                        $"  RAX=0x{rax:X16} RBX=0x{rbx:X16} RCX=0x{rcx:X16} RDX=0x{rdx:X16}\n" +
+                                        $"  RSI=0x{rsi:X16} RDI=0x{rdi:X16} R8=0x{r8:X16} R9=0x{r9:X16}\n" +
+                                        $"  R15=0x{r15:X16} RSP=0x{rsp:X16} thread=0x{threadHandle:X16}");
+                        }
+                        else if (_unmappedReadRecoveries % 100 == 0)
                                 Console.Error.WriteLine($"[LOADER][WARN] Unmapped {(accessType == 0 ? "read" : "write")} recovery #{_unmappedReadRecoveries}: rip=0x{rip:X16} fault=0x{faultAddress:X16} instr='{instruction}' len={instructionLength}");
                         return true;
                 }

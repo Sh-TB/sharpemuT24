@@ -2276,6 +2276,19 @@ public sealed partial class DirectExecutionBackend
                 ptr[0] = 0x48; ptr[1] = 0xB8; // mov rax, imm64
                 Marshal.WriteInt64((nint)(ptr + 2), (long)returnValue);
                 ptr[10] = 0xC3; // ret
+
+                // Log IL2CPP stubs that return NULL (potential crash source)
+                if (returnValue == 0 && Environment.GetEnvironmentVariable("SHARPEMU_LOG_IL2CPP_NULL") == "1")
+                {
+                        Console.Error.WriteLine(
+                                $"[IL2CPP_NULL] name='{name}' stub=0x{_il2cppHeap + stubOffset:X16} returns=NULL");
+                }
+                else if (returnValue != 0 && returnValue != _il2cppHeap + Il2CppReturnZeroStubOffset && Environment.GetEnvironmentVariable("SHARPEMU_LOG_IL2CPP_STUBS") == "1")
+                {
+                        Console.Error.WriteLine(
+                                $"[IL2CPP_STUB] name='{name}' returns=0x{returnValue:X16}");
+                }
+
                 return _il2cppHeap + stubOffset;
         }
 
@@ -2291,7 +2304,7 @@ public sealed partial class DirectExecutionBackend
                 if (name == "il2cpp_object_new" || name == "il2cpp_array_new" ||
                     name == "il2cpp_string_new" || name == "il2cpp_string_new_wrapper") return _il2cppHeap + Il2CppObjectOffset;
                 if (name == "il2cpp_type_get_object") return _il2cppHeap + Il2CppTypeOffset;
-                if (name == "il2cpp_resolve_icall") return _il2cppHeap + Il2CppReturnZeroStubOffset;
+                if (name == "il2cpp_resolve_icall") return GetReturnFakeObjectStub();
                 if (name == "il2cpp_thread_get_main_thread" || name == "il2cpp_thread_get_current_thread") return _il2cppHeap + Il2CppThreadOffset;
                 if (name == "il2cpp_init" || name == "il2cpp_shutdown") return 0;
                 if (name.Contains("get_") || name.Contains("_from_") || name.Contains("_new") ||
@@ -2504,5 +2517,23 @@ public sealed partial class DirectExecutionBackend
                                 VirtualProtect((void*)num, 5u, flNewProtect, &flNewProtect);
                         }
                 }
+        }
+
+
+        // Generic "return fake object" stub — returns Il2CppObject address
+        // Used by il2cpp_resolve_icall so resolved icalls don't return NULL
+        private unsafe ulong GetReturnFakeObjectStub()
+        {
+                const ulong ReturnFakeObjectStubOffset = 0x1800;
+                var ptr = (byte*)_il2cppHeap;
+                // Check if already installed
+                if (ptr[ReturnFakeObjectStubOffset] == 0x48 && ptr[ReturnFakeObjectStubOffset + 1] == 0xB8)
+                        return _il2cppHeap + ReturnFakeObjectStubOffset;
+                // Install: mov rax, <Il2CppObjectOffset>; ret
+                ptr[ReturnFakeObjectStubOffset] = 0x48;
+                ptr[ReturnFakeObjectStubOffset + 1] = 0xB8;
+                Marshal.WriteInt64((nint)(ptr + ReturnFakeObjectStubOffset + 2), (long)(_il2cppHeap + Il2CppObjectOffset));
+                ptr[ReturnFakeObjectStubOffset + 10] = 0xC3;
+                return _il2cppHeap + ReturnFakeObjectStubOffset;
         }
 }

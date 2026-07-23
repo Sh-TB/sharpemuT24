@@ -41,5 +41,12 @@ public static class GameCompatExports
     // Harvest Days NIDs — now in MessengerCompatExports.cs with proper implementations
     // Kept only stubs not covered by MessengerCompatExports
 
+    // Harvest Days: called 100K+ times in a tight loop — likely memchr/strchr/memcmp
+    [SysAbiExport(Nid = "1D0H2KNjshE", ExportName = "1D0H2KNjshE_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int HarvestMemOp1(CpuContext ctx) => ctx.SetReturn(0);
+
+    [SysAbiExport(Nid = "hsi9drzHR2k", ExportName = "hsi9drzHR2k_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int HarvestMemOp2(CpuContext ctx) => ctx.SetReturn(0);
+
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _envVars = new();
 }
