@@ -8,7 +8,7 @@
 | Arise | ✅ First Frame | ✅ 3840x2160 (splash) | #114612 | Game data files |
 | Harvest Days | 🟡 Running | ❌ | ~948 + 7172 unresolved | VFX Graph / IL2CPP class registry (EXP-013) |
 | Seeker My Shadow | 🟡 Running | ❌ | ~773 | Same as Harvest Days (presumed) |
-| Yatzi (PPSA17697) | 🟡 Decrypted, loads | ❌ | 605 imports | **Missing 8 PRX modules** (sce_module/, Media/Modules/, Media/Plugins/) |
+| Yatzi (PPSA17697) | ✅ First Frame | ✅ 1920x1080 (Unity splash) | 605 imports, 500K processed | None — running |
 | PPSA06699 | ❌ Cannot test | N/A | N/A | **eboot.bin encrypted** — need fSELF |
 
 ## EXP-013 Finding (2026-07-23)
@@ -21,6 +21,30 @@ Providing the real `globalgamemanagers` Media files (user uploaded for PPSA17697
 - VFX Graph searches the NULL class registry in a loop → infinite loop → crash
 
 **User's hypothesis partially confirmed:** missing Media files were a real blocker, but providing them reveals the next blocker (IL2CPP class registry).
+
+## EXP-014: PPSA17697 (Yatzi) First Frame Achieved (2026-07-23)
+
+User uploaded the 8 required PRX modules (decrypted ELF, magic `0x7f454c46`):
+- sce_module/{libc.prx, libSceNpCppWebApi.prx}
+- Media/Modules/{Il2cppUserAssemblies.prx (74.7 MB), PS5Util.prx}
+- Media/Plugins/{lib_burst_generated.prx, PSNCommon.prx, PSNCore.prx, SaveData.prx}
+- sce_sys/about/right.sprx
+
+Also created dummy Unity files: boot.config, RuntimeInitializeOnLoads.json, ScriptingAssemblies.json, Resources/unity default resources, Resources/unity_builtin_extra, UnitySubsystems/, Metadata/, StreamingAssets/aa/.
+
+**Result: 🎉 FIRST FRAME ACHIEVED** at 1920x1080 in headless mode (`SHARPEMU_HEADLESS=1`).
+- Frame file: `SharpEmu/headless_frames/frame000001.ppm` (8.3 MB RGBA8)
+- PNG converted: `download/ppsa17697_first_frame.png`
+- 99.98% of pixels are (229, 95, 68) — Unity orange/red splash background
+- 380 pixels are white — likely UI text or splash logo pixels
+- Game reaches 500K+ imports processed in main loop (semaphores + mutexes + audio + clock)
+
+**Key insight:** `SHARPEMU_SEMA_FAST_PATH=1` BREAKS Yatzi. The fast-path returns 0 (NULL pointer) which Unity then tries to call through → NULL execute fault. Without fast path, semaphores work correctly via real `sceKernelWaitSema` implementation.
+
+**This is the 3rd game to reach first frame** in SharpEmu:
+1. Dreaming Sarah — 3840x2160 (guest frame)
+2. Arise — 3840x2160 (splash screen)
+3. Yatzi (PPSA17697) — 1920x1080 (Unity splash) ← NEW
 
 ## EXP-013c: PPSA17697 (Yatzi) Decrypted eboot Test (2026-07-23)
 
