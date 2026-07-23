@@ -1,0 +1,16 @@
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/linux-x64/SharpEmu
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/linux-x64/LICENSE.txt
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/linux-x64/SharpEmu.deps.json
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/linux-x64/SharpEmu.runtimeconfig.json
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/linux-x64/SharpEmu.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/SharpEmu.CLI.csproj.AssemblyReference.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/Avalonia/Resources.Inputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/SharpEmu.CLI.GeneratedMSBuildEditorConfig.editorconfig
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/SharpEmu.CLI.AssemblyInfoInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/SharpEmu.CLI.AssemblyInfo.cs
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/SharpEmu.CLI.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/SharpEmu.D296D705.Up2Date
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/SharpEmu.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/refint/SharpEmu.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/SharpEmu.CLI.genruntimeconfig.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.CLI/Release/net10.0/linux-x64/ref/SharpEmu.dll

@@ -1,0 +1,11 @@
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/SharpEmu.Libs.deps.json
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/SharpEmu.Libs.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/SharpEmu.Libs.csproj.AssemblyReference.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/SharpEmu.Libs.GeneratedMSBuildEditorConfig.editorconfig
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/SharpEmu.Libs.AssemblyInfoInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/SharpEmu.Libs.AssemblyInfo.cs
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/SharpEmu.Libs.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/SharpEmu.7149F5F6.Up2Date
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/SharpEmu.Libs.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/refint/SharpEmu.Libs.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Libs/Release/net10.0/ref/SharpEmu.Libs.dll

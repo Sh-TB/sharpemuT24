@@ -1,0 +1,71 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "SharpEmu.ShaderCompiler.Vulkan/0.0.1": {
+        "dependencies": {
+          "SharpEmu.ShaderCompiler": "0.0.1"
+        },
+        "runtime": {
+          "SharpEmu.ShaderCompiler.Vulkan.dll": {}
+        }
+      },
+      "SharpEmu.HLE/0.0.1": {
+        "dependencies": {
+          "SharpEmu.Logging": "0.0.1"
+        },
+        "runtime": {
+          "SharpEmu.HLE.dll": {
+            "assemblyVersion": "0.0.1.0",
+            "fileVersion": "0.0.1.0"
+          }
+        }
+      },
+      "SharpEmu.Logging/0.0.1": {
+        "runtime": {
+          "SharpEmu.Logging.dll": {
+            "assemblyVersion": "0.0.1.0",
+            "fileVersion": "0.0.1.0"
+          }
+        }
+      },
+      "SharpEmu.ShaderCompiler/0.0.1": {
+        "dependencies": {
+          "SharpEmu.HLE": "0.0.1"
+        },
+        "runtime": {
+          "SharpEmu.ShaderCompiler.dll": {
+            "assemblyVersion": "0.0.1.0",
+            "fileVersion": "0.0.1.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SharpEmu.ShaderCompiler.Vulkan/0.0.1": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SharpEmu.HLE/0.0.1": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SharpEmu.Logging/0.0.1": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SharpEmu.ShaderCompiler/0.0.1": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

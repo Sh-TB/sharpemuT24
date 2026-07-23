@@ -1,0 +1,11 @@
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/SharpEmu.Diagnostics.deps.json
+/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/net10.0/SharpEmu.Diagnostics.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/SharpEmu.Diagnostics.csproj.AssemblyReference.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/SharpEmu.Diagnostics.GeneratedMSBuildEditorConfig.editorconfig
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/SharpEmu.Diagnostics.AssemblyInfoInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/SharpEmu.Diagnostics.AssemblyInfo.cs
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/SharpEmu.Diagnostics.csproj.CoreCompileInputs.cache
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/SharpEmu.1C392BFF.Up2Date
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/SharpEmu.Diagnostics.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/refint/SharpEmu.Diagnostics.dll
+/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.Diagnostics/Release/net10.0/ref/SharpEmu.Diagnostics.dll

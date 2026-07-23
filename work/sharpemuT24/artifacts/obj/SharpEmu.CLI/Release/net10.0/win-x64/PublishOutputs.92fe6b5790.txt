@@ -1,0 +1,3 @@
+/tmp/win-build/glfw3.dll
+/tmp/win-build/LICENSE.txt
+/tmp/win-build/SharpEmu.exe

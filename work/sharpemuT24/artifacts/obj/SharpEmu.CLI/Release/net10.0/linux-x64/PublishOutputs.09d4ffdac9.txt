@@ -1,0 +1,3 @@
+/home/z/my-project/work/sharpemu-build/libglfw.so.3
+/home/z/my-project/work/sharpemu-build/LICENSE.txt
+/home/z/my-project/work/sharpemu-build/SharpEmu
