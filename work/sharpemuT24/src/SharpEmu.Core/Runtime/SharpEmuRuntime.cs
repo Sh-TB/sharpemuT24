@@ -139,6 +139,31 @@ public sealed class SharpEmuRuntime : ISharpEmuRuntime
         var normalizedEbootPath = Path.GetFullPath(ebootPath);
         using var app0Binding = BindApp0Root(normalizedEbootPath);
         Console.Error.WriteLine($"[RUNTIME] Loading: {ebootPath}");
+
+        // === Rule #1 of the SharpEmu debugger: Boot Dependency Analysis ===
+        // Before any CPU instruction is executed, inspect app0 and report whether
+        // the game package is complete enough to boot. This prevents wasted time
+        // debugging "emulator bugs" that are actually just missing game files.
+        var app0Root = Path.GetDirectoryName(normalizedEbootPath);
+        if (!string.IsNullOrEmpty(app0Root))
+        {
+            try
+            {
+                var report = Loader.BootDependencyAnalyzer.Analyze(app0Root);
+                Loader.BootDependencyAnalyzer.PrintReport(report);
+                if (report.ShouldAbort)
+                {
+                    Console.Error.WriteLine("[RUNTIME] Aborting emulation: critical files missing. See Boot Dependency Report above.");
+                    return OrbisGen2Result.ORBIS_GEN2_ERROR_NOT_FOUND;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Boot dependency analysis must never block emulation — log and continue.
+                Console.Error.WriteLine($"[RUNTIME] Boot dependency analysis failed (non-fatal): {ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
         LastExecutionDiagnostics = null;
         LastExecutionTrace = null;
         LastSessionSummary = null;

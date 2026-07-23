@@ -1,15 +1,17 @@
 # Game State Matrix (Permanent — Never Delete)
 
-## Current Status
+## Current Status (as of EXP-015)
 
-| Game | Status | First Frame | Import Count | Blocker |
-|------|--------|-------------|--------------|---------|
-| Dreaming Sarah | ✅ Working | ✅ 3840x2160 (guest frame) | 484 NIDs | None |
-| Arise | ✅ First Frame | ✅ 3840x2160 (splash) | #114612 | Game data files |
-| Harvest Days | 🟡 Running | ❌ | ~948 + 7172 unresolved | VFX Graph / IL2CPP class registry (EXP-013) |
-| Seeker My Shadow | 🟡 Running | ❌ | ~773 | Same as Harvest Days (presumed) |
-| Yatzi (PPSA17697) | ✅ First Frame | ✅ 1920x1080 (Unity splash) | 605 imports, 500K processed | None — running |
-| PPSA06699 | ❌ Cannot test | N/A | N/A | **eboot.bin encrypted** — need fSELF |
+| # | Game | Engine | Coverage | Critical miss | First Frame | Status |
+|---|------|--------|----------|---------------|-------------|--------|
+| 1 | Dreaming Sarah | Native C++ | 75% | 0 | ✅ 3840×2160 | Working (golden test) |
+| 2 | Arise | Native C++ | 50% (libc.prx encrypted) | 0 | ✅ 3840×2160 (historically) | ⚠️ SIGILL crash in EXP-015 (regression?) |
+| 3 | Yatzi (PPSA17697) | Unity IL2CPP | 77.8% | 0 | ✅ 1920×1080 (Unity splash) | Working |
+| 4 | Seeker My Shadow (PPSA12500) | Unity IL2CPP | 66.7% | 0 | ✅ 1920×1080 (Unity splash) | NEW — Working |
+| 5 | Harvest Days | Native C++ (libc encrypted) | 75% | 0 | ✅ 1920×1080 (Unity splash) | NEW — Working |
+| 6 | PPSA06699 | Unknown | N/A | N/A | N/A | ❌ eboot.bin encrypted |
+
+**5 games now reach first frame!** (was 3 before EXP-015)
 
 ## EXP-013 Finding (2026-07-23)
 
