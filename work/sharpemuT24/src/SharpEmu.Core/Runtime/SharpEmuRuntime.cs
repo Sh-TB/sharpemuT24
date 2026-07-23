@@ -124,6 +124,11 @@ public sealed class SharpEmuRuntime : ISharpEmuRuntime
             stream.ReadExactly(bytes);
         }
 
+        // Detect and log the executable format up-front (ELF vs SELF vs fSELF).
+        // This makes it obvious in the log whether we are loading a decrypted
+        // image or a still-encrypted retail eboot that SharpEmu cannot run.
+        Loader.ExecutableFormatDetector.DetectAndLog(bytes.AsSpan(), Path.GetFileName(fullPath));
+
         var mountRoot = Path.GetDirectoryName(fullPath);
 
         return _selfLoader.Load(bytes.AsSpan(), _virtualMemory, _moduleManager, _fileSystem, mountRoot);
@@ -727,6 +732,9 @@ public sealed class SharpEmuRuntime : ISharpEmuRuntime
                 {
                     stream.ReadExactly(moduleBytes);
                 }
+
+                // Detect and log the PRX/SPRX module format up-front.
+                Loader.ExecutableFormatDetector.DetectAndLog(moduleBytes.AsSpan(), Path.GetFileName(modulePath));
 
                 var moduleImage = _selfLoader.LoadAdditional(
                     moduleBytes.AsSpan(),
