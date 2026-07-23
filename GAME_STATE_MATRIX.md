@@ -1,17 +1,18 @@
 # Game State Matrix (Permanent — Never Delete)
 
-## Current Status (as of EXP-015)
+## Current Status (as of EXP-016)
 
-| # | Game | Engine | Coverage | Critical miss | First Frame | Status |
-|---|------|--------|----------|---------------|-------------|--------|
-| 1 | Dreaming Sarah | Native C++ | 75% | 0 | ✅ 3840×2160 | Working (golden test) |
-| 2 | Arise | Native C++ | 50% (libc.prx encrypted) | 0 | ✅ 3840×2160 (historically) | ⚠️ SIGILL crash in EXP-015 (regression?) |
-| 3 | Yatzi (PPSA17697) | Unity IL2CPP | 77.8% | 0 | ✅ 1920×1080 (Unity splash) | Working |
-| 4 | Seeker My Shadow (PPSA12500) | Unity IL2CPP | 66.7% | 0 | ✅ 1920×1080 (Unity splash) | NEW — Working |
-| 5 | Harvest Days | Native C++ (libc encrypted) | 75% | 0 | ✅ 1920×1080 (Unity splash) | NEW — Working |
-| 6 | PPSA06699 | Unknown | N/A | N/A | N/A | ❌ eboot.bin encrypted |
+| # | Game | Engine | Coverage | Critical miss | Critical encrypt | First Frame | Classification | Status |
+|---|------|--------|----------|---------------|------------------|-------------|----------------|--------|
+| 1 | Dreaming Sarah | Native C++ | 75% | 0 | 0 | ⚠️ black | Empty Frame | Headless regression (Xvfb/Vulkan broken in env) |
+| 2 | Arise | Native C++ | 50% (libc.prx encrypted) | 0 | 1 | ⚠️ SIGILL | N/A | Needs decrypted libc.prx |
+| 3 | Yatzi (PPSA17697) | Unity IL2CPP | 77.8% | 0 | 0 | ✅ | **Unity Splash Frame** | Working |
+| 4 | Seeker My Shadow (PPSA12500) | Unity IL2CPP | 66.7% | 0 | 0 | ✅ | **Unity Splash Frame** | Working |
+| 5 | Harvest Days (old upload) | Native C++ (libc encrypted) | 75% | 0 | 1 | ✅ | Unity Splash Frame | Working with stub libc |
+| 5b | Harvest Days (NEW full app0) | Unity IL2CPP | 38.9% | 0 | **2** | ❌ aborted | N/A | libc.prx + Il2cppUserAssemblies.prx encrypted |
+| 6 | PPSA06699 | Unknown | N/A | N/A | N/A | N/A | N/A | ❌ eboot.bin encrypted |
 
-**5 games now reach first frame!** (was 3 before EXP-015)
+**5 games reach first frame** (all Unity IL2CPP games produce splash frame; none have reached real content yet).
 
 ## EXP-013 Finding (2026-07-23)
 

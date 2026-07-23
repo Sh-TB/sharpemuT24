@@ -74,12 +74,13 @@ public static class BootDependencyAnalyzer
         int PresentCount,
         int MissingCount,
         int CriticalMissingCount,
+        int CriticalEncryptedCount,
         double CoveragePercent,
         bool CanBoot,
         string? NextRequiredFile,
         List<string> Recommendations)
     {
-        public bool ShouldAbort => !CanBoot && CriticalMissingCount > 0;
+        public bool ShouldAbort => !CanBoot && (CriticalMissingCount > 0 || CriticalEncryptedCount > 0);
     }
 
     // --------------------------------------------------------------------------------------------
@@ -395,12 +396,14 @@ public static class BootDependencyAnalyzer
         var presentCount = results.Count(r => r.Present);
         var missingCount = results.Count(r => !r.Present);
         var criticalMissingCount = results.Count(r => !r.Present && r.Spec.Priority == FilePriority.Critical);
+        var criticalEncryptedCount = results.Count(r =>
+            r.Present && r.IsEncrypted == true && r.Spec.Priority == FilePriority.Critical);
 
         var coverage = totalRequired == 0 ? 100.0 : (double)presentCount / totalRequired * 100.0;
 
-        // Find the highest-priority missing file (recommend it next).
+        // Find the highest-priority missing or encrypted file (recommend it next).
         var nextMissing = results
-            .Where(r => !r.Present)
+            .Where(r => !r.Present || r.IsEncrypted == true)
             .OrderByDescending(r => (int)r.Spec.Priority)
             .FirstOrDefault();
 
@@ -408,34 +411,43 @@ public static class BootDependencyAnalyzer
         if (criticalMissingCount > 0)
         {
             recommendations.Add(
-                $"{criticalMissingCount} critical file(s) missing — game CANNOT boot. " +
+                $"{criticalMissingCount} critical file(s) MISSING — game CANNOT boot. " +
                 $"Upload '{nextMissing?.Spec.RelativePath}' first.");
         }
-        else if (missingCount > 0)
+        if (criticalEncryptedCount > 0)
+        {
+            recommendations.Add(
+                $"{criticalEncryptedCount} critical file(s) ENCRYPTED — game CANNOT boot. " +
+                $"Provide decrypted / fSELF version of: " +
+                string.Join(", ", results
+                    .Where(r => r.Present && r.IsEncrypted == true && r.Spec.Priority == FilePriority.Critical)
+                    .Select(r => r.Spec.RelativePath)));
+        }
+        if (criticalMissingCount == 0 && criticalEncryptedCount == 0 && missingCount > 0)
         {
             recommendations.Add(
                 $"{missingCount} non-critical file(s) missing — game may boot but be incomplete. " +
                 $"Upload '{nextMissing?.Spec.RelativePath}' to improve coverage.");
         }
-        else
+        if (criticalMissingCount == 0 && criticalEncryptedCount == 0 && missingCount == 0)
         {
             recommendations.Add("All required files present. Game is ready to boot.");
         }
 
-        // Check for encrypted executables among the present files.
+        // Check for any encrypted executables (critical or not).
         var encryptedExecutables = results
             .Where(r => r.Present && r.IsEncrypted == true)
             .ToList();
-        if (encryptedExecutables.Count > 0)
+        if (encryptedExecutables.Count > 0 && criticalEncryptedCount == 0)
         {
             recommendations.Add(
-                $"{encryptedExecutables.Count} executable(s) are still ENCRYPTED and cannot run. " +
+                $"{encryptedExecutables.Count} non-critical executable(s) are still ENCRYPTED and cannot run. " +
                 $"Decrypted / fSELF versions required: " +
                 string.Join(", ", encryptedExecutables.Select(r => r.Spec.RelativePath)));
         }
 
-        var canBoot = criticalMissingCount == 0 &&
-                      !results.Any(r => r.Present && r.IsEncrypted == true);
+        var canBoot = criticalMissingCount == 0 && criticalEncryptedCount == 0 &&
+                      !results.Any(r => r.Present && r.IsEncrypted == true && r.Spec.Priority == FilePriority.Critical);
 
         return new AnalysisReport(
             App0Root: app0Root ?? "(unknown)",
@@ -446,6 +458,7 @@ public static class BootDependencyAnalyzer
             PresentCount: presentCount,
             MissingCount: missingCount,
             CriticalMissingCount: criticalMissingCount,
+            CriticalEncryptedCount: criticalEncryptedCount,
             CoveragePercent: coverage,
             CanBoot: canBoot,
             NextRequiredFile: nextMissing?.Spec.RelativePath,
@@ -472,12 +485,13 @@ public static class BootDependencyAnalyzer
 
         Console.Error.WriteLine();
         Console.Error.WriteLine("========== Boot Dependency Report ==========");
-        Console.Error.WriteLine($"App0 root     : {report.App0Root}");
-        Console.Error.WriteLine($"Engine        : {engineLabel}");
-        Console.Error.WriteLine($"Engine detail : {report.EngineVersion}");
-        Console.Error.WriteLine($"Coverage      : {report.CoveragePercent:F1}% ({report.PresentCount}/{report.TotalRequired} required files present)");
-        Console.Error.WriteLine($"Critical miss : {report.CriticalMissingCount}");
-        Console.Error.WriteLine($"Can boot      : {(report.CanBoot ? "YES" : "NO")}");
+        Console.Error.WriteLine($"App0 root       : {report.App0Root}");
+        Console.Error.WriteLine($"Engine          : {engineLabel}");
+        Console.Error.WriteLine($"Engine detail   : {report.EngineVersion}");
+        Console.Error.WriteLine($"Coverage        : {report.CoveragePercent:F1}% ({report.PresentCount}/{report.TotalRequired} required files present)");
+        Console.Error.WriteLine($"Critical miss   : {report.CriticalMissingCount}");
+        Console.Error.WriteLine($"Critical encrypt: {report.CriticalEncryptedCount}");
+        Console.Error.WriteLine($"Can boot        : {(report.CanBoot ? "YES" : "NO")}");
         Console.Error.WriteLine();
         Console.Error.WriteLine("Required files:");
         Console.Error.WriteLine();

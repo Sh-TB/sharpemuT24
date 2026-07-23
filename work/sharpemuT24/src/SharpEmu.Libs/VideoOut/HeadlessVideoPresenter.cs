@@ -489,7 +489,28 @@ public sealed class HeadlessVideoPresenter : IDisposable
                 
                 // Save JSON metadata alongside frame
                 SaveFrameMetadata(jsonPath);
-                
+
+                // After the first frame is saved, automatically run FrameAnalyzer
+                // and print a "Framebuffer Analysis" report to stderr. This gives
+                // the user immediate feedback on whether the frame contains real
+                // game content or is just a Unity splash background.
+                if (_currentFrame == 1)
+                {
+                    try
+                    {
+                        var analysis = SharpEmu.Libs.VideoOut.FrameAnalyzer.AnalyzePpm(filepath);
+                        if (analysis != null)
+                        {
+                            SharpEmu.Libs.VideoOut.FrameAnalyzer.PrintReport(analysis);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Frame analysis must never break the emulator.
+                        Console.Error.WriteLine($"[HEADLESS] Frame analysis failed (non-fatal): {ex.GetType().Name}: {ex.Message}");
+                    }
+                }
+
                 Log.Debug($"[HEADLESS] Frame saved: {filepath}");
             }
             catch (Exception ex)
