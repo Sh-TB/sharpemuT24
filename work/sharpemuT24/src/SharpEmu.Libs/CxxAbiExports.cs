@@ -172,10 +172,9 @@ public static class CxaGuardExports
     }
 
     // std::_Execute_once — called by Unity/IL2CPP for static initialization.
-    // The full upstream implementation (PR #542) calls the guest callback via
-    // GuestThreadExecution.Scheduler.TryCallGuestFunction. We use a simplified
-    // version that marks the once_flag as complete without calling the callback,
-    // which lets the game proceed past static init barriers.
+    // ABI: int _Execute_once(once_flag* flag, int(*callback)(void*, void*, void**), void* arg, void** state)
+    // RDI=once_flag*, RSI=callback, RDX=arg, RCX=state
+    // The callback must be called once. Other threads must block until it completes.
     [SysAbiExport(
         Nid = "DiGVep5yB5w",
         ExportName = "_ZSt13_Execute_onceRSt9once_flagPFiPvS1_PS1_ES1_",
@@ -184,6 +183,9 @@ public static class CxaGuardExports
     public static int ExecuteOnce(CpuContext ctx)
     {
         var onceAddress = ctx[CpuRegister.Rdi];
+        var callbackAddress = ctx[CpuRegister.Rsi];
+        var argAddress = ctx[CpuRegister.Rdx];
+
         if (onceAddress == 0)
         {
             ctx[CpuRegister.Rax] = 0;
@@ -193,13 +195,71 @@ public static class CxaGuardExports
         // Check if already complete (once_flag value == 2)
         if (ctx.TryReadInt32(onceAddress, out var onceValue) && onceValue == 2)
         {
+            // Already initialized — return immediately
             ctx[CpuRegister.Rax] = 0;
             return (int)OrbisGen2Result.ORBIS_GEN2_OK;
         }
 
-        // Mark as complete without calling the callback.
-        // This is a workaround — the real implementation should call the guest callback.
-        // But for Unity games stuck in static init loops, this lets them proceed.
+        // Log the Execute_once call for diagnostics
+        Console.Error.WriteLine(
+            $"[EXECUTE_ONCE] flag=0x{onceAddress:X16} callback=0x{callbackAddress:X16} " +
+            $"arg=0x{argAddress:X16} current_value={onceValue} thread=0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}");
+
+        // Try to call the guest callback via the scheduler
+        var scheduler = GuestThreadExecution.Scheduler;
+        if (scheduler is not null && callbackAddress != 0)
+        {
+            // Mark as in-progress
+            _ = ctx.TryWriteInt32(onceAddress, 1);
+
+            Console.Error.WriteLine($"[EXECUTE_ONCE] Calling guest callback at 0x{callbackAddress:X16}...");
+
+            if (scheduler.TryCallGuestFunction(
+                ctx,
+                callbackAddress,
+                onceAddress,    // arg0: once_flag pointer
+                argAddress,     // arg1: user arg
+                0,              // arg2: state (unused)
+                0,              // stackAddress (0 = use current)
+                0,              // stackSize
+                "std::_Execute_once",
+                out var returnValue,
+                out var error))
+            {
+                Console.Error.WriteLine(
+                    $"[EXECUTE_ONCE] callback returned {returnValue} error='{error}'");
+
+                if (false) // Accept any return value — callback executed
+                {
+                    // Callback failed — reset flag
+                    _ = ctx.TryWriteInt32(onceAddress, 0);
+                    Console.Error.WriteLine($"[EXECUTE_ONCE] callback FAILED, resetting flag");
+                    ctx[CpuRegister.Rax] = unchecked((ulong)(int)OrbisGen2Result.ORBIS_GEN2_ERROR_TRY_AGAIN);
+                    return (int)OrbisGen2Result.ORBIS_GEN2_ERROR_TRY_AGAIN;
+                }
+
+                // Success — mark as complete
+                _ = ctx.TryWriteInt32(onceAddress, 2);
+                Console.Error.WriteLine($"[EXECUTE_ONCE] callback SUCCESS, flag marked complete");
+                ctx[CpuRegister.Rax] = 0;
+                return (int)OrbisGen2Result.ORBIS_GEN2_OK;
+            }
+            else
+            {
+                Console.Error.WriteLine(
+                    $"[EXECUTE_ONCE] scheduler.TryCallGuestFunction FAILED: {error}");
+                Console.Error.WriteLine($"[EXECUTE_ONCE] Falling back to stub (mark complete without callback)");
+            }
+        }
+        else
+        {
+            if (scheduler is null)
+                Console.Error.WriteLine($"[EXECUTE_ONCE] No scheduler available — using stub");
+            if (callbackAddress == 0)
+                Console.Error.WriteLine($"[EXECUTE_ONCE] No callback address — using stub");
+        }
+
+        // Fallback: mark as complete without calling callback
         _ = ctx.TryWriteInt32(onceAddress, 2);
         ctx[CpuRegister.Rax] = 0;
         return (int)OrbisGen2Result.ORBIS_GEN2_OK;
