@@ -8,7 +8,7 @@
 | Arise | ✅ First Frame | ✅ 3840x2160 (splash) | #114612 | Game data files |
 | Harvest Days | 🟡 Running | ❌ | ~948 + 7172 unresolved | VFX Graph / IL2CPP class registry (EXP-013) |
 | Seeker My Shadow | 🟡 Running | ❌ | ~773 | Same as Harvest Days (presumed) |
-| Yatzi (PPSA17697) | ❌ Cannot test | N/A | N/A | **eboot.bin encrypted** (magic 0x5414F5EE) — need fSELF |
+| Yatzi (PPSA17697) | 🟡 Decrypted, loads | ❌ | 605 imports | **Missing 8 PRX modules** (sce_module/, Media/Modules/, Media/Plugins/) |
 | PPSA06699 | ❌ Cannot test | N/A | N/A | **eboot.bin encrypted** — need fSELF |
 
 ## EXP-013 Finding (2026-07-23)
@@ -21,6 +21,31 @@ Providing the real `globalgamemanagers` Media files (user uploaded for PPSA17697
 - VFX Graph searches the NULL class registry in a loop → infinite loop → crash
 
 **User's hypothesis partially confirmed:** missing Media files were a real blocker, but providing them reveals the next blocker (IL2CPP class registry).
+
+## EXP-013c: PPSA17697 (Yatzi) Decrypted eboot Test (2026-07-23)
+
+User uploaded `-PPSA17697-app0-(Fix)decrypted.rar` containing a properly decrypted eboot.bin (ELF magic `0x7f454c46`).
+Tested it with the previously-extracted real Media files (globalgamemanagers + .assets + .resS).
+
+**Result:**
+- ✅ ELF loads successfully (entry=0x800000070, 605 imports resolved)
+- ✅ Gets to Import #1259 (sceSysmoduleLoadModule)
+- ❌ Crashes when scheduling `AssetGarbageCollectorHelper` threads with RIP=0x0 (NULL execute fault)
+- ❌ Only 1 file open (/dev/urandom) — game never reaches globalgamemanagers loading stage
+
+**Root cause:** Missing 8 PRX modules that must be present in the app0 directory:
+1. `sce_module/libc.prx` (5148 symbols)
+2. `sce_module/libSceNpCppWebApi.prx` (84974 symbols)
+3. `Media/Modules/Il2cppUserAssemblies.prx` (592 symbols, **CRITICAL** — contains IL2CPP compiled code)
+4. `Media/Modules/PS5Util.prx` (10 symbols)
+5. `Media/Plugins/lib_burst_generated.prx` (80 symbols)
+6. `Media/Plugins/PSNCommon.prx` (128 symbols)
+7. `Media/Plugins/PSNCore.prx` (18 symbols)
+8. `Media/Plugins/SaveData.prx` (56 symbols)
+
+**Evidence:** User's own Windows run (PPSA17697-20260721-152128.log) with the same eboot + full app0 directory loaded all 8 modules, got past the AssetGarbageCollectorHelper thread scheduling, reached Import #100000, allocated direct memory, and scheduled IL2CPP threads. Our run is missing exactly the 8 PRX modules.
+
+**Rule applied (Evidence-Driven File Request):** Requesting these 8 specific PRX files from the user, not the entire 5GB game.
 
 ## EXP-013b: Repo Bloat Investigation (2026-07-23)
 

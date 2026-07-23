@@ -1,51 +1,47 @@
 ---
-Task ID: EXP-013
+Task ID: EXP-013c
 Agent: main (SharpEmu bringup)
-Task: Investigate (a) why release source archive is 91.5 MB, and (b) whether providing the real `globalgamemanagers` Media files (uploaded by user for PPSA17697/Yatzi) unblocks Unity games.
+Task: Test PPSA17697 (Yatzi) with the user-provided decrypted eboot.bin (Fix .rar) and verify whether the game can run further than the encrypted version.
 
 Work Log:
-- Inspected local working copy at /home/z/my-project/work/sharpemuT24 — only 373 files tracked, but GitHub release v0.0.3 archive was 91.5 MB. Discrepancy suggested the repo's working tree was larger than the local subdir.
-- Located the actual `.git` directory at /home/z/my-project/.git — repo root is /home/z/my-project/, NOT /home/z/my-project/work/sharpemuT24/. So the entire workspace was being tracked.
-- Audited what was tracked at repo root:
-  - artifacts/ (725 files, 311 MB) — build output, was committed earlier
-  - skills/ (988 files, 33.6 MB) — Claude/Z.ai agent skill definitions, leaked into repo
-  - scripts/ps5_names.txt (11 MB) — generated symbol table
-  - logs/ (5 files, 6 MB) — runtime dumps including BMP frames
-  - commands/ (4 files) — local shell wrappers
-  - SharpEmu/diagnostics/ (4 files) — runtime session snapshots
-  - scripts/ (9 files) — local debug utilities
-  - work/sharpemuT24/ (373 files, 4.86 MB) — actual SharpEmu source (the only thing that should be shipped)
-- Wrote a proper .gitignore at repo root covering workspace-local dirs, .NET build outputs, binaries, archives, IDE state, secrets, and game files.
-- Wrote a second .gitignore at work/sharpemuT24/ for SharpEmu-specific build outputs (artifacts/, bin/, obj/, etc.).
-- Ran git rm -r --cached on: artifacts/, skills/, commands/, logs/, SharpEmu/diagnostics/, scripts/, scripts/ps5_names.txt, .env
-- Committed (9dae9e2) and pushed to origin/main.
-- Re-tagged v0.0.4 at the new commit, then created v0.0.5 tag + GitHub release.
-- Downloaded the new source archive to verify size:
-  - v0.0.3 (before): tar.gz = 91.5 MB, zip = ~95 MB
-  - v0.0.4 (after artifacts/ removal): tar.gz = 41 MB, zip = 43 MB
-  - v0.0.5 (after full cleanup): tar.gz = 931 KB, zip = 1.15 MB
-  - **98.98% size reduction.**
-
-- Then proceeded to EXP-013 media test:
-- Checked PPSA17697 (Yatzi) eboot.bin magic bytes: `5414f5ee` = encrypted retail SELF. SharpEmu cannot load it (no decryption keys).
-- Harvest Days eboot.bin magic bytes: `4f153d1d` = decrypted fSELF. Loadable.
-- Extracted user-uploaded Media.rar (containing real globalgamemanagers, globalgamemanagers.assets, globalgamemanagers.assets.resS — 11.6 MB total for PPSA17697) into /tmp/games/harvest/Media/ as a test.
-- Ran Harvest Days with the real (Yatzi's) globalgamemanagers files:
-  - ✅ /app0/Media/globalgamemanagers now opens (24 file opens total, vs 6 with dummy files)
-  - ✅ Unity parses the asset files (multiple opens of globalgamemanagers + globalgamemanagers.assets)
-  - ❌ But the game still crashes at the same RIP=0x80081ACFC (`mov edi,[rbx+rcx]` with RBX=0, RCX=0)
-  - The "unmapped read recovery" handler fires 100,000+ times in an infinite loop at the same instruction before the crash is finally propagated
-  - Stack string analysis shows the crash is in VFX Graph initialization: "FXExpressionValuesProxy", "Allocator", "ProfilerMarker", "VisualEffectAssetProxy", "Unity.Collections"
-- Restored the original dummy Media files for Harvest Days (Yatzi's files don't help — game-specific asset references).
+- User uploaded `-PPSA17697-app0-(Fix)decrypted.rar` containing a decrypted eboot.bin (32,697,964 bytes).
+- Extracted to /tmp/games/ppsa17697-decrypted/eboot.bin.
+- Verified magic bytes: `7f454c46` = ELF magic. This is a real decrypted ELF (not encrypted SELF).
+- Copied the previously-extracted real Media files (globalgamemanagers + globalgamemanagers.assets + globalgamemanagers.assets.resS) from /tmp/games/ppsa17697/Media/ into /tmp/games/ppsa17697-decrypted/Media/.
+- Ran SharpEmu with SHARPEMU_APP0_DIR=/tmp/games/ppsa17697-decrypted, SHARPEMU_SEMA_FAST_PATH=1, SHARPEMU_LOG_OPEN=1, SHARPEMU_LOG_IL2CPP_NULL=1, 90s timeout.
+- Result:
+  - ✅ ELF loads successfully (entry=0x800000070)
+  - ✅ 605 imports resolved
+  - ✅ Reach Import #1259 (sceSysmoduleLoadModule call)
+  - ❌ Crashes immediately when scheduling `AssetGarbageCollectorHelper` threads
+  - Crashes with RIP=0x0 (NULL execute fault), 100,000+ recoveries in infinite loop
+  - Only 1 file open (`/dev/urandom`) — game never tries to open globalgamemanagers
+  - Crash host thread name: 'SharpEmu-AssetGarbageCollectorHelper'
+- Compared against the user's own PPSA17697 run log (PPSA17697-20260721-152128.log) which they ran on Windows with the FULL app0 directory including sce_module/, Media/Modules/, Media/Plugins/.
+- The user's run got dramatically further:
+  - Loaded 8 PRX modules: libc.prx, libSceNpCppWebApi.prx, Il2cppUserAssemblies.prx, PS5Util.prx, lib_burst_generated.prx, PSNCommon.prx, PSNCore.prx, SaveData.prx
+  - Module preload summary: loaded=8, failed=0, merged_imports=3047, merged_symbols=91001
+  - Reached the same AssetGarbageCollectorHelper thread scheduling point but threads actually executed
+  - Got to Import #100000 (memcpy)
+  - Allocated direct memory (allocate_direct/map_direct sequence)
+  - Scheduled Thread-1F5968E3CC0 with entry=0x000001FD92DF3AA0 (inside Il2cppUserAssemblies.prx)
+- Root cause of our crash:
+  - We only have eboot.bin in our app0 directory
+  - The loader searches for PRX modules in: <app0>/sce_module/, <app0>/Media/Modules/, <app0>/Media/Plugins/
+  - None of these directories exist in our setup
+  - Without Il2cppUserAssemblies.prx (which contains the actual IL2CPP compiled code + Unity assemblies), the AssetGarbageCollectorHelper thread entry point resolves to NULL → NULL execute fault
+  - This is NOT an emulator bug — it's missing game data
 
 Stage Summary:
-- **Repo bloat root cause:** the git working tree was the entire /home/z/my-project/ workspace, so 988 agent skill files (33.6 MB) and 725 build artifacts (311 MB) were tracked alongside the actual SharpEmu source.
-- **Fix:** proper .gitignore + git rm --cached for everything outside work/sharpemuT24/. Release archive went from 91.5 MB → 931 KB (98.98% reduction). New release: https://github.com/Sh-TB/sharpemuT24/releases/tag/v0.0.5
-- **EXP-013 result:** providing real globalgamemanagers files lets Unity proceed past the file-open stage, but the game still crashes in VFX Graph initialization. The crash is an infinite loop on `mov edi,[rbx+rcx]` where rbx=rcx=0 — VFX Graph is searching a NULL class registry returned by an unimplemented IL2CPP icall.
-- **Next experiment (EXP-014):** instead of continuing to fake the file system, implement real IL2CPP class registry lookups for the VFX Graph types. The 117 unique icalls currently returning NULL include il2cpp_class_from_name, il2cpp_class_get_methods, il2cpp_type_get_name, etc. These need to return non-NULL pointers to a real (or fake-but-consistent) class table, not zero.
-- **User's hypothesis confirmed:** "اگه فقط eboot.bin رو دادی و بقیه فایل‌های بازی رو نداده باشی... globalgamemanagers باز نمی‌شه" — correct that the missing file was a real blocker, but providing it revealed the next blocker (VFX Graph / IL2CPP class registry).
-- **PPSA17697 (Yatzi) cannot be tested at all** — its eboot.bin is encrypted. Need a decrypted/fSELF version.
+- ✅ User's "Fix" decrypted eboot.bin IS valid and decryptable by SharpEmu (ELF magic 0x7f454c46).
+- ✅ The crash we see now is purely due to missing PRX modules — game data issue, not emulator issue.
+- The user's tree structure (provided in chat) shows the decrypted app0 contains:
+  - decrypted/eboot.bin
+  - decrypted/Media/Modules/{Il2cppUserAssemblies.prx, PS5Util.prx}
+  - decrypted/Media/Plugins/{lib_burst_generated.prx, PSNCommon.prx, PSNCore.prx, SaveData.prx}
+  - decrypted/sce_module/{libc.prx, libSceNpCppWebApi.prx}
+- These 8 PRX files are mandatory for SharpEmu to proceed past the AssetGarbageCollectorHelper scheduling stage.
+- Next step: request the user to upload these specific 8 PRX files (not the entire 5GB game).
 - Artifacts produced:
-  - /home/z/my-project/SharpEmu/diagnostics/exp-013/exp-013-harvest-baseline.log (with dummy files)
-  - /home/z/my-project/SharpEmu/diagnostics/exp-013/exp-013-harvest-with-real-media.log (with real Yatzi files)
-  - GitHub release v0.0.5 (931 KB source archive)
+  - /home/z/my-project/SharpEmu/diagnostics/exp-013c/exp-013c-ppsa17697-decrypted.log
+  - /tmp/PPSA17697-20260721-152128.log (extracted user log for comparison)
