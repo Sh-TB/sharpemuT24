@@ -1,8 +1,0 @@
-/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/netstandard2.0/SharpEmu.SourceGenerators.deps.json
-/home/z/my-project/work/sharpemuT24/artifacts/bin/Release/netstandard2.0/SharpEmu.SourceGenerators.dll
-/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Release/netstandard2.0/SharpEmu.SourceGenerators.csproj.AssemblyReference.cache
-/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Release/netstandard2.0/SharpEmu.SourceGenerators.GeneratedMSBuildEditorConfig.editorconfig
-/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Release/netstandard2.0/SharpEmu.SourceGenerators.AssemblyInfoInputs.cache
-/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Release/netstandard2.0/SharpEmu.SourceGenerators.AssemblyInfo.cs
-/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Release/netstandard2.0/SharpEmu.SourceGenerators.csproj.CoreCompileInputs.cache
-/home/z/my-project/work/sharpemuT24/artifacts/obj/SharpEmu.SourceGenerators/Release/netstandard2.0/SharpEmu.SourceGenerators.dll
