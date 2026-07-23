@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "AgVsWo+UsUs=",
+  "dgSpecHash": "8vKSCebPqHY=",
   "success": true,
   "projectFilePath": "/home/z/my-project/work/sharpemuT24/src/SharpEmu.CLI/SharpEmu.CLI.csproj",
   "expectedPackageFiles": [
@@ -45,12 +45,12 @@
     "/home/z/my-project/work/sharpemuT24/.packages/skiasharp.nativeassets.win32/2.88.9/skiasharp.nativeassets.win32.2.88.9.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/tmds.dbus.protocol/0.21.3/tmds.dbus.protocol.0.21.3.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/ultz.native.glfw/3.4.0/ultz.native.glfw.3.4.0.nupkg.sha512",
-    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.win-x64/10.0.10/microsoft.netcore.app.runtime.win-x64.10.0.10.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.linux-x64/10.0.10/microsoft.netcore.app.runtime.linux-x64.10.0.10.nupkg.sha512",
+    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.win-x64/10.0.10/microsoft.netcore.app.runtime.win-x64.10.0.10.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.osx-x64/10.0.10/microsoft.netcore.app.runtime.osx-x64.10.0.10.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.osx-arm64/10.0.10/microsoft.netcore.app.runtime.osx-arm64.10.0.10.nupkg.sha512",
-    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.win-x64/10.0.10/microsoft.aspnetcore.app.runtime.win-x64.10.0.10.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.linux-x64/10.0.10/microsoft.aspnetcore.app.runtime.linux-x64.10.0.10.nupkg.sha512",
+    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.win-x64/10.0.10/microsoft.aspnetcore.app.runtime.win-x64.10.0.10.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.osx-x64/10.0.10/microsoft.aspnetcore.app.runtime.osx-x64.10.0.10.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.osx-arm64/10.0.10/microsoft.aspnetcore.app.runtime.osx-arm64.10.0.10.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.host.win-x64/10.0.10/microsoft.netcore.app.host.win-x64.10.0.10.nupkg.sha512",

@@ -591,6 +591,7 @@ public static class KernelSemaphoreCompatExports
 
     private static void TraceSemaphore(string message)
     {
+        if (!_traceSema) return;
         Console.Error.WriteLine($"[LOADER][TRACE] sema.{message}");
     }
 

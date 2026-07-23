@@ -394,7 +394,7 @@
         }
       }
     },
-    "netstandard2.0/win-x64": {
+    "netstandard2.0/linux-x64": {
       "Microsoft.Build.Framework/17.14.8": {
         "type": "package",
         "dependencies": {
@@ -571,7 +571,7 @@
           }
         },
         "runtime": {
-          "runtimes/win/lib/netstandard2.0/_._": {
+          "lib/netstandard2.0/_._": {
             "related": ".xml"
           }
         }
@@ -717,7 +717,9 @@
           }
         },
         "runtime": {
-          "runtimes/win/lib/netstandard1.3/_._": {}
+          "lib/netstandard2.0/_._": {
+            "related": ".xml"
+          }
         }
       },
       "System.Security.Principal.Windows/5.0.0": {
@@ -728,7 +730,9 @@
           }
         },
         "runtime": {
-          "runtimes/win/lib/netstandard1.3/_._": {}
+          "lib/netstandard2.0/_._": {
+            "related": ".xml"
+          }
         }
       },
       "System.Text.Encoding.CodePages/7.0.0": {
@@ -2271,7 +2275,7 @@
       }
     },
     "runtimes": {
-      "win-x64": {
+      "linux-x64": {
         "#import": []
       }
     }

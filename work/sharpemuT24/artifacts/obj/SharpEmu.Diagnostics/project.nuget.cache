@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "h5sbgd2Akzg=",
+  "dgSpecHash": "0ftSx3cO4aw=",
   "success": true,
   "projectFilePath": "/home/z/my-project/work/sharpemuT24/src/SharpEmu.Diagnostics/SharpEmu.Diagnostics.csproj",
   "expectedPackageFiles": [
     "/home/z/my-project/work/sharpemuT24/.packages/microsoft.net.illink.tasks/10.0.10/microsoft.net.illink.tasks.10.0.10.nupkg.sha512",
-    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.win-x64/10.0.10/microsoft.netcore.app.runtime.win-x64.10.0.10.nupkg.sha512",
-    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.win-x64/10.0.10/microsoft.aspnetcore.app.runtime.win-x64.10.0.10.nupkg.sha512"
+    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.linux-x64/10.0.10/microsoft.netcore.app.runtime.linux-x64.10.0.10.nupkg.sha512",
+    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.linux-x64/10.0.10/microsoft.aspnetcore.app.runtime.linux-x64.10.0.10.nupkg.sha512"
   ],
   "logs": []
 }

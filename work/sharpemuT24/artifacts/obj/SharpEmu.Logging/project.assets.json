@@ -9,7 +9,7 @@
         }
       }
     },
-    "net10.0/win-x64": {
+    "net10.0/linux-x64": {
       "Microsoft.NET.ILLink.Tasks/10.0.10": {
         "type": "package",
         "build": {
@@ -161,11 +161,11 @@
         "warn": true,
         "downloadDependencies": [
           {
-            "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+            "name": "Microsoft.AspNetCore.App.Runtime.linux-x64",
             "version": "[10.0.10, 10.0.10]"
           },
           {
-            "name": "Microsoft.NETCore.App.Runtime.win-x64",
+            "name": "Microsoft.NETCore.App.Runtime.linux-x64",
             "version": "[10.0.10, 10.0.10]"
           }
         ],
@@ -452,7 +452,7 @@
       }
     },
     "runtimes": {
-      "win-x64": {
+      "linux-x64": {
         "#import": []
       }
     }

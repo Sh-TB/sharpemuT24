@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "ZRyPaup/7ls=",
+  "dgSpecHash": "TfQ/DC0Lbiw=",
   "success": true,
   "projectFilePath": "/home/z/my-project/work/sharpemuT24/src/SharpEmu.Core/SharpEmu.Core.csproj",
   "expectedPackageFiles": [
@@ -21,8 +21,8 @@
     "/home/z/my-project/work/sharpemuT24/.packages/silk.net.windowing.common/2.23.0/silk.net.windowing.common.2.23.0.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/silk.net.windowing.glfw/2.23.0/silk.net.windowing.glfw.2.23.0.nupkg.sha512",
     "/home/z/my-project/work/sharpemuT24/.packages/ultz.native.glfw/3.4.0/ultz.native.glfw.3.4.0.nupkg.sha512",
-    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.win-x64/10.0.10/microsoft.netcore.app.runtime.win-x64.10.0.10.nupkg.sha512",
-    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.win-x64/10.0.10/microsoft.aspnetcore.app.runtime.win-x64.10.0.10.nupkg.sha512"
+    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.netcore.app.runtime.linux-x64/10.0.10/microsoft.netcore.app.runtime.linux-x64.10.0.10.nupkg.sha512",
+    "/home/z/my-project/work/sharpemuT24/.packages/microsoft.aspnetcore.app.runtime.linux-x64/10.0.10/microsoft.aspnetcore.app.runtime.linux-x64.10.0.10.nupkg.sha512"
   ],
   "logs": []
 }
