@@ -1,0 +1,7 @@
+﻿[18:13:48.148] ERROR [InvalidDataException] Image is neither a decrypted ELF nor a recognized fake-signed SELF (leading bytes 0x5414F5EE). This is almost certainly a still-encrypted retail eboot — SharpEmu has no decryption keys and requires a decrypted / fake-signed (fSELF) image.
+  StackTrace:    at SharpEmu.Core.Loader.SelfLoader.ParseLayout(ReadOnlySpan`1 imageData)
+   at SharpEmu.Core.Loader.SelfLoader.LoadCore(ReadOnlySpan`1 imageData, IVirtualMemory virtualMemory, IFileSystem fs, String mountRoot, Boolean clearVirtualMemory, Boolean readParamJson)
+   at SharpEmu.Core.Loader.SelfLoader.Load(ReadOnlySpan`1 imageData, IVirtualMemory virtualMemory, IModuleManager moduleManager, IFileSystem fs, String mountRoot)
+   at SharpEmu.Core.Runtime.SharpEmuRuntime.LoadImage(String ebootPath)
+   at SharpEmu.Core.Runtime.SharpEmuRuntime.Run(String ebootPath)
+   at SharpEmu.CLI.Program.RunEmulator(String[] args, Boolean isMitigatedChild)

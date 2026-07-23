@@ -1,0 +1,29 @@
+﻿{
+  "SessionId": "eboot-20260723_181346",
+  "Timestamp": "2026-07-23T18:13:46.5224995Z",
+  "UptimeSeconds": 1.6342703,
+  "TotalImports": 0,
+  "LastNid": "",
+  "LastApi": "",
+  "ActiveThreads": 0,
+  "ImportLogCount": 0,
+  "ThreadLogCount": 0,
+  "MemoryLogCount": 0,
+  "GpuLogCount": 0,
+  "ErrorLogCount": 2,
+  "IncludeLogs": true,
+  "Imports": [],
+  "Threads": [],
+  "MemoryOps": [],
+  "GpuOps": [],
+  "Errors": [
+    "[18:13:48.148] ERROR [InvalidDataException] Image is neither a decrypted ELF nor a recognized fake-signed SELF (leading bytes 0x5414F5EE). This is almost certainly a still-encrypted retail eboot \u2014 SharpEmu has no decryption keys and requires a decrypted / fake-signed (fSELF) image.",
+    "  StackTrace:    at SharpEmu.Core.Loader.SelfLoader.ParseLayout(ReadOnlySpan\u00601 imageData)\n   at SharpEmu.Core.Loader.SelfLoader.LoadCore(ReadOnlySpan\u00601 imageData, IVirtualMemory virtualMemory, IFileSystem fs, String mountRoot, Boolean clearVirtualMemory, Boolean readParamJson)\n   at SharpEmu.Core.Loader.SelfLoader.Load(ReadOnlySpan\u00601 imageData, IVirtualMemory virtualMemory, IModuleManager moduleManager, IFileSystem fs, String mountRoot)\n   at SharpEmu.Core.Runtime.SharpEmuRuntime.LoadImage(String ebootPath)\n   at SharpEmu.Core.Runtime.SharpEmuRuntime.Run(String ebootPath)\n   at SharpEmu.CLI.Program.RunEmulator(String[] args, Boolean isMitigatedChild)"
+  ],
+  "IsHeadlessMode": false,
+  "GpuBackend": "Unknown",
+  "TotalFrames": 0,
+  "TotalDrawCalls": 0,
+  "GpuResolution": "N/A",
+  "GpuSessionElapsed": 0
+}
