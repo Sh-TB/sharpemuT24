@@ -1137,3 +1137,207 @@ and aborts.
 - Modified file: src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.Exceptions.cs
   (added R10-R14, RBP, thread name to UNMAPPED logger — broadly useful)
 - New reusable tool: scripts/disasm_around_rip.py
+
+---
+
+# 21. CRITICAL UPDATE: File IO Inventory — Systematic Dump Issue
+
+## User's Request (Round 5)
+
+User requested: run `ls -lah Media/Resources` and `find . -iname "*shader*"`
+for Yatzi. Compare with Harvest Days and Seeker. Search SharpEmu source for
+any existing unity_builtin_extra handling. Disassemble lookup function
+0x800ABA330. Look at other Internal-* shaders in eboot.bin.
+
+## Inventory Results
+
+### Yatzi (PPSA17697, Unity 2022.3.5f1)
+
+```
+Media/Resources/unity_builtin_extra        0 bytes (EMPTY)
+Media/Resources/unity default resources    0 bytes (EMPTY)
+Media/level0                                MISSING
+Media/sharedassets0.assets                  MISSING
+Media/globalgamemanagers                    210KB (real data)
+Media/globalgamemanagers.assets             1.1MB (real data)
+Media/globalgamemanagers.assets.resS        10.6MB (real data)
+Media/Metadata/global-metadata.dat          10.6MB
+eboot.bin                                   32.6MB
+No .shader files anywhere in the dump
+```
+
+### Seeker (PPSA12500, Unity IL2CPP)
+
+```
+Media/Resources/unity_builtin_extra        0 bytes (EMPTY)  <-- same issue
+Media/Resources/unity default resources    0 bytes (EMPTY)  <-- same issue
+Media/level0                                1404 bytes (suspiciously tiny)
+Media/level10                               2.6MB
+Media/sharedassets0.assets                  26MB
+```
+
+### Harvest Days (PPSA14677)
+- App0 directory was previously deleted; encrypted PRX files were the blocker.
+
+## Conclusion: SYSTEMATIC Dump Issue
+
+Both Unity IL2CPP game dumps we have (Yatzi AND Seeker) ship with empty
+`unity_builtin_extra` and `unity default resources` files. This is a
+systematic dump issue — the dumper either didn't capture these files
+correctly, or stripped them to save space.
+
+Real Unity `unity_builtin_extra` files are typically 100-500KB containing
+the entire Unity built-in shader library. Real `unity default resources`
+are typically 30-100KB containing built-in materials, meshes, etc.
+
+## SharpEmu Source Search
+
+Searched source for "unity_builtin_extra" / "Internal-ErrorShader":
+
+- Only references in BootDependencyAnalyzer.cs lines 198, 200 — marks them
+  as FilePriority.Low "optional" (should actually be Critical — see below)
+- No actual loader/parser for these files exists in SharpEmu
+- BootDependencyAnalyzer's FilePriority.Low means these files don't trigger
+  the ShouldAbort check — the analyzer reports "can boot" even when they're
+  empty/missing, which is incorrect.
+
+## Lookup Function 0x800ABA330 — Disassembly
+
+Disassembled the function. It calls (in order):
+- 0x8004550e0 (likely string init)
+- 0x801938150 (Unity internal)
+- 0x800aba940 (resource lookup core)
+
+The function does NOT make any direct file I/O syscalls — these are wrapped
+in Unity's internal resource system. Intercepting at the syscall level
+would require understanding Unity's whole asset loading pipeline (which
+includes its own caching, decompression, and deserialization layers).
+
+## All Internal-*.shader Names in eboot.bin
+
+Found only 4 hardcoded Internal-*.shader names:
+1. `Internal-Colored.shader`
+2. `Internal-ErrorShader.shader` (the one that fails)
+3. `Internal-Clear.shader`
+4. `Internal-Loading.shader`
+
+Also found hardcoded path strings:
+- `"Resources/unity default resources"` at file offset 0x1B373FE
+- `"Resources/unity_builtin_extra"` at file offset 0x1B6479C
+
+## File IO Trace Results (with SHARPEMU_LOG_OPEN=1, SHARPEMU_LOG_IO=1)
+
+### Unity's 4-suffix probing pattern
+
+For every resource file, Unity tries 4 path variants:
+- `<file>` (no suffix)
+- `<file>.res`
+- `<file>.resG`
+- `<file>.resS`
+
+This is Unity's standard 4-suffix probing pattern. The empty files at
+`/app0/Media/Resources/unity_builtin_extra` and `/app0/Media/Resources/
+unity default resources` ARE found by stat (because they exist as 0-byte
+files), so Unity thinks they're present.
+
+### KEY TIMING DISCOVERY
+
+```
+Line 2266: stat unity default resources → found (0 bytes)
+Line 2273: UNMAPPED fault (Internal-ErrorShader lookup returns NULL)
+Line 2340: stat unity_builtin_extra → found (0 bytes)  <-- 67 lines LATER
+```
+
+The fault happens BEFORE Unity opens unity_builtin_extra. Unity tries to
+load Internal-ErrorShader from "unity default resources" first (which is
+empty), and the abort fires before it would have tried unity_builtin_extra.
+
+## Unity Version Identified
+
+From the globalgamemanagers file header: `Unity 2022.3.5f1`
+
+This is important — a real `unity_builtin_extra` file from ANY Unity
+2022.3.x PS5 game should work, since these built-in resource files are
+version-specific but version-compatible across minor revisions.
+
+## Honest Options to Move Forward (in order of complexity)
+
+### Option 1 (BEST): User provides real unity_builtin_extra
+
+Any Unity 2022.3.x PS5 game's `unity_builtin_extra` and
+`unity default resources` files should work for Yatzi. These files
+are common to all Unity games of the same version.
+
+The user would need to:
+1. Obtain a Unity 2022.3.x PS5 game dump (any game)
+2. Copy the Media/Resources/unity_builtin_extra and unity default resources
+   files into Yatzi's Media/Resources/ directory
+3. Re-run Yatzi
+
+This is by far the simplest and most reliable fix.
+
+### Option 2: SharpEmu intercepts file open for these paths
+
+Return a synthetic minimal SerializedFile that has just enough structure
+to satisfy Unity's parser, with empty shader data. This would prevent the
+abort but would still leave the game without working shaders — likely
+resulting in all-pink or all-black rendering.
+
+### Option 3: SharpEmu intercepts lookup function 0x800ABA330
+
+Return a placeholder shader object when "Internal-ErrorShader.shader" is
+requested. Would require knowing the Unity shader object struct layout
+(which varies by Unity version) — very invasive.
+
+### Option 4: Generate a minimal valid unity_builtin_extra
+
+Write a Python script that constructs a minimal Unity SerializedFile
+containing just the 4 Internal-* shaders as empty shader objects. Would
+need reverse-engineering Unity's SerializedFile format.
+
+## Honest Assessment
+
+This is NOT a SharpEmu code bug. It's a game data issue caused by incomplete
+dumps. Even if we fix the shader issue via Option 2/3/4, Yatzi is also
+missing `level0` and `sharedassets0.assets`, so it wouldn't be playable
+without those either.
+
+The honest recommendation is Option 1: obtain a real `unity_builtin_extra`
+from any Unity 2022.3.x PS5 game. This requires no SharpEmu code changes
+and would let us test whether the rest of the boot path works.
+
+If Option 1 isn't possible, the next-best path is Option 2 (synthetic
+empty SerializedFile) just to bypass the abort and see what happens next.
+This is a debugging step, not a real fix.
+
+## Additional Note: BootDependencyAnalyzer Should Be Updated
+
+The current `BootDependencyAnalyzer.cs` marks `unity_builtin_extra` and
+`unity default resources` as FilePriority.Low, which means the boot
+analyzer reports "can boot" even when they're 0 bytes. This is incorrect
+— these files are CRITICAL for Unity games.
+
+A future PR should:
+1. Bump these to FilePriority.Critical for Unity IL2CPP games
+2. Add a size check: if file exists but is 0 bytes, treat as missing
+
+This would have caught the issue much earlier.
+
+## Status
+
+- ✅ User's inventory request executed: ls, find, comparisons, source search
+- ✅ Confirmed both Yatzi AND Seeker have empty unity_builtin_extra (systematic)
+- ✅ SharpEmu has no existing unity_builtin_extra loader/parser
+- ✅ Lookup function 0x800ABA330 disassembled — no direct syscalls
+- ✅ Found 4 Internal-*.shader names + 2 hardcoded path strings in eboot.bin
+- ✅ Traced file IO: 4-suffix probing pattern, empty files ARE found by stat
+- ✅ KEY: fault happens before unity_builtin_extra is even opened
+- ✅ Identified Unity version: 2022.3.5f1
+- ⚠️ ROOT CAUSE is game data issue, not SharpEmu code
+- ⚠️ Yatzi also missing level0 + sharedassets0.assets (wouldn't be playable)
+- ✅ Did NOT modify any IL2CPP stubs (per user's instruction)
+- ✅ Golden test still passes
+- Recommended next: user provides real unity_builtin_extra from any
+  Unity 2022.3.x PS5 game
+- Suggested PR (future): bump unity_builtin_extra priority to Critical in
+  BootDependencyAnalyzer + add 0-byte size check
