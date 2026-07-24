@@ -62,4 +62,18 @@ public static class GameCompatExports
     public static int HarvestStubPztV(CpuContext ctx) => ctx.SetReturn(0);
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _envVars = new();
+    [SysAbiExport(Nid = "VkqLPArfFdc", ExportName = "VkqLPArfFdc", Target = Generation.Gen5, LibraryName = "libKernel")]
+    public static int VkqLPArfFdcStub(CpuContext ctx)
+    {
+        ctx[CpuRegister.Rax] = 0x0000000602000000ul;
+        return (int)OrbisGen2Result.ORBIS_GEN2_OK;
+    }
+    [SysAbiExport(Nid = "GrQ9s4IrNaQ", ExportName = "sceAudioOutGetPortState", Target = Generation.Gen5, LibraryName = "libSceAudioOut")]
+    public static int AudioOutGetPortStateStub(CpuContext ctx) => ctx.SetReturn(0);
+
+    [SysAbiExport(Nid = "MM4IZSEYytQ", ExportName = "sceAgcDriverSetHsOffchipParam", Target = Generation.Gen5, LibraryName = "libSceAgcDriver")]
+    public static int AgcDriverSetHsOffchipParamStub(CpuContext ctx) => ctx.SetReturn(0);
+
+    [SysAbiExport(Nid = "XlNp7jzGiPo", ExportName = "sceAgcDriverSetTFRing", Target = Generation.Gen5, LibraryName = "libSceAgcDriver")]
+    public static int AgcDriverSetTFRingStub(CpuContext ctx) => ctx.SetReturn(0);
 }
