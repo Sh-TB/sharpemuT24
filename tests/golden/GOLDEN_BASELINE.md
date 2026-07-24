@@ -90,3 +90,28 @@ Required:   100+ framebuffer dumps with 50+ distinct colors
 4. **Multiple systems changed simultaneously**
    - Never change HLE + GPU + VideoOut + Memory at the same time
    - One subsystem per change, then test
+
+## NID Coverage Comparison (old working source vs current)
+
+Old working source (e3bbe69, 2026-07-19):
+- Total unique NIDs: 1029
+- AgcExports NIDs: 93
+
+Current source (f83b6ea):
+- Total unique NIDs: 911
+- AgcExports NIDs: 90
+
+Missing: 133 NIDs (old has, current doesn't)
+Added: 15 NIDs (current has, old doesn't — our custom stubs)
+
+Key finding: VkqLPArfFdc is NOT in either source.
+It's genuinely unimplemented — Unity IL2CPP games call it during bootstrap.
+Dreaming Sarah (native C++) never calls it, which is why it works.
+
+## Next Steps for Unity IL2CPP (Phase 2)
+
+1. Port 133 missing NIDs from old source to current
+2. Identify VkqLPArfFdc — likely an IL2CPP runtime function
+3. Implement VkqLPArfFdc stub that returns allocated memory (not NULL)
+4. Run golden test after each change to verify Dreaming Sarah still works
+5. Test Yatzi/Seeker after NID work — do they reach AGC?
