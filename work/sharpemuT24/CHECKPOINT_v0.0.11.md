@@ -42,7 +42,7 @@ Test: tests/golden/run-golden-tests.sh
 | # | Game | Engine | Status | Blocker | Next Step |
 |---|------|--------|--------|---------|-----------|
 | 1 | Dreaming Sarah | Native C++ | ✅ GOLDEN | None | Protect |
-| 2 | Yatzi (PPSA17697) | Unity IL2CPP | ❌ Same as upstream | SignalSema=0 | IL2CPP bootstrap trace |
+| 2 | Yatzi (PPSA17697) | Unity IL2CPP | ❌ IL2CPP bootstrap barrier | SignalSema=0 | NID signature capture + sync trace |
 | 3 | Seeker (PPSA12500) | Unity IL2CPP | ❌ Same | Same as Yatzi | After Yatzi |
 | 4 | Arise (PPSA06328) | Native C++ | ❌ | SIGILL crash | Crash analyzer |
 | 5 | Harvest Days (PPSA14677) | Unity IL2CPP | ❌ | Encrypted PRX | Need fSELF |
@@ -62,12 +62,89 @@ User provided upstream Windows log (PPSA17697-20260721-152128.log).
 | Stall | Yes (20s timeout) | Yes (infinite loop) |
 | All threads blocked | Yes (WaitSema) | Yes (WaitSema) |
 
-**Conclusion: Yatzi's IL2CPP bootstrap deadlock is an UPSTREAM limitation, not our bug.**
-Both upstream Windows and our Linux fork have the same issue: SignalSema is never called.
+## IMPORTANT: Conclusion correction
+
+Previously stated: "This is an upstream SharpEmu limitation"
+
+**Corrected**: This is an upstream gap under investigation.
+
+What we KNOW:
+- SignalSema = 0 on BOTH platforms
+- Not caused by fork-specific stubs (removing them didn't change behavior)
+- Not caused by Harvest Days NID additions
+- All 14 AssetGarbageCollectorHelper threads + 1 IL2CPP thread deadlock on WaitSema
+
+What we DON'T KNOW yet:
+- Whether missing signal path is caused by unimplemented IL2CPP NID
+- Whether 1D0H2KNjshE/hsi9drzHR2k (return-zero fallback) should actually
+  trigger a signal as part of their real implementation
+- Whether deeper SharpEmu Unity bootstrap limitation exists
+- Whether signal comes through a different API (scePthreadCondSignal, etc.)
+
+SignalSema = 0 may be a SYMPTOM, not the ROOT CAUSE.
+The IL2CPP thread may never reach the signal code because an earlier
+NID returned zero instead of doing real work.
 
 ---
 
-# 5. NID Stubs (Current State after 0455370)
+# 5. IL2CPP Bootstrap Investigation Plan
+
+## Phase 1 — NID Signature Capture (DO THIS FIRST)
+
+For NIDs 1D0H2KNjshE and hsi9drzHR2k, log on every call:
+```
+NID, Thread ID, RIP, Return Address
+RDI, RSI, RDX, RCX, R8, R9
+Return Value
+```
+
+Then classify the NID by its argument pattern:
+- Pattern A (semaphore-like): RDI=handle, RSI=count → missing HLE implementation
+- Pattern B (runtime helper): RDI=object, RSI=callback → IL2CPP internal function
+- Pattern C (bootstrap): RDI=context, RSI=config → Unity internal bootstrap
+
+## Phase 2 — Caller Module Mapping
+
+Map Return Address to module:
+- Inside eboot.bin? → Unity engine code
+- Inside Il2cppUserAssemblies.prx? → IL2CPP compiled game code
+- Inside libc.prx? → C runtime wrapper
+
+## Phase 3 — Synchronization Trace (Mini Semaphore Tracker)
+
+Lightweight log for ALL sync primitives:
+```
+CreateSema(handle, name, thread) → record
+WaitSema(handle, thread) → record
+SignalSema(handle, thread) → record
+scePthreadCondSignal(handle, thread) → record
+scePthreadMutexUnlock(handle, thread) → record
+sceKernelWakeupThread(handle, thread) → record
+```
+
+Output:
+```
+Semaphore 0x31
+  Created by: MainThread
+  Waiters: Thread#14, Thread#15, ...
+  Signals: NONE
+  Possible blocker: IL2CPP bootstrap
+```
+
+## Phase 4 — Last-20-Guest-Calls Before Stall
+
+Record the last 20 guest function calls before the stall:
+```
+T0 MainThread → sceKernelCreateSema(0x31)
+T1 AssetGC → sceKernelWaitSema(0x31)
+T2 IL2CPP Worker → call NID 1D0H2KNjshE
+T3 fallback return 0
+STALL
+```
+
+---
+
+# 6. NID Stubs (Current State after 0455370)
 
 ## Kept (verified needed or harmless)
 
@@ -81,12 +158,12 @@ Both upstream Windows and our Linux fork have the same issue: SignalSema is neve
 | BHouLQzh0X0 | sceKernelFindInternalFileVariant | Called by Yatzi |
 | 1-LFLmRFxxM | sceKernelMkdir | Called by Yatzi |
 
-## Removed (Harvest Days only, not needed for Yatzi)
+## Removed (Harvest Days only)
 
 | NID | Name | Reason |
 |-----|------|--------|
-| 1D0H2KNjshE | HarvestMemOp1 | 0 calls on Yatzi Windows log |
-| hsi9drzHR2k | HarvestMemOp2 | 0 calls on Yatzi Windows log |
+| 1D0H2KNjshE | HarvestMemOp1 | 0 calls on Yatzi Windows log (but IS in import table — resolves to return-zero fallback) |
+| hsi9drzHR2k | HarvestMemOp2 | Same |
 | AcslpN1jHR8 | PadDeviceClassGetExtendedInfo | Harvest Days specific |
 | 5TjaJwkLWxE | HarvestStub5Tja | Harvest Days specific |
 | 3BytPOQgVKc | HarvestStub3Byt | Harvest Days specific |
@@ -105,7 +182,7 @@ If upstream doesn't resolve the NID and the game runs the same → do NOT stub.
 
 ---
 
-# 6. NID Coverage Gap
+# 7. NID Coverage Gap
 
 ```
 Old working source (e3bbe69): 1029 unique NIDs
@@ -120,7 +197,7 @@ Porting these requires resolving dependency chain (GuestGpuTypes, GuestBlendCons
 
 ---
 
-# 7. Diagnostics Inventory
+# 8. Diagnostics Inventory
 
 ## Source Files
 ```
@@ -162,7 +239,7 @@ SHARPEMU_SEMA_FAST_PATH — Bypass semaphore waits (BREAKS Unity)
 
 ---
 
-# 8. Environment Setup
+# 9. Environment Setup
 
 ```bash
 # Xvfb
@@ -191,7 +268,7 @@ unset SHARPEMU_HEADLESS
 
 ---
 
-# 9. Key Commits
+# 10. Key Commits
 
 ```
 f83b6ea  v0.0.9 release (GLFW X11 fix + real frames)
@@ -201,6 +278,7 @@ b451ae9  4 more NID stubs
 560301b  PROJECT_STATUS_v0.0.9.md
 a9e4186  PROJECT_STATUS_v0.0.10.md (Windows log analysis)
 0455370  Remove Harvest Days stubs + fix xk0AcarP3V4 conflict
+ed0f945  CHECKPOINT_v0.0.11.md (first version — conclusion corrected below)
 ```
 
 Tags:
@@ -212,19 +290,31 @@ v0.0.10 → 560301b
 
 ---
 
-# 10. Next Steps (Priority Order)
+# 11. Next Steps (Priority Order)
 
 ## P0: Protect Dreaming Sarah
 - Run golden test before EVERY change
 - If it fails, revert immediately
 
 ## P1: IL2CPP Bootstrap Investigation (Yatzi/Seeker)
-- Do NOT add more NID stubs
-- Add Semaphore Lifecycle Analyzer (create/wait/signal/delete per sema)
-- Add Thread Dependency Graph (who waits for what)
-- Add Last-20-Guest-Calls trace before stall
-- Find what IL2CPP runtime thread is waiting for
-- Compare with upstream — this is a known limitation
+### Phase 1: NID Signature Capture (FIRST)
+- Log all arguments for 1D0H2KNjshE and hsi9drzHR2k calls
+- Classify NID by argument pattern (semaphore-like vs runtime helper vs bootstrap)
+
+### Phase 2: Caller Module Mapping
+- Map return addresses to modules (eboot, Il2cppUserAssemblies, libc)
+
+### Phase 3: Synchronization Trace
+- Track ALL sync primitives (semaphores, condvars, mutexes, thread wakeups)
+- Build semaphore lifecycle graph
+- Identify which semaphore is blocking and who should signal it
+
+### Phase 4: Last-20-Calls Before Stall
+- Record last 20 guest calls before stall point
+- Identify the missing step in the IL2CPP bootstrap chain
+
+- Do NOT add more NID stubs until Phase 1-4 are complete
+- Do NOT conclude "upstream limitation" until root cause is proven
 
 ## P2: Port Missing NIDs from Old Source
 - 109 NIDs missing (SaveData, AudioPropagation, etc.)
@@ -242,24 +332,24 @@ v0.0.10 → 560301b
 
 ---
 
-# 11. Mistakes Documented (Do Not Repeat)
+# 12. Mistakes Documented (Do Not Repeat)
 
 1. **HSV test pattern confused with game output** — GenerateFramePattern() RGB(229,95,68) = HSV(10°,0.7,0.9)
 2. **6 false hypotheses wasted days** — scheduler, semaphore deadlock, metadata corruption, missing files, fake stubs, regression
 3. **Real fix was one function** — PreferX11OnLinuxWayland() needed DISPLAY check, not WAYLAND_DISPLAY
-4. **Harvest Days stubs polluted Yatzi** — 1D0H2KNjshE/hsi9drzHR2k had 0 calls on Windows but 59+21 on our fork
+4. **Harvest Days stubs polluted Yatzi** — 1D0H2KNjshE/hsi9drzHR2k had 0 calls on Windows log but ARE in Yatzi's import table (resolving to return-zero fallback)
 5. **VkqLPArfFdc was a red herring** — 0 calls on Windows; crash reduction was from removing bad stubs, not adding new ones
 6. **Multiple systems changed simultaneously** — never change HLE + GPU + VideoOut at the same time
 7. **Frame count ≠ game output** — must check distinct color count, not just "frame exists"
 8. **DIAG-VERIFY doesn't capture all calls** — Windows log showed 0 for NIDs that ARE called (logging gap)
+9. **Premature conclusion about "upstream limitation"** — SignalSema=0 may be a symptom, not root cause. An unimplemented NID returning zero may be preventing the IL2CPP thread from reaching the signal code.
 
 ---
 
-# 12. Repository
+# 13. Repository
 
 ```
 GitHub: https://github.com/Sh-TB/sharpemuT24
-Token: [REDACTED:github_token]
 Default branch: main
 Source path: work/sharpemuT24/src/
 Binary: work/sharpemu-build/SharpEmu
