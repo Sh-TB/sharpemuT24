@@ -603,6 +603,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int Init(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcInit);
         var stateAddress = ctx[CpuRegister.Rdi];
         var version = (uint)ctx[CpuRegister.Rsi];
         if (stateAddress == 0 || !IsSupportedRegisterDefaultsVersion(version))
@@ -638,6 +639,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int CreateShader(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcCreateShader);
         var destinationAddress = ctx[CpuRegister.Rdi];
         var headerAddress = ctx[CpuRegister.Rsi];
         var codeAddress = ctx[CpuRegister.Rdx];
@@ -760,6 +762,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int CreatePrimState(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcCreatePrimState);
         var cxRegistersAddress = ctx[CpuRegister.Rdi];
         var ucRegistersAddress = ctx[CpuRegister.Rsi];
         var hullShaderAddress = ctx[CpuRegister.Rdx];
@@ -1460,6 +1463,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int DcbDrawIndex(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcDcbDrawIndex);
         var commandBufferAddress = ctx[CpuRegister.Rdi];
         var indexCount = (uint)ctx[CpuRegister.Rsi];
         var indexAddress = ctx[CpuRegister.Rdx];
@@ -1511,6 +1515,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int DcbDrawIndexAuto(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcDcbDrawIndexAuto);
         var commandBufferAddress = ctx[CpuRegister.Rdi];
         var indexCount = (uint)ctx[CpuRegister.Rsi];
         var modifier = ctx[CpuRegister.Rdx];
@@ -1542,6 +1547,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int DcbDrawIndexIndirect(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcDcbDrawIndexIndirect);
         var commandBufferAddress = ctx[CpuRegister.Rdi];
         var dataOffset = (uint)ctx[CpuRegister.Rsi];
         var modifier = (uint)ctx[CpuRegister.Rdx];
@@ -2036,6 +2042,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int DcbDispatchIndirect(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcDcbDispatchIndirect);
         var commandBufferAddress = ctx[CpuRegister.Rdi];
         var dataOffset = (uint)ctx[CpuRegister.Rsi];
         var modifier = (uint)ctx[CpuRegister.Rdx];
@@ -2506,6 +2513,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int DcbDrawIndexOffset(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcDcbDrawIndexOffset);
         var commandBufferAddress = ctx[CpuRegister.Rdi];
         var indexOffset = (uint)ctx[CpuRegister.Rsi];
         var indexCount = (uint)ctx[CpuRegister.Rdx];
@@ -2643,6 +2651,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgcDriver")]
     public static int DriverSubmitDcb(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcDriverSubmitDcb);
         var packetAddress = ctx[CpuRegister.Rdi];
         if (packetAddress == 0 ||
             !TryReadUInt64(ctx, packetAddress, out var commandAddress) ||
@@ -2705,6 +2714,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgcDriver")]
     public static int DriverSubmitAcb(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcDriverSubmitAcb);
         var ownerHandle = (uint)ctx[CpuRegister.Rdi];
         var packetAddress = ctx[CpuRegister.Rsi];
         if (packetAddress == 0 ||
@@ -10960,6 +10970,7 @@ public static partial class AgcExports
         LibraryName = "libSceAgcDriver")]
     public static int DriverSubmitMultiDcbs(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.AgcDriverSubmitMultiDcbs);
         var addressArray = ctx[CpuRegister.Rdi];
         var sizeArray = ctx[CpuRegister.Rsi];
         var bufferCount = (uint)ctx[CpuRegister.Rdx];

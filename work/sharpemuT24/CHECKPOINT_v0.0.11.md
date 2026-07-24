@@ -644,3 +644,125 @@ naturally and have no impact on the boot progression.
 - ✅ Real boot sequence understood (NID loop → audio/mutex loop, no rendering)
 - ✅ New investigation target identified (GfxDeviceWorker / Audio / DCB)
 - ✅ Golden test still passes (139 frames, 188 colors, no regression)
+
+---
+
+# 18. CRITICAL UPDATE: Pipeline Counters — ROOT CAUSE IDENTIFIED
+
+## User's Cheap Test (Round 2)
+
+User suggested: before tracing the whole GfxDeviceWorker thread, run a cheaper test —
+find the function responsible for initializing the `dcb.graphics` queue, and check
+whether it is called at all. If yes-but-still-uninitialized → bug in HLE implementation.
+If never-called → main thread never reaches that point.
+
+## Implementation: PipelineCallCounters
+
+Created `src/SharpEmu.Libs/Kernel/PipelineCallCounters.cs` — lightweight call-counter
+activated by env var `SHARPEMU_PIPELINE_COUNTERS=1` (off by default → no-op).
+Tracks 21 functions across AGC + VideoOut pipelines:
+- AGC lifecycle: Init, CreateShader, CreatePrimState
+- AGC submission: DriverSubmitDcb, DriverSubmitAcb, DriverSubmitMultiDcbs
+- AGC draw calls: DrawIndex, DrawIndexAuto, DrawIndexOffset, DrawIndexIndirect, DispatchIndirect
+- VideoOut lifecycle: Open, RegisterBuffers, RegisterBuffers2, SubmitFlip,
+  WaitVblank, GetFlipStatus, AddFlipEvent, AddVblankEvent
+
+Background timer dumps cumulative counts every 2 seconds. Per-call overhead is one
+`Interlocked.Increment` (≈5ns) when enabled, zero when disabled.
+
+## Side-by-side Comparison (20s runs)
+
+| Function | Dreaming Sarah (working) | Yatzi (broken) |
+|----------|--------------------------|----------------|
+| AgcInit | 1 | 1 |
+| AgcCreateShader | 99 | 36 |
+| AgcCreatePrimState | 378 | 2 |
+| **AgcDriverSubmitDcb** | **84** | **1** |
+| AgcDcbDrawIndexAuto | 66 | 1 |
+| AgcDcbDrawIndexOffset | 120 | 0 |
+| VideoOutOpen | 1 | 1 |
+| VideoOutRegisterBuffers2 | 1 | 1 |
+| VideoOutSubmitFlip (direct) | 0 (uses DCB-embedded) | 1 (direct call) |
+| VideoOutAddFlipEvent | 84 | 2 |
+| Frames produced | 90 | 0 |
+| flip_capture_failed warnings | 0 | 1 |
+| UNMAPPED faults | 0 | 5 |
+
+## ROOT CAUSE IDENTIFIED
+
+**Bug location:** `src/SharpEmu.Libs/VideoOut/VulkanVideoPresenter.cs` line 1335
+(method `RegisterKnownDisplayBuffer`)
+
+**Bug:** When `sceVideoOutRegisterBuffers2` is called, `RegisterKnownDisplayBuffer`
+adds the address to `_availableGuestImages` (the "valid flip target" dictionary) but
+does NOT create a real Vulkan image in `_guestImages` (the "actual image resource"
+dictionary). When the game later calls `sceVideoOutSubmitFlip` on this address
+before any rendering, the presenter's `ExecuteOrderedGuestFlip` looks up
+`_guestImages` and fails with `found=False initialized=False`.
+
+**Effect chain:**
+1. Unity calls `sceVideoOutRegisterBuffers2(addr=0x10CA0000)` →
+   `_availableGuestImages[0x10CA0000] = format` is set, but `_guestImages` stays empty
+2. Unity calls `sceVideoOutSubmitFlip(bufferIndex=0)` →
+   `TrySubmitGuestImage` passes the `_availableGuestImages` check, returns success
+3. Presenter thread later tries to capture the image for flip →
+   `_guestImages[0x10CA0000]` lookup fails → `vk.flip_capture_failed` warning
+4. Unity continues, accesses struct field at `r12+0x38` (some flip result struct)
+5. `r12` is NULL because the flip didn't actually populate the expected state →
+   `UNMAPPED fault at rip=0x800B28A0D: cmp qword ptr [r12+38h],0`
+   RCX=0xC0DEC0DECAFEBA00 (Unity's "we're in error state" magic marker)
+6. Unity's error handler runs — this IS the 80,311 NID calls (60,343 + 19,968)
+   we previously mistook for "normal initialization"
+7. Error handler completes, main thread enters audio/mutex spin loop forever
+
+## Previous Section 17 Conclusion CORRECTED (Again)
+
+Previous (section 17): "NID loop runs naturally in 2 seconds, then game enters
+audio/mutex loop"
+
+**CORRECTED:** The NID loop IS the Unity error handler. It is triggered by the
+memory fault that follows the failed initial flip. The NIDs are not part of any
+normal initialization — they are part of Unity's error cleanup path.
+
+The non-zero return experiment (section 17) still definitively refuted the
+"busy-wait loop" hypothesis — the NID loop IS finite (80,311 calls in 2 seconds).
+But the REASON it runs is not "normal init", it's "error handler triggered by
+failed initial flip."
+
+## Why Dreaming Sarah Works
+
+Dreaming Sarah does NOT call `sceVideoOutSubmitFlip` directly. It uses DCB-embedded
+flips: it submits a DCB containing render commands AND a flip packet in the same
+`sceAgcDriverSubmitDcb` call. The DCB-embedded flip path goes through
+`TrySubmitOrderedGuestImageFlip` (which also checks `_availableGuestImages`) but
+the DCB itself renders into the image first via `sceAgcDcbDrawIndexOffset`.
+So by the time the flip executes, the image has been rendered into and
+`_guestImages` is populated.
+
+Yatzi uses a different pattern: it registers the display buffer, calls
+`sceVideoOutSubmitFlip` directly (expecting a black frame to be displayed), and
+only THEN starts its render loop. Real PS5 hardware creates the backing image
+when the buffer is registered, so this pattern works on real hardware. SharpEmu
+does not, causing the first flip to fail.
+
+## Suggested Fix (NEXT P1)
+
+Modify `RegisterKnownDisplayBuffer` (or its caller `RegisterBufferRange`) to also
+create a placeholder Vulkan image in `_guestImages` for the registered address.
+The image should be sized according to the buffer attribute (width, height, format)
+and initialized to black. This makes the first flip succeed with a black frame,
+matching real PS5 hardware behavior.
+
+Alternative simpler fix: in `ExecuteOrderedGuestFlip`, when `_guestImages[address]`
+is not found but `_availableGuestImages[address]` exists, create a black placeholder
+image on-the-fly and proceed with the flip (instead of warning and returning).
+
+## Status
+
+- ✅ User's cheap test #2 executed successfully
+- ✅ ROOT CAUSE identified (RegisterKnownDisplayBuffer missing Vulkan image creation)
+- ✅ User's specific question answered: function IS called, flag NOT set (HLE bug)
+- ✅ Section 17 conclusion corrected (NID loop = error handler, not normal init)
+- ✅ Golden test still passes (138 frames, 188 colors, no regression)
+- ✅ Did NOT modify any IL2CPP stubs (per user's explicit instruction)
+- Next P1: implement the fix in RegisterKnownDisplayBuffer or ExecuteOrderedGuestFlip

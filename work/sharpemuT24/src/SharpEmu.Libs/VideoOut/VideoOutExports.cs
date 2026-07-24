@@ -233,6 +233,7 @@ public static class VideoOutExports
         LibraryName = "libSceVideoOut")]
     public static int VideoOutOpen(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.VideoOutOpen);
         var userId = unchecked((int)ctx[CpuRegister.Rdi]);
         var busType = unchecked((int)ctx[CpuRegister.Rsi]);
         var index = unchecked((int)ctx[CpuRegister.Rdx]);
@@ -489,6 +490,7 @@ public static class VideoOutExports
         LibraryName = "libSceVideoOut")]
     public static int VideoOutWaitVblank(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.VideoOutWaitVblank);
         var handle = unchecked((int)ctx[CpuRegister.Rdi]);
         if (!TryGetPort(handle, out var port))
         {
@@ -573,6 +575,7 @@ public static class VideoOutExports
         LibraryName = "libSceVideoOut")]
     public static int VideoOutAddFlipEvent(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.VideoOutAddFlipEvent);
         var equeue = ctx[CpuRegister.Rdi];
         var handle = unchecked((int)ctx[CpuRegister.Rsi]);
         var userData = ctx[CpuRegister.Rdx];
@@ -613,6 +616,7 @@ public static class VideoOutExports
         LibraryName = "libSceVideoOut")]
     public static int VideoOutAddVblankEvent(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.VideoOutAddVblankEvent);
         var equeue = ctx[CpuRegister.Rdi];
         var handle = unchecked((int)ctx[CpuRegister.Rsi]);
         var userData = ctx[CpuRegister.Rdx];
@@ -676,6 +680,7 @@ public static class VideoOutExports
         LibraryName = "libSceVideoOut")]
     public static int VideoOutSubmitFlip(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.VideoOutSubmitFlip);
         var handle = unchecked((int)ctx[CpuRegister.Rdi]);
         var bufferIndex = unchecked((int)ctx[CpuRegister.Rsi]);
         var flipMode = unchecked((int)ctx[CpuRegister.Rdx]);
@@ -690,6 +695,7 @@ public static class VideoOutExports
         LibraryName = "libSceVideoOut")]
     public static int VideoOutGetFlipStatus(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.VideoOutGetFlipStatus);
         var handle = unchecked((int)ctx[CpuRegister.Rdi]);
         var statusAddress = ctx[CpuRegister.Rsi];
         if (statusAddress == 0)
@@ -1009,6 +1015,7 @@ public static class VideoOutExports
         LibraryName = "libSceVideoOut")]
     public static int VideoOutRegisterBuffers(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.VideoOutRegisterBuffers);
         var handle = unchecked((int)ctx[CpuRegister.Rdi]);
         var startIndex = unchecked((int)ctx[CpuRegister.Rsi]);
         var addressesAddress = ctx[CpuRegister.Rdx];
@@ -1058,6 +1065,7 @@ public static class VideoOutExports
         LibraryName = "libSceVideoOut")]
     public static int VideoOutRegisterBuffers2(CpuContext ctx)
     {
+        PipelineCallCounters.Increment(PipelineCallCounters.Function.VideoOutRegisterBuffers2);
         var handle = unchecked((int)ctx[CpuRegister.Rdi]);
         var setIndex = unchecked((int)ctx[CpuRegister.Rsi]);
         var bufferIndexStart = unchecked((int)ctx[CpuRegister.Rdx]);
