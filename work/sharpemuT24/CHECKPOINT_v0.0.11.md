@@ -420,3 +420,52 @@ Need to find: WHO is supposed to signal these semaphores?
 - Is it a different thread that hasn't been created yet?
 - Is it a callback that never fires?
 - Is it a NID that returns zero instead of doing work?
+
+---
+
+# 15. CRITICAL UPDATE: Thread-Semaphore Correlation
+
+## All 13 deadlocked semaphores (0x81-0x8D) are waited on by Job.worker 0-12
+
+| Sema | Waiter Thread | Thread Name |
+|------|---------------|-------------|
+| 0x81 | 0x...BF7DC0 | Job.worker 0 |
+| 0x82 | 0x...BFA340 | Job.worker 1 |
+| 0x83 | 0x...5648D0 | Job.worker 2 |
+| ... | ... | ... |
+| 0x8D | 0x...D87160 | Job.worker 12 |
+
+## Interpretation
+
+These 13 semaphores are the Unity C# Job System worker wait semaphores.
+Each Job.worker creates its own semaphore and waits on it for work dispatch.
+
+**These workers are NOT deadlocked — they are IDLE.**
+They are correctly waiting for the main thread to dispatch C# Job System work.
+Nobody is dispatching jobs because the main thread is stuck in bootstrap.
+
+## The REAL bottleneck is the MAIN THREAD
+
+The main thread is stuck somewhere else (not on these semaphores).
+The workers are just idle waiting for work that never comes.
+
+## Thread inventory (52 threads total)
+
+| Thread Type | Count | Status |
+|-------------|-------|--------|
+| AssetGarbageCollectorHelper | 13 | ✅ Working (group 1 paired semaphores) |
+| Job.worker 0-12 | 13 | 🟡 Idle (waiting for work, group 2 semaphores) |
+| Background Job.worker 0-15 | 16 | 🟡 Partially working (group 3) |
+| FMOD threads | 3 | Running |
+| Unity engine threads | 7 | Running |
+
+## Next Step
+
+Find what the MAIN THREAD is doing.
+The main thread is NOT waiting on any semaphore — it's in a busy loop:
+- Calling 1D0H2KNjshE_stub (59 times)
+- Calling hsi9drzHR2k_stub (21 times)
+- Calling scePthreadMutexLock, sceKernelClockGettime, sceAudioOutOutput
+
+The main thread is stuck in a loop, not in a semaphore wait.
+Need to trace what the main thread is actually executing.
