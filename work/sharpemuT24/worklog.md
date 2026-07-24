@@ -1,87 +1,61 @@
----
-Task ID: EXP-105 — Did v0.0.3 / v0.0.7 ever produce real game images?
-Agent: main (SharpEmu bringup)
-Task: User asked: 'We previously had a build where SharpEmu produced dumped images.
-       Before assuming those frames were synthetic, we need to reproduce the exact
-       commit and pipeline.'
+# SharpEmu T24 — Final Release Report
 
-Investigated v0.0.3 commit (7ea98b4):
-- v0.0.3 had committed BMP files in logs/:
-  - videoout_frame_0001_h1_b0.bmp (24.8 MB, 3840x2160)
-  - videoout_frame_0002_h1_b1.bmp (24.8 MB, 3840x2160)
-- Frame metadata files show real framebuffer addresses:
-  - Frame 1: address=0x0000000001260000 (game-provided)
-  - Frame 2: address=0x0000000003240000 (game-provided, double-buffered)
-  - Both 3840x2160 resolution
-  - Both have fingerprint 0x7F2C361DEB0F2325 (identical content)
+## ساختار نهایی
 
-ANALYSIS OF v0.0.3 COMMITTED BMPs:
-  Total pixels: 8,294,400
-  Non-black pixels: 0 (0.00%)
-  Distinct colors: 1 (only RGB(0,0,0))
-  CRC32: 0x41E75CCB (identical for both frames)
+### بازی‌های تست شده
 
-→ v0.0.3's "first frame" was ALSO completely black!
-→ Same as current HEAD — no real game image was ever produced.
+| # | بازی | TitleID | موتور | وضعیت | عکس |
+|---|------|---------|-------|-------|-----|
+| 1 | Dreaming Sarah | PPSA02929 | Native C++ | ✅ فریم واقعی | dreaming-sarah-last.png (۱۶۷ رنگ) |
+| 2 | Yatzi | PPSA17697 | Unity IL2CPP | ❌ VkqLPArfFdc NID حل‌نشده | — |
+| 3 | Seeker My Shadow | PPSA12500 | Unity IL2CPP | ❌ VkqLPArfFdc NID حل‌نشده | — |
+| 4 | Arise | PPSA06328 | Native C++ | ❌ SIGILL crash | — |
+| 5 | Harvest Days | PPSA14677 | Unity IL2CPP | ❌ فایل‌های PRX رمزنگاری‌شده | — |
 
-INVESTIGATED HEAD CODE:
-- Same TryDumpFrame function exists in HEAD's VideoOutExports.cs
-- _dumpVideoOut is force-enabled (`|| true`)
-- TryDumpFrame reads from guest memory at game-provided address
-- BMP files ARE generated in /home/z/my-project/logs/
-- The BMPs produced by HEAD today are IDENTICAL to v0.0.3's:
-  - Same filename pattern: videoout_frame_0001_h1_b0.bmp
-  - Same dimensions: 3840x2160
-  - Same address: 0x1260000
-  - Same fingerprint: 0x7F2C361DEB0F2325
-  - Same CRC32: 0x41E75CCB
-  - Same content: ALL BLACK
+### ابزارهای دیاگنوستیک ساخته شده
 
-ROOT CAUSE CONFIRMED — NO REGRESSION:
-- v0.0.3 BMPs: all black, 0 non-zero pixels
-- HEAD BMPs (today): all black, 0 non-zero pixels
-- v0.0.7 BMPs (would be same pattern)
-- The framebuffer at game-provided addresses is ALWAYS empty
-- This is NOT a regression between versions
-- This has been true since v0.0.3
+1. **BootDependencyAnalyzer** — بررسی فایل‌های لازم بازی قبل از اجرای CPU
+2. **ExecutableFormatDetector** — تشخیص ELF/SELF/fSELF برای هر فایل اجرایی
+3. **FrameAnalyzer** — تحلیل فریم خروجی (splash تک‌رنگ vs محتوای واقعی)
+4. **SHARPEMU_LOG_SEMA** — لاگ کامل semaphore operations
+5. **SHARPEMU_LOG_OPEN** — لاگ file open/close
+6. **SHARPEMU_LOG_IL2CPP_NULL** — لاگ IL2CPP stubs که NULL برمی‌گردانند
+7. **SHARPEMU_TRACE_GUEST_IMAGES** — dump فریم‌های Vulkan swapchain
+8. **SHARPEMU_DUMP_VIDEOOUT** — dump فریم‌های VideoOut به BMP
+9. **SHARPEMU_SWAPCHAIN_DUMP_EVERY** — dump دوره‌ای swapchain
+10. **SHARPEMU_STALL_WATCHDOG_SECONDS** — تشخیص stall در اجرای guest
 
-WHY IS THE FRAMEBUFFER EMPTY?
-- Game provides real framebuffer addresses (0x1260000, 0x3240000)
-- SharpEmu reads from those addresses (TryRead OK)
-- BUT game never writes anything to those addresses
-- The game submits DCB commands (sceAgcDriverSubmitDcb)
-- SharpEmu's AGC stub accepts the DCB but doesn't execute it on real GPU
-- Vulkan path would execute but can't create window (GLFW fails)
-- So framebuffer stays empty
+### اشتباهات کلیدی (که چند روز وقت گرفت)
 
-WHAT THIS MEANS:
-1. The "first frame milestones" from v0.0.3 to v0.0.8 were ALL test patterns
-   or empty black frames — never real game content
-2. There is NO regression to find with git bisect
-3. The current state matches v0.0.3 — SharpEmu can boot game code but
-   cannot render actual game visuals
-4. Dreaming Sarah's "first frame" was always black, not a real game image
+1. **الگوی تست HSV به جای خروجی بازی** — HeadlessVideoPresenter.GenerateFramePattern() رنگ RGB(229,95,68) = HSV(10°,0.7,0.9) تولید می‌کرد که با "splash Unity" اشتباه گرفته شد. این فقط الگوی تست بود.
 
-WHAT WE'VE ACTUALLY ACHIEVED:
-- v0.0.3: Game reaches VideoOut, provides FB addresses, SharpEmu reads empty FB
-- v0.0.7: Same, but with better diagnostics
-- HEAD: Same, plus AGC stubs accept real DCB submissions (but don't render)
+2. **فرضیه‌های غلط که رد شدند:**
+   - ❌ Scheduler pump مشکل دارد (READY همیشه 0 بود، pump چیزی برای اجرا نداشت)
+   - ❌ Semaphore deadlock (۴۸۳۱ سیگنال رخ داد، بن‌بست نبود)
+   - ❌ Metadata خراب است (entropy 5.54، معتبر بود)
+   - ❌ فایل‌های ناقص (Seeker همه فایل‌ها را داشت)
+   - ❌ GPU stub مشکل دارد (بازی از fake stubs استفاده نمی‌کرد)
+   - ❌ Regression بین v0.0.3 و HEAD (هر دو فریم سیاه داشتند)
 
-The render pipeline IS alive:
-- Dreaming Sarah submits 1 sceAgcDriverSubmitDcb (real DCB)
-- Dreaming Sarah issues 1 sceAgcDcbDrawIndexOffset (real draw command)
-- SharpEmu writes real PM4 commands to guest command buffer
-- But SharpEmu's AGC stub doesn't execute them on actual GPU
+3. **مشکل واقعی (که حل شد):** تابع `PreferX11OnLinuxWayland()` فقط وقتی `WAYLAND_DISPLAY` تنظیم شده بود، X11 را اجباری می‌کرد. روی Xvfb-only Linux (بدون Wayland)، GLFW پلتفرم را تشخیص نمی‌داد و خطای `65550: Failed to detect any supported platform` می‌داد. Fix: همیشه وقتی `DISPLAY` تنظیم است، X11 را اجباری کن (PR #457).
 
-TWO SEPARATE ISSUES (confirmed):
-1. Unity IL2CPP games (Seeker, Yatzi): stuck at VkqLPArfFdc unresolved NID
-   - Never reach render loop
-   - Game never gets to call sceAgcDriverSubmitDcb
-2. Native C++ games (Dreaming Sarah): reach render loop, submit DCBs
-   - But SharpEmu's AGC stub doesn't actually render to framebuffer
-   - Game's framebuffer stays empty
+4. **مشکل باقی‌مانده برای بازی‌های Unity IL2CPP:** NID `VkqLPArfFdc` حل‌نشده. این تابع در bootstrap IL2CPP فراخوانی می‌شود، SharpEmu آن را پیاده‌سازی نکرده، NULL برمی‌گرداند، بازی از طریق NULL فراخوانی می‌کند و در crash-recover loop گیر می‌کند. در بازی Native (Dreaming Sarah) این NID فراخوانی نمی‌شود.
 
-NO REGRESSION — v0.0.3 was already in this state.
-The first real game image will require either:
-- Implementing actual AGC DCB execution (software rasterizer)
-- OR: fixing the Vulkan path to work in this environment (GLFW issue)
+### محیط اجرا
+- OS: Debian Linux (headless, no physical GPU)
+- Display: Xvfb :99 1920x1080x24
+- Vulkan: Lavapipe (llvmpipe, LLVM 19.1.7, software rasterizer)
+- .NET SDK: 10.0.302
+- GLFW: 3.4 (with X11 platform hint)
+- X11 libs: libX11, libxcb, libxkbcommon (user-local install)
+
+### دستور اجرا
+```bash
+export VK_ICD_FILENAMES=lvp_icd.json
+export DISPLAY=:99 XDG_RUNTIME_DIR=/tmp/xdg
+export LD_LIBRARY_PATH=...
+unset SHARPEMU_HEADLESS
+export SHARPEMU_TRACE_GUEST_IMAGES=present
+export SHARPEMU_GUEST_IMAGE_DUMP_DIR=/tmp/framebuffers
+./SharpEmu --log-level=info eboot.bin
+```
