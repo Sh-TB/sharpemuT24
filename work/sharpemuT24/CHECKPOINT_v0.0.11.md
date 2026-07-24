@@ -354,3 +354,69 @@ Default branch: main
 Source path: work/sharpemuT24/src/
 Binary: work/sharpemu-build/SharpEmu
 ```
+
+---
+
+# 14. CRITICAL UPDATE: Semaphore Analysis (commit 881591a)
+
+## Previous conclusion CORRECTED
+
+Previous: "SignalSema = 0 → upstream limitation"
+**CORRECTED**: SignalSema = 4009 — signals ARE happening!
+
+## Semaphore Lifecycle Data (from SEMA-LIFE tracker)
+
+| Event | Count |
+|-------|-------|
+| create | 340 |
+| wait | 100 |
+| **signal** | **4009** |
+| wake | 0 |
+| delete | 78 |
+
+## Three distinct semaphore groups found
+
+### Group 1: PAIRED (0x5C-0x75) — WORKING
+13 pairs: wait on EVEN handle, signal on ODD handle (handle+1)
+```
+0x5C waited → 0x5D signaled ✅
+0x5E waited → 0x5F signaled ✅
+0x60 waited → 0x61 signaled ✅
+...
+0x74 waited → 0x75 signaled ✅
+```
+This is Unity's normal "worker wait / completion signal" pattern.
+
+### Group 2: DEADLOCKED (0x81-0x8D) — ALL BLOCKED
+13 semaphores waited on, NONE ever signaled
+```
+0x81 waited → 0x82 also waited (NOT paired, both blocked)
+0x82 waited → 0x83 also waited
+...
+0x8D waited → 0x8E also waited
+```
+These are the ACTUALLY DEADLOCKED semaphores.
+13 different threads are blocked, each waiting on its own semaphore.
+
+### Group 3: MIXED (0x93-0xA2) — PARTIALLY WORKING
+These have both waits AND signals, but wait_count > signal_count
+```
+0x93: 2 waits, 1 signal (1 still blocked)
+0x94: 5 waits, 4 signals (1 still blocked)
+...
+```
+
+## Key Insight
+
+The previous analysis that said "signals go to wrong handle" was PARTIALLY correct:
+- Group 1 signals DO go to a different handle than the wait — but this is BY DESIGN (paired semaphores)
+- Group 2 semaphores have NO signals at all — these are the real deadlock
+
+## Next Step
+
+The 0x81-0x8D semaphores are created with init=0, max=int.MaxValue.
+13 threads each wait on their own semaphore and nobody signals them.
+Need to find: WHO is supposed to signal these semaphores?
+- Is it a different thread that hasn't been created yet?
+- Is it a callback that never fires?
+- Is it a NID that returns zero instead of doing work?
