@@ -81,6 +81,12 @@ public static class KernelSemaphoreCompatExports
         }
 
         TraceSemaphore($"create handle=0x{handle:X8} name='{name}' attr=0x{attr:X} init={initialCount} max={maxCount}");
+
+        // IL2CPP bootstrap investigation: semaphore lifecycle tracking
+        try { SharpEmu.HLE.SemaphoreLifecycleTracker.OnCreate(handle, name, initialCount, maxCount,
+            SharpEmu.HLE.GuestThreadExecution.CurrentGuestThreadHandle,
+            null); } catch { }
+
         return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_OK);
     }
 
@@ -237,6 +243,11 @@ public static class KernelSemaphoreCompatExports
                 deadline))
         {
             TraceSemaphore($"wait-block handle=0x{handle:X8} name='{semaphore.Name}' need={needCount} count={semaphore.Count} timeout={(timeoutAddress == 0 ? "infinite" : timeoutUsec)} waiters={semaphore.WaitingThreads} {FormatCallSite(ctx)}");
+
+            // IL2CPP bootstrap investigation: semaphore lifecycle tracking
+            try { SharpEmu.HLE.SemaphoreLifecycleTracker.OnWait(handle, needCount,
+                SharpEmu.HLE.GuestThreadExecution.CurrentGuestThreadHandle,
+                null, true); } catch { }
             return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_OK);
         }
 
@@ -348,6 +359,11 @@ public static class KernelSemaphoreCompatExports
             // Wake host-thread waiters parked in the fallback path.
             Monitor.PulseAll(semaphore.Gate);
             TraceSemaphore($"signal handle=0x{handle:X8} name='{semaphore.Name}' signal={signalCount} count={semaphore.Count} waiters={semaphore.WaitingThreads} {FormatCallSite(ctx)}");
+
+            // IL2CPP bootstrap investigation: semaphore lifecycle tracking
+            try { SharpEmu.HLE.SemaphoreLifecycleTracker.OnSignal(handle, signalCount,
+                SharpEmu.HLE.GuestThreadExecution.CurrentGuestThreadHandle,
+                null); } catch { }
         }
 
         // Wake cooperatively-blocked guest threads; their wake predicate
@@ -404,6 +420,11 @@ public static class KernelSemaphoreCompatExports
         }
 
         TraceSemaphore($"delete handle=0x{handle:X8} name='{semaphore.Name}'");
+
+        // IL2CPP bootstrap investigation: semaphore lifecycle tracking
+        try { SharpEmu.HLE.SemaphoreLifecycleTracker.OnDelete(handle,
+            SharpEmu.HLE.GuestThreadExecution.CurrentGuestThreadHandle,
+            null); } catch { }
         return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_OK);
     }
 

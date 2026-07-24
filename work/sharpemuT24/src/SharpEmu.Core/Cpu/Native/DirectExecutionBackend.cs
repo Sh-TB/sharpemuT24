@@ -5913,6 +5913,12 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         }
                         ulong rsp = cpuContext[CpuRegister.Rsp];
                         Console.Error.WriteLine($"[LOADER][ERROR] Stall snapshot: rip=0x{cpuContext.Rip:X16} rsp=0x{rsp:X16} rbp=0x{cpuContext[CpuRegister.Rbp]:X16} rax=0x{cpuContext[CpuRegister.Rax]:X16} rbx=0x{cpuContext[CpuRegister.Rbx]:X16} rcx=0x{cpuContext[CpuRegister.Rcx]:X16} rdx=0x{cpuContext[CpuRegister.Rdx]:X16} rsi=0x{cpuContext[CpuRegister.Rsi]:X16} rdi=0x{cpuContext[CpuRegister.Rdi]:X16}");
+
+                        // Dump guest call history if enabled
+                        s_guestCallHistory?.Dump();
+
+                        // Dump semaphore lifecycle if enabled
+                        SemaphoreLifecycleTracker.DumpReport();
                         ulong num = cpuContext.Rip & 0xFFFFFFFFFFFFFFF0uL;
                         for (int i = 0; i < _importEntries.Length; i++)
                         {

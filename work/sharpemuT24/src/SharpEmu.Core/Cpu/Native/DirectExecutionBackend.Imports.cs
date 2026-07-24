@@ -40,6 +40,71 @@ public sealed partial class DirectExecutionBackend
         private readonly Dictionary<string, int> _importResultLogSamples = new(StringComparer.Ordinal);
         private int _il2CppExceptionDiagnosticCount;
 
+        // === IL2CPP Bootstrap Investigation Instrumentation ===
+        // NID signature tracer — set via SHARPEMU_NID_TRACE=NID1,NID2,...
+        private static readonly HashSet<string> s_nidSignatureNids = ParseNidTraceEnv();
+
+        // Guest call history — ring buffer of last 100 import calls
+        private static readonly GuestCallRingBuffer? s_guestCallHistory =
+            Environment.GetEnvironmentVariable("SHARPEMU_GUEST_CALL_HISTORY") == "1"
+                ? new GuestCallRingBuffer(100)
+                : null;
+
+        private static HashSet<string> ParseNidTraceEnv()
+        {
+            var env = Environment.GetEnvironmentVariable("SHARPEMU_NID_TRACE");
+            if (string.IsNullOrWhiteSpace(env)) return new HashSet<string>(StringComparer.Ordinal);
+            var set = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var nid in env.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                set.Add(nid.Trim());
+            return set;
+        }
+
+        // Ring buffer for last N guest calls before stall
+        private sealed record GuestCallEntry(
+            long ImportNumber, string Nid, string ExportName,
+            ulong Rdi, ulong Rsi, ulong Rdx, ulong Rcx, ulong R8, ulong R9,
+            ulong ReturnAddress, ulong ThreadHandle);
+
+        private sealed class GuestCallRingBuffer
+        {
+            private readonly GuestCallEntry[] _buffer;
+            private int _head;
+            private int _count;
+            private readonly object _lock = new();
+
+            public GuestCallRingBuffer(int capacity) => _buffer = new GuestCallEntry[capacity];
+
+            public void Add(GuestCallEntry entry)
+            {
+                lock (_lock)
+                {
+                    _buffer[_head] = entry;
+                    _head = (_head + 1) % _buffer.Length;
+                    if (_count < _buffer.Length) _count++;
+                }
+            }
+
+            public void Dump()
+            {
+                lock (_lock)
+                {
+                    Console.Error.WriteLine($"[GUEST-HISTORY] Last {_count} guest calls before stall:");
+                    var start = _count < _buffer.Length ? 0 : _head;
+                    for (int i = 0; i < _count; i++)
+                    {
+                        var idx = (start + i) % _buffer.Length;
+                        var e = _buffer[idx];
+                        Console.Error.WriteLine(
+                            $"  #{e.ImportNumber} nid={e.Nid} ({e.ExportName}) " +
+                            $"rdi=0x{e.Rdi:X16} rsi=0x{e.Rsi:X16} " +
+                            $"ret=0x{e.ReturnAddress:X16} " +
+                            $"thread=0x{e.ThreadHandle:X16}");
+                    }
+                }
+            }
+        }
+
         private static ulong ImportDispatchGatewayManaged(nint backendHandle, int importIndex, nint argPackPtr)
         {
                 try
@@ -294,6 +359,32 @@ public sealed partial class DirectExecutionBackend
                 {
                         TrackDistinctImportNid(importStubEntry.Nid);
                         TrackStrlenPrelude(importStubEntry.Nid, num, num7);
+                }
+
+                // === IL2CPP Bootstrap Investigation: NID Signature Capture ===
+                // Log arguments for specific NIDs to classify their semantic role.
+                // No behavior change — instrumentation only.
+                if (s_nidSignatureNids.Count > 0 && s_nidSignatureNids.Contains(importStubEntry.Nid))
+                {
+                        var threadName = GuestThreadExecution.CurrentGuestThreadHandle != 0
+                                ? $"0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}"
+                                : "host";
+                        Console.Error.WriteLine(
+                                $"[NID-SIG] nid={importStubEntry.Nid} import#{num} " +
+                                $"thread={threadName} " +
+                                $"rdi=0x{value:X16} rsi=0x{value2:X16} rdx=0x{num3:X16} " +
+                                $"rcx=0x{num4:X16} r8=0x{num5:X16} r9=0x{num6:X16} " +
+                                $"ret=0x{num7:X16}");
+                }
+
+                // === Guest Call History (ring buffer, last 100 calls before stall) ===
+                if (s_guestCallHistory != null)
+                {
+                        s_guestCallHistory.Add(new GuestCallEntry(
+                                num, importStubEntry.Nid,
+                                importStubEntry.Export?.Name ?? "?",
+                                value, value2, num3, num4, num5, num6, num7,
+                                GuestThreadExecution.CurrentGuestThreadHandle));
                 }
                 if (!string.IsNullOrWhiteSpace(_probeImportReturn) &&
                         (string.Equals(_probeImportReturn, "*", StringComparison.Ordinal) ||
