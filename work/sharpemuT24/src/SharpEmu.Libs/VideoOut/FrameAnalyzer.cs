@@ -283,6 +283,10 @@ public static class FrameAnalyzer
 
     public static void PrintReport(FrameAnalysis analysis)
     {
+        // Per user's Rule #003: clearly state Scene Loaded YES/NO.
+        var sceneLoaded = analysis.Classification == FrameClassification.MultiColorContent;
+        var frameValid = analysis.Classification != FrameClassification.Empty;
+
         Console.Error.WriteLine();
         Console.Error.WriteLine("========== Framebuffer Analysis ==========");
         Console.Error.WriteLine($"Frame file        : {analysis.FrameFile}");
@@ -294,11 +298,29 @@ public static class FrameAnalyzer
         Console.Error.WriteLine($"Dominant coverage : {analysis.DominantCoverage * 100:F2}%");
         Console.Error.WriteLine($"Classification    : {analysis.ClassificationLabel}");
         Console.Error.WriteLine();
+        Console.Error.WriteLine($"Frame Valid       : {(frameValid ? "YES" : "NO")}");
+        Console.Error.WriteLine($"Scene Loaded      : {(sceneLoaded ? "YES — real game content rendering" : "NO")}");
+        Console.Error.WriteLine();
+        if (!sceneLoaded && frameValid)
+        {
+            Console.Error.WriteLine("Reason:");
+            Console.Error.WriteLine($"  {analysis.DominantCoverage * 100:F2}% of pixels have the same color");
+            Console.Error.WriteLine();
+            Console.Error.WriteLine("Likely cause:");
+            Console.Error.WriteLine("  • Unity Clear Color (camera background)");
+            Console.Error.WriteLine("  • Unity Splash Frame (boot splash)");
+            Console.Error.WriteLine("  • Camera Background (no scene objects in view)");
+            Console.Error.WriteLine();
+            Console.Error.WriteLine("Next required assets:");
+            Console.Error.WriteLine("  • Media/level0 (main scene)");
+            Console.Error.WriteLine("  • Media/resources.assets");
+            Console.Error.WriteLine("  • Media/sharedassets0.assets");
+            Console.Error.WriteLine("  • Media/Metadata/global-metadata.dat (IL2CPP class registry)");
+            Console.Error.WriteLine();
+        }
         Console.Error.WriteLine("Top colors:");
         foreach (var c in analysis.TopColors)
         {
-            var pct = analysis.PixelCount > 0 ? (double)c.Count / (analysis.PixelCount / Math.Max(1, analysis.PixelCount / 50000)) * 100 : 0;
-            // Recompute pct properly: TopColors counts are from the sampled subset.
             var sampled = analysis.TopColors.Sum(x => x.Count);
             var truePct = sampled > 0 ? (double)c.Count / sampled * 100 : 0;
             Console.Error.WriteLine($"  RGB({c.R,3},{c.G,3},{c.B,3}) α={c.A,3}  {truePct,6:F2}%  ({c.Count:N0} samples)");

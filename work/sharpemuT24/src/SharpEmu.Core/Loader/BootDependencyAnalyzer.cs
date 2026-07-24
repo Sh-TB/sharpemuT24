@@ -162,14 +162,21 @@ public static class BootDependencyAnalyzer
     {
         var files = new List<RequiredFile>();
 
-        // Every PS5 game needs an eboot + at least libc.prx.
+        // Every PS5 game needs an eboot.
+        // NOTE: libc.prx is optional for Native C++ games because SharpEmu has
+        // built-in HLE for libc functions (malloc, mutex, atexit, etc.). It IS
+        // critical for Unity IL2CPP games because SharpEmu loads the real PRX
+        // module to access Il2cppUserAssemblies.prx exports.
         files.Add(new RequiredFile("eboot.bin", "Main executable", FilePriority.Critical));
-        files.Add(new RequiredFile("sce_module/libc.prx", "C runtime (malloc, mutex, atexit)", FilePriority.Critical));
         files.Add(new RequiredFile("sce_sys/about/right.sprx", "About page module", FilePriority.Low));
 
         switch (engine)
         {
             case Engine.UnityIl2cpp:
+                // Unity IL2CPP games need real PRX modules — SharpEmu loads them
+                // and merges their imports/symbols.
+                files.Add(new RequiredFile("sce_module/libc.prx",
+                    "C runtime (SharpEmu loads as real PRX for IL2CPP)", FilePriority.Critical));
                 files.Add(new RequiredFile("Media/Modules/Il2cppUserAssemblies.prx",
                     "IL2CPP compiled game code (CRITICAL — without this, no game code runs)",
                     FilePriority.Critical));
@@ -223,7 +230,14 @@ public static class BootDependencyAnalyzer
                 break;
 
             case Engine.NativeCpp:
-                // Native C++ games are minimal — usually just eboot + libc + game-specific PRXs
+                // Native C++ games (Dreaming Sarah, Arise, etc.) usually only ship eboot.
+                // libc.prx is OPTIONAL because SharpEmu has built-in HLE for libc
+                // (C11SyncExports, CxxAbiExports, KernelRuntimeCompatExports, etc.).
+                // If the game ships a real libc.prx in sce_module/, SharpEmu will load
+                // it — but it's not required.
+                files.Add(new RequiredFile("sce_module/libc.prx",
+                    "C runtime (OPTIONAL — SharpEmu has built-in HLE for libc)",
+                    FilePriority.Low));
                 files.Add(new RequiredFile("sce_module/libSceNpCppWebApi.prx",
                     "PlayStation Network WebApi (if game uses PSN)", FilePriority.Low));
                 break;
@@ -495,9 +509,7 @@ public static class BootDependencyAnalyzer
         Console.Error.WriteLine();
         Console.Error.WriteLine("Required files:");
         Console.Error.WriteLine();
-        Console.Error.WriteLine($"  {"Priority",-10}  {"Status",-12}  {"Path",-45}  Details");
-        Console.Error.WriteLine($"  {"--------",-10}  {"------",-12}  {"----",-45}  -------");
-
+        // Verbose per-file report (Magic/Encrypted/Loadable) — per user's Rule #002 request.
         foreach (var file in report.Files)
         {
             var priorityLabel = file.Spec.Priority switch
@@ -508,10 +520,24 @@ public static class BootDependencyAnalyzer
                 FilePriority.Low => "★★☆☆☆",
                 _ => "★☆☆☆☆"
             };
-            var statusLabel = file.Present ? "✓ present" : "✗ MISSING";
-            var pathLabel = file.Spec.RelativePath;
-            if (pathLabel.Length > 45) pathLabel = "..." + pathLabel[^42..];
-            Console.Error.WriteLine($"  {priorityLabel,-10}  {statusLabel,-12}  {pathLabel,-45}  {file.Status}");
+            Console.Error.WriteLine($"  [{priorityLabel}] {file.Spec.RelativePath}");
+            Console.Error.WriteLine($"      Path       : {file.Spec.RelativePath}");
+            Console.Error.WriteLine($"      Description: {file.Spec.Description}");
+            Console.Error.WriteLine($"      Exists     : {(file.Present ? "YES" : "NO")}");
+            if (file.Present)
+            {
+                Console.Error.WriteLine($"      Size       : {FormatSize(file.SizeBytes)}");
+                if (file.Format.HasValue)
+                {
+                    Console.Error.WriteLine($"      Magic      : 0x{GetMagicFromFormat(file.Format.Value):X8}");
+                    Console.Error.WriteLine($"      Format     : {FormatLabel(file.Format.Value)}");
+                    Console.Error.WriteLine($"      Encrypted  : {(file.IsEncrypted == true ? "YES" : "NO")}");
+                    Console.Error.WriteLine($"      Loadable   : {(file.IsEncrypted == true ? "NO (encrypted)" : "YES")}");
+                }
+            }
+            Console.Error.WriteLine($"      Priority   : {file.Spec.Priority}");
+            Console.Error.WriteLine($"      Status     : {file.Status}");
+            Console.Error.WriteLine();
         }
 
         Console.Error.WriteLine();
@@ -528,5 +554,31 @@ public static class BootDependencyAnalyzer
         }
         Console.Error.WriteLine("============================================");
         Console.Error.WriteLine();
+    }
+
+    private static string FormatLabel(ExecutableFormatDetector.ExecutableFormat format) => format switch
+    {
+        ExecutableFormatDetector.ExecutableFormat.Elf => "ELF",
+        ExecutableFormatDetector.ExecutableFormat.SelfDecrypted => "SELF(fSELF)",
+        ExecutableFormatDetector.ExecutableFormat.SelfEncrypted => "SELF",
+        _ => "Unknown"
+    };
+
+    private static uint GetMagicFromFormat(ExecutableFormatDetector.ExecutableFormat format) => format switch
+    {
+        ExecutableFormatDetector.ExecutableFormat.Elf => 0x7F454C46,
+        ExecutableFormatDetector.ExecutableFormat.SelfDecrypted => 0x4F153D1D,
+        ExecutableFormatDetector.ExecutableFormat.SelfEncrypted => 0x5414F5EE,
+        _ => 0
+    };
+
+    private static string FormatSize(long? bytes)
+    {
+        if (!bytes.HasValue) return "(unknown)";
+        var b = bytes.Value;
+        if (b >= 1024 * 1024) return $"{b / 1024.0 / 1024.0:F1} MB";
+        if (b >= 1024) return $"{b / 1024.0:F1} KB";
+        if (b > 0) return $"{b} bytes";
+        return "empty";
     }
 }
