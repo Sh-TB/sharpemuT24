@@ -56,25 +56,132 @@ public static class GameCompatExports
     // bypass managed dispatch entirely (ImportDispatchGatewayManaged never fires).
     // We add them here as HLE exports WITH logging so we can capture their
     // arguments and return address to classify their semantic role.
+    //
+    // TWO EXPERIMENTAL KNOBS (set either or both via env var):
+    //   SHARPEMU_NID_RETURN_NONZERO=1
+    //       → stubs return R8 value (or 1 if R8==0) instead of 0.
+    //         Cheap test to determine if "loop exit" depends on non-zero return.
+    //   SHARPEMU_NID_CALLER_MAP=1
+    //       → log "[NID-CALLER]" line with module+offset for the actual return
+    //         address (read from [RSP]). Off by default to reduce noise.
+    //
+    // Logging is rate-limited to 1 line per 200ms per NID to keep the log
+    // readable while the main thread is in its busy-wait loop.
+    private static long _nextLog1D0;
+    private static long _nextLogHsi9;
+    private static long _nextLog1D0_R8;
+    private static long _nextLogHsi9_R8;
+    private const long LogIntervalTicks = 200 * TimeSpan.TicksPerMillisecond;
+    private const long R8ChangeLogIntervalTicks = 50 * TimeSpan.TicksPerMillisecond;
+
+    // Counter snapshot every 1 second for both NIDs — lets us observe if the
+    // busy-wait loop is broken (call rate drops to 0).
+    private static long _calls1D0;
+    private static long _callsHsi9;
+    private static long _nextCounterDump;
+    private const long CounterDumpIntervalTicks = 1000 * TimeSpan.TicksPerMillisecond;
+
+    // Background timer that dumps counters every 2s regardless of NID activity,
+    // so we can see "NID calls have stopped" even if no NID fires.
+    private static readonly System.Threading.Timer _counterDumpTimer = new(_ =>
+    {
+        var now = DateTime.UtcNow.Ticks;
+        if (now < _nextCounterDump)
+        {
+            return;
+        }
+        _nextCounterDump = now + CounterDumpIntervalTicks;
+        Console.Error.WriteLine(
+            $"[NID-COUNTS] 1D0H2KNjshE={Interlocked.Read(ref _calls1D0)} " +
+            $"hsi9drzHR2k={Interlocked.Read(ref _callsHsi9)}");
+    }, null, dueTime: TimeSpan.FromSeconds(2), period: TimeSpan.FromSeconds(2));
+
+    private static bool ReturnNonZeroEnabled =>
+        Environment.GetEnvironmentVariable("SHARPEMU_NID_RETURN_NONZERO") == "1";
+    private static bool CallerMapEnabled =>
+        Environment.GetEnvironmentVariable("SHARPEMU_NID_CALLER_MAP") == "1";
+
+    private static void MaybeDumpCounters(long now)
+    {
+        if (now < _nextCounterDump)
+        {
+            return;
+        }
+        _nextCounterDump = now + CounterDumpIntervalTicks;
+        Console.Error.WriteLine(
+            $"[NID-COUNTS] 1D0H2KNjshE={Interlocked.Read(ref _calls1D0)} " +
+            $"hsi9drzHR2k={Interlocked.Read(ref _callsHsi9)}");
+    }
+
+    private static string DescribeCaller(CpuContext ctx)
+    {
+        if (!CallerMapEnabled)
+        {
+            return string.Empty;
+        }
+
+        var rsp = ctx[CpuRegister.Rsp];
+        if (!ctx.TryReadUInt64(rsp, out var retAddr) || retAddr == 0)
+        {
+            return $" caller=invalid_rsp[0x{rsp:X16}]";
+        }
+
+        if (KernelModuleRegistry.TryGetModuleByAddress(retAddr, out var module))
+        {
+            var offset = retAddr - module.BaseAddress;
+            return $" caller={module.Name}+0x{offset:X} (addr=0x{retAddr:X16})";
+        }
+
+        return $" caller=unknown@0x{retAddr:X16}";
+    }
+
     [SysAbiExport(Nid = "1D0H2KNjshE", ExportName = "1D0H2KNjshE_traced", Target = Generation.Gen5, LibraryName = "libc")]
     public static int NidTrace_1D0H2KNjshE(CpuContext ctx)
     {
-        Console.Error.WriteLine(
-            $"[NID-TRACE] 1D0H2KNjshE rdi=0x{ctx[CpuRegister.Rdi]:X16} rsi=0x{ctx[CpuRegister.Rsi]:X16} " +
-            $"rdx=0x{ctx[CpuRegister.Rdx]:X16} rcx=0x{ctx[CpuRegister.Rcx]:X16} " +
-            $"r8=0x{ctx[CpuRegister.R8]:X16} r9=0x{ctx[CpuRegister.R9]:X16} " +
-            $"ret=0x{ctx[CpuRegister.Rsp]:X16} thread=0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}");
+        Interlocked.Increment(ref _calls1D0);
+        var now = DateTime.UtcNow.Ticks;
+        if (now >= _nextLog1D0)
+        {
+            _nextLog1D0 = now + LogIntervalTicks;
+            Console.Error.WriteLine(
+                $"[NID-TRACE] 1D0H2KNjshE rdi=0x{ctx[CpuRegister.Rdi]:X16} rsi=0x{ctx[CpuRegister.Rsi]:X16} " +
+                $"rdx=0x{ctx[CpuRegister.Rdx]:X16} rcx=0x{ctx[CpuRegister.Rcx]:X16} " +
+                $"r8=0x{ctx[CpuRegister.R8]:X16} r9=0x{ctx[CpuRegister.R9]:X16} " +
+                $"thread=0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}{DescribeCaller(ctx)}");
+        }
+        MaybeDumpCounters(now);
+
+        if (ReturnNonZeroEnabled)
+        {
+            var r8 = ctx[CpuRegister.R8];
+            ctx[CpuRegister.Rax] = r8 != 0 ? r8 : 1ul;
+            return unchecked((int)ctx[CpuRegister.Rax]);
+        }
         return ctx.SetReturn(0);
     }
 
     [SysAbiExport(Nid = "hsi9drzHR2k", ExportName = "hsi9drzHR2k_traced", Target = Generation.Gen5, LibraryName = "libc")]
     public static int NidTrace_hsi9drzHR2k(CpuContext ctx)
     {
-        Console.Error.WriteLine(
-            $"[NID-TRACE] hsi9drzHR2k rdi=0x{ctx[CpuRegister.Rdi]:X16} rsi=0x{ctx[CpuRegister.Rsi]:X16} " +
-            $"rdx=0x{ctx[CpuRegister.Rdx]:X16} rcx=0x{ctx[CpuRegister.Rcx]:X16} " +
-            $"r8=0x{ctx[CpuRegister.R8]:X16} r9=0x{ctx[CpuRegister.R9]:X16} " +
-            $"ret=0x{ctx[CpuRegister.Rsp]:X16} thread=0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}");
+        Interlocked.Increment(ref _callsHsi9);
+        var now = DateTime.UtcNow.Ticks;
+        if (now >= _nextLogHsi9)
+        {
+            _nextLogHsi9 = now + LogIntervalTicks;
+            Console.Error.WriteLine(
+                $"[NID-TRACE] hsi9drzHR2k rdi=0x{ctx[CpuRegister.Rdi]:X16} rsi=0x{ctx[CpuRegister.Rsi]:X16} " +
+                $"rdx=0x{ctx[CpuRegister.Rdx]:X16} rcx=0x{ctx[CpuRegister.Rcx]:X16} " +
+                $"r8=0x{ctx[CpuRegister.R8]:X16} r9=0x{ctx[CpuRegister.R9]:X16} " +
+                $"thread=0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}{DescribeCaller(ctx)}");
+        }
+        MaybeDumpCounters(now);
+
+        if (ReturnNonZeroEnabled)
+        {
+            var r8 = ctx[CpuRegister.R8];
+            ctx[CpuRegister.Rax] = r8 != 0 ? r8 : 1ul;
+            return unchecked((int)ctx[CpuRegister.Rax]);
+        }
         return ctx.SetReturn(0);
     }
 

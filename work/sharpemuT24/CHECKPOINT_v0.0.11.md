@@ -516,3 +516,131 @@ Need caller mapping (return address → module) to determine:
 - Is the caller inside eboot.bin (Unity engine code)?
 - Is the caller inside Il2cppUserAssemblies.prx (IL2CPP compiled game code)?
 - What is the loop structure (cmp/test after call)?
+
+---
+
+# 17. CRITICAL UPDATE: Non-Zero Return Experiment (user's cheap test)
+
+## User's Suggestion (Persian, translated)
+
+> Before fully accepting the cache-flush hypothesis, run a cheap experiment:
+> temporarily modify both NID stubs to return non-zero (R8 or constant 1)
+> instead of 0, and observe if the loop breaks.
+>
+> If it breaks → we just need non-zero return, no need to understand the operation.
+> If it doesn't break → these NIDs are NOT the loop exit condition, look elsewhere.
+
+## Implementation
+
+Added two env-var-controlled knobs to `GameCompatExports.cs`:
+- `SHARPEMU_NID_RETURN_NONZERO=1` → stubs return R8 value (or 1 if R8==0) instead of 0
+- `SHARPEMU_NID_CALLER_MAP=1` → log caller module+offset (from actual return address read at [RSP])
+
+Also added a background timer that dumps cumulative NID call counts every 2 seconds,
+independent of NID activity, so we can see "NID calls have stopped" definitively.
+
+## Results (Yatzi, 18s run, both phases)
+
+| Phase | 1D0H2KNjshE calls | hsi9drzHR2k calls | Aftermath |
+|-------|-------------------|-------------------|-----------|
+| Baseline (return 0) | 60,343 | 19,968 | Audio/mutex loop |
+| Non-zero (return R8) | **60,343** | **19,968** | Audio/mutex loop (IDENTICAL) |
+
+## Conclusion: DEFINITIVE REFUTATION
+
+**Returning non-zero does NOT break the loop.**
+
+The "busy-wait loop" hypothesis was WRONG. These NIDs are NOT in a polling loop
+with a return-value-based exit condition. They are in a FINITE iteration loop
+that runs exactly 60,343 + 19,968 = 80,311 times and exits NATURALLY.
+
+The previous analysis claiming "tight busy-wait loop, ~4000 calls/sec, return-zero
+prevents loop exit" was based on a misinterpretation:
+- Same stack address → same CALL SITE (true for any loop, not just busy-wait)
+- High call rate → tight iteration (true, but doesn't mean infinite)
+- "Stuck in busy-wait" → STUCK was wrong; the loop COMPLETES in ~2 seconds
+
+## Real Boot Sequence (now visible)
+
+```
+T=0-4s    IL2CPP bootstrap (modules loaded, type initializers run)
+T=4-6s    NID iteration loop runs 80,311 times — exits naturally
+T=6s+     Game enters AUDIO/MUTEX LOOP (main thread):
+            scePthreadMutexLock
+            sceAudioOutOutput     ← ALSA backend unavailable, but stub returns 0
+            sceKernelClockGettime
+            sceKernelWaitSema     ← returns immediately (semaphore has tokens)
+          → no frames rendered, no sceAgc calls, no VideoOut flips
+          → GfxDeviceWorker thread is scheduled but never produces a frame
+```
+
+## Caller Map (NEW DATA)
+
+| NID | Caller Site | RDI | R8 | R9 |
+|-----|-------------|-----|----|----|
+| 1D0H2KNjshE | eboot.bin+0x9B8551 | 0x601183C90 | 0x100 (256) | 0x40 (64) |
+| 1D0H2KNjshE | eboot.bin+0x8BF76E | 0x0 | 0x400000 (4MB) | 0x0 |
+| hsi9drzHR2k | eboot.bin+0x14335FE | 0x3FF00000 | 0x3FF0000000000000 (1.0 double) | 0x0 |
+
+All callers are inside eboot.bin (Unity engine code), NOT inside Il2cppUserAssemblies.prx.
+
+The second 1D0H2KNjshE call site (eboot.bin+0x8BF76E) passes a magic value
+`0xC0DEC0DECAFEBA00` in RCX — likely a debug "uninitialized" or "deliberately
+invalid" marker. This call happens AFTER a guest memory fault at rip=0x800B28A0D
+(`cmp qword ptr [r12+38h], 0` — NULL deref at r12+0x38). It looks like a
+post-fault cleanup path.
+
+## New Hypothesis for the Audio/Mutex Loop
+
+The main thread is in a tight loop calling:
+- scePthreadMutexLock (succeeds)
+- sceAudioOutOutput (stub returns 0 but actual ALSA backend fails)
+- sceKernelClockGettime (succeeds)
+- sceKernelWaitSema (returns immediately — semaphore has tokens)
+
+None of these are NID stubs — they're real implementations. The loop is the
+Unity main thread's "wait for next frame" loop. It is NOT calling any
+sceAgc/VideoOut rendering APIs.
+
+Possible root causes for no rendering:
+1. **GfxDeviceWorker thread is stuck** — the Unity render thread is scheduled
+   but never produces a frame. Check what it's blocked on.
+2. **`GfxDevicePS5SharedData::CreateWorkload()` is a TODO in Unity engine itself**
+   — guest log shows this. Unity shipped with an unimplemented function.
+3. **Vulkan DCB queue is not initialized** — vk.flip_capture_failed warning
+   shows `queue=dcb.graphics addr=0x0000000010CA0000 found=False initialized=False`.
+4. **Audio backend failure cascade** — sceAudioOutOutput returns 0 but actual
+   playback fails. Game may be in "wait for audio device" state.
+
+## Next Investigation Steps (P1 revised)
+
+The NID investigation is CLOSED. The NIDs are a red herring — they complete
+naturally and have no impact on the boot progression.
+
+### New P1: GfxDeviceWorker Trace
+
+1. Trace what GfxDeviceWorker thread is doing after it's scheduled
+2. Find which syscall/import it's blocked on or looping in
+3. Check if CreateWorkload is supposed to be HLE'd by SharpEmu
+
+### New P2: Audio Backend Investigation
+
+1. Check if sceAudioOutOutput returning 0 (success) when actual ALSA fails
+   is causing the main thread to spin
+2. Try returning an error code from sceAudioOutOutput to see if main thread
+   exits the audio loop
+
+### New P3: DCB Queue Initialization
+
+1. The `vk.flip_capture_failed ... initialized=False` warning is suspicious
+2. Check what should initialize the dcb.graphics queue
+3. Look at what calls sceAgcDriverSubmitDcb or similar
+
+## Status: NID investigation CLOSED
+
+- ✅ User's cheap experiment executed successfully
+- ✅ Hypothesis "NIDs are loop exit condition" DEFINITIVELY REFUTED
+- ✅ Caller mapping data captured (all in eboot.bin)
+- ✅ Real boot sequence understood (NID loop → audio/mutex loop, no rendering)
+- ✅ New investigation target identified (GfxDeviceWorker / Audio / DCB)
+- ✅ Golden test still passes (139 frames, 188 colors, no regression)
