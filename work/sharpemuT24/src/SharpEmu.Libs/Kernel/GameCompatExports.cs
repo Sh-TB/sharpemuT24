@@ -76,4 +76,18 @@ public static class GameCompatExports
 
     [SysAbiExport(Nid = "XlNp7jzGiPo", ExportName = "sceAgcDriverSetTFRing", Target = Generation.Gen5, LibraryName = "libSceAgcDriver")]
     public static int AgcDriverSetTFRingStub(CpuContext ctx) => ctx.SetReturn(0);
+
+    // xk0AcarP3V4 = scePadOpen — return fake handle (1)
+    [SysAbiExport(Nid = "xk0AcarP3V4", ExportName = "scePadOpen", Target = Generation.Gen5, LibraryName = "libScePad")]
+    public static int PadOpenStub(CpuContext ctx) => ctx.SetReturn(1);
+
+    // rVjRvHJ0X6c — sceKernelFindInternalFile
+    [SysAbiExport(Nid = "rVjRvHJ0X6c", ExportName = "rVjRvHJ0X6c_stub", Target = Generation.Gen5, LibraryName = "libKernel")]
+    public static int KernelFindInternalFileStub(CpuContext ctx) => ctx.SetReturn((int)OrbisGen2Result.ORBIS_GEN2_ERROR_NOT_FOUND);
+
+    // BHouLQzh0X0 — sceKernelFindInternalFileVariant
+    [SysAbiExport(Nid = "BHouLQzh0X0", ExportName = "BHouLQzh0X0_stub", Target = Generation.Gen5, LibraryName = "libKernel")]
+    public static int KernelFindInternalFileVariantStub(CpuContext ctx) => ctx.SetReturn((int)OrbisGen2Result.ORBIS_GEN2_ERROR_NOT_FOUND);
+    [SysAbiExport(Nid = "1-LFLmRFxxM", ExportName = "sceKernelMkdir_stub", Target = Generation.Gen5, LibraryName = "libKernel")]
+    public static int KernelMkdirStub(CpuContext ctx) => ctx.SetReturn(0);
 }
