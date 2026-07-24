@@ -232,6 +232,42 @@ public sealed partial class DirectExecutionBackend
                 {
                         RecordPerfHleCall(importStubEntry.Export?.Name ?? importStubEntry.Nid);
                 }
+
+                // === IL2CPP Bootstrap Investigation: NID Signature Capture ===
+                // Must be BEFORE leaf dispatch — leaf imports return early and bypass
+                // all subsequent code. Read args from argPackPtr directly.
+                if (s_nidSignatureNids.Count > 0 && s_nidSignatureNids.Contains(importStubEntry.Nid))
+                {
+                    var rdi = *(ulong*)argPackPtr;
+                    var rsi = *(ulong*)(argPackPtr + 8);
+                    var rdx = *(ulong*)(argPackPtr + 16);
+                    var rcx = *(ulong*)(argPackPtr + 24);
+                    var r8 = *(ulong*)(argPackPtr + 32);
+                    var r9 = *(ulong*)(argPackPtr + 40);
+                    var retAddr = *(ulong*)(argPackPtr + 96);
+                    var threadHandle = GuestThreadExecution.CurrentGuestThreadHandle;
+                    Console.Error.WriteLine(
+                        $"[NID-SIG] nid={importStubEntry.Nid} import#{num} " +
+                        $"thread=0x{threadHandle:X16} " +
+                        $"rdi=0x{rdi:X16} rsi=0x{rsi:X16} rdx=0x{rdx:X16} " +
+                        $"rcx=0x{rcx:X16} r8=0x{r8:X16} r9=0x{r9:X16} " +
+                        $"ret=0x{retAddr:X16}");
+                }
+
+                // === Guest Call History (ring buffer, last 100 calls) ===
+                if (s_guestCallHistory != null)
+                {
+                    var rdi = *(ulong*)argPackPtr;
+                    var rsi = *(ulong*)(argPackPtr + 8);
+                    var retAddr = *(ulong*)(argPackPtr + 96);
+                    s_guestCallHistory.Add(new GuestCallEntry(
+                        num, importStubEntry.Nid,
+                        importStubEntry.Export?.Name ?? "?",
+                        rdi, rsi, *(ulong*)(argPackPtr + 16), *(ulong*)(argPackPtr + 24),
+                        *(ulong*)(argPackPtr + 32), *(ulong*)(argPackPtr + 40),
+                        retAddr, GuestThreadExecution.CurrentGuestThreadHandle));
+                }
+
                 int num2 = Volatile.Read(in _rawSentinelRecoveries);
                 if (num2 != _lastReportedRawSentinelRecoveries)
                 {
@@ -361,31 +397,6 @@ public sealed partial class DirectExecutionBackend
                         TrackStrlenPrelude(importStubEntry.Nid, num, num7);
                 }
 
-                // === IL2CPP Bootstrap Investigation: NID Signature Capture ===
-                // Log arguments for specific NIDs to classify their semantic role.
-                // No behavior change — instrumentation only.
-                if (s_nidSignatureNids.Count > 0 && s_nidSignatureNids.Contains(importStubEntry.Nid))
-                {
-                        var threadName = GuestThreadExecution.CurrentGuestThreadHandle != 0
-                                ? $"0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}"
-                                : "host";
-                        Console.Error.WriteLine(
-                                $"[NID-SIG] nid={importStubEntry.Nid} import#{num} " +
-                                $"thread={threadName} " +
-                                $"rdi=0x{value:X16} rsi=0x{value2:X16} rdx=0x{num3:X16} " +
-                                $"rcx=0x{num4:X16} r8=0x{num5:X16} r9=0x{num6:X16} " +
-                                $"ret=0x{num7:X16}");
-                }
-
-                // === Guest Call History (ring buffer, last 100 calls before stall) ===
-                if (s_guestCallHistory != null)
-                {
-                        s_guestCallHistory.Add(new GuestCallEntry(
-                                num, importStubEntry.Nid,
-                                importStubEntry.Export?.Name ?? "?",
-                                value, value2, num3, num4, num5, num6, num7,
-                                GuestThreadExecution.CurrentGuestThreadHandle));
-                }
                 if (!string.IsNullOrWhiteSpace(_probeImportReturn) &&
                         (string.Equals(_probeImportReturn, "*", StringComparison.Ordinal) ||
                          string.Equals(_probeImportReturn, importStubEntry.Nid, StringComparison.Ordinal)) &&

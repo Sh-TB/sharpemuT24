@@ -47,10 +47,36 @@ public static class GameCompatExports
     [SysAbiExport(Nid = "Cj+Fw5q1tUo", ExportName = "Cj_Fw5q1tUo_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libKernel")]
     public static int KernelQueryMemoryProtection(CpuContext ctx) => ctx.SetReturn(0);
 
-    // REMOVED: 1D0H2KNjshE, hsi9drzHR2k, AcslpN1jHR8, 5TjaJwkLWxE, 3BytPOQgVKc, pztV4AF18iI
-    // These were Harvest Days-specific stubs. Windows log for Yatzi confirmed 0 calls.
-    // They corrupted IL2CPP runtime state by returning fake success for unresolved NIDs
-    // that Yatzi's import table doesn't reference. See PROJECT_STATUS_v0.0.10.md.
+    // REMOVED: AcslpN1jHR8, 5TjaJwkLWxE, 3BytPOQgVKc, pztV4AF18iI
+    // These were Harvest Days-specific stubs.
+
+    // 1D0H2KNjshE and hsi9drzHR2k — IL2CPP bootstrap investigation.
+    // These NIDs are NOT in any HLE export or Aerolib catalog.
+    // Without these exports, they resolve to native return-zero stubs that
+    // bypass managed dispatch entirely (ImportDispatchGatewayManaged never fires).
+    // We add them here as HLE exports WITH logging so we can capture their
+    // arguments and return address to classify their semantic role.
+    [SysAbiExport(Nid = "1D0H2KNjshE", ExportName = "1D0H2KNjshE_traced", Target = Generation.Gen5, LibraryName = "libc")]
+    public static int NidTrace_1D0H2KNjshE(CpuContext ctx)
+    {
+        Console.Error.WriteLine(
+            $"[NID-TRACE] 1D0H2KNjshE rdi=0x{ctx[CpuRegister.Rdi]:X16} rsi=0x{ctx[CpuRegister.Rsi]:X16} " +
+            $"rdx=0x{ctx[CpuRegister.Rdx]:X16} rcx=0x{ctx[CpuRegister.Rcx]:X16} " +
+            $"r8=0x{ctx[CpuRegister.R8]:X16} r9=0x{ctx[CpuRegister.R9]:X16} " +
+            $"ret=0x{ctx[CpuRegister.Rsp]:X16} thread=0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}");
+        return ctx.SetReturn(0);
+    }
+
+    [SysAbiExport(Nid = "hsi9drzHR2k", ExportName = "hsi9drzHR2k_traced", Target = Generation.Gen5, LibraryName = "libc")]
+    public static int NidTrace_hsi9drzHR2k(CpuContext ctx)
+    {
+        Console.Error.WriteLine(
+            $"[NID-TRACE] hsi9drzHR2k rdi=0x{ctx[CpuRegister.Rdi]:X16} rsi=0x{ctx[CpuRegister.Rsi]:X16} " +
+            $"rdx=0x{ctx[CpuRegister.Rdx]:X16} rcx=0x{ctx[CpuRegister.Rcx]:X16} " +
+            $"r8=0x{ctx[CpuRegister.R8]:X16} r9=0x{ctx[CpuRegister.R9]:X16} " +
+            $"ret=0x{ctx[CpuRegister.Rsp]:X16} thread=0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}");
+        return ctx.SetReturn(0);
+    }
 
     // VkqLPArfFdc — 0 calls on Windows upstream. Kept as harmless stub.
     [SysAbiExport(Nid = "VkqLPArfFdc", ExportName = "VkqLPArfFdc", Target = Generation.Gen5, LibraryName = "libKernel")]
