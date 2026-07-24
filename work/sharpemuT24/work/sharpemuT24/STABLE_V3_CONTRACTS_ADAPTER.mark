@@ -1,0 +1,21 @@
+STABLE TAG: v3-contracts-adapter-stable
+Date: 2026-07-17
+Status: Working build with real Diagnostics
+
+What's working:
+- SharpEmu.Diagnostics.Contracts (interface-only project)
+- SharpEmu.Diagnostics (real implementation)
+- DiagnosticAdapter bridge
+- Build succeeds with 0 errors
+- PPSA02929 runs to VideoOut (465 imports, 55 flips)
+- 347,491 syscalls tracked
+- 31 threads tracked
+- 183 memory regions tracked
+- 56 GPU submits tracked
+- 4 boot stages recorded
+
+What's pending:
+- CPU Trace records = 0 (source not registered)
+- Crash RIP = 0 (source not registered)
+- File I/O = 0 (source not registered)
+- draws = 0 (need to investigate)
