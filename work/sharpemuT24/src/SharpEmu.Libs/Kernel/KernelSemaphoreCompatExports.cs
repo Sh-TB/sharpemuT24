@@ -14,6 +14,9 @@ public static class KernelSemaphoreCompatExports
     private static readonly ConcurrentDictionary<uint, KernelSemaphoreState> _semaphores = new();
     private static int _nextSemaphoreHandle = 1;
 
+    // EXP-018 — counter to throttle WaitSema scheduler-pump diagnostic log.
+    private static int _exp018LogCount = 0;
+
     private sealed class KernelSemaphoreState
     {
         public required string Name { get; init; }
@@ -178,6 +181,51 @@ public static class KernelSemaphoreCompatExports
 
             TraceSemaphore($"wait-timeout handle=0x{handle:X8} name='{semaphore.Name}' need={needCount} count={semaphore.Count}");
             return (int)OrbisGen2Result.ORBIS_GEN2_ERROR_TIMED_OUT;
+        }
+
+        // EXP-018 — Scheduler Pump Experiment
+        // Before blocking in sceKernelWaitSema, count how many guest threads
+        // are in Ready state but not yet running. If READY > 0, that means
+        // the Kyty-style pump is needed here (just like sceKernelWaitEventFlag
+        // already calls Pump).
+        //
+        // STEP 5 — Now actually call Pump() if scheduler is available, to
+        // give ready threads a chance to run while we wait. This mirrors what
+        // sceKernelWaitEventFlag already does (see KernelEventFlagCompatExports.cs:315).
+        var scheduler = GuestThreadExecution.Scheduler;
+        if (scheduler is not null)
+        {
+            try
+            {
+                scheduler.Pump(ctx, "sceKernelWaitSema");
+            }
+            catch (Exception ex)
+            {
+                // Pump must never break the semaphore wait.
+                Console.Error.WriteLine($"[EXP-018] Pump threw {ex.GetType().Name}: {ex.Message}");
+            }
+
+            try
+            {
+                // After pump, log state (throttled).
+                var snapshot = scheduler.SnapshotThreads();
+                int readyCount = 0, runningCount = 0, blockedCount = 0;
+                foreach (var t in snapshot)
+                {
+                    if (string.Equals(t.State, "Ready", StringComparison.Ordinal)) readyCount++;
+                    else if (string.Equals(t.State, "Running", StringComparison.Ordinal)) runningCount++;
+                    else if (string.Equals(t.State, "Blocked", StringComparison.Ordinal)) blockedCount++;
+                }
+                if (Interlocked.Increment(ref _exp018LogCount) <= 20)
+                {
+                    Console.Error.WriteLine(
+                        $"[EXP-018] sceKernelWaitSema handle=0x{handle:X8} need={needCount} " +
+                        $"waiters={semaphore.WaitingThreads} " +
+                        $"READY={readyCount} RUNNING={runningCount} BLOCKED={blockedCount} " +
+                        $"(after Pump)");
+                }
+            }
+            catch { /* EXP-018 must never break the emulator */ }
         }
 
         if (GuestThreadExecution.RequestCurrentThreadBlock(
