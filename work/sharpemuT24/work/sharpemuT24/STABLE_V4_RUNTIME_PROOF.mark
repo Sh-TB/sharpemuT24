@@ -1,0 +1,30 @@
+STABLE TAG: v4-diagnostics-runtime-proof
+Date: 2026-07-17
+Status: FREEZE - no architecture changes
+
+Working:
+- Contracts + Adapter architecture (stable)
+- CPU Trace: 3,481 instructions recorded
+- Crash Snapshot: 13 files real output
+- Signal Handler: SIGSEGV captured with real RIP=0x800109062
+- GPU Submit: 78 tracked
+- Threads: 31 tracked
+- Memory: 183 regions tracked
+- Syscalls: 349,115 tracked
+
+Crash to analyze:
+- Signal: SIGSEGV
+- Fault: 0x14 (NULL+0x14 deref)
+- RIP: 0x800109062 (guest code)
+- RAX: 0x0 (NULL pointer)
+
+DO NOT TOUCH:
+- SharpEmu.Diagnostics.Contracts
+- SharpEmu.Diagnostics
+- DiagnosticAdapter
+- Architecture
+
+ONLY DO:
+- Crash Root Cause Analysis
+- Fix specific HLE export
+- Re-run and measure progress
