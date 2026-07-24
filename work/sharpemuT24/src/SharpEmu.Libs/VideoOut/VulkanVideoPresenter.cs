@@ -13880,13 +13880,35 @@ internal static unsafe class VulkanVideoPresenter
 
         private static SurfaceFormatKHR ChooseSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> formats)
         {
+            // Prefer B8G8R8A8Unorm over B8G8R8A8Srgb to avoid format conversion issues
+            // during blit from R8G8B8A8Unorm render targets. Lavapipe (and some other
+            // drivers) silently produce black frames when blitting between Unorm
+            // render targets and Srgb swapchains.
+            SurfaceFormatKHR? unormCandidate = null;
+            SurfaceFormatKHR? srgbCandidate = null;
             foreach (var format in formats)
             {
-                if (format.Format is Format.B8G8R8A8Srgb or Format.B8G8R8A8Unorm &&
-                    format.ColorSpace == ColorSpaceKHR.SpaceSrgbNonlinearKhr)
+                if (format.ColorSpace != ColorSpaceKHR.SpaceSrgbNonlinearKhr)
                 {
-                    return format;
+                    continue;
                 }
+                if (format.Format == Format.B8G8R8A8Unorm)
+                {
+                    unormCandidate = format;
+                }
+                else if (format.Format == Format.B8G8R8A8Srgb)
+                {
+                    srgbCandidate = format;
+                }
+            }
+
+            if (unormCandidate is { } unorm)
+            {
+                return unorm;
+            }
+            if (srgbCandidate is { } srgb)
+            {
+                return srgb;
             }
 
             return formats.Count > 0
