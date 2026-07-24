@@ -516,6 +516,9 @@ public sealed partial class DirectExecutionBackend
                         if (_unmappedReadRecoveries <= 5)
                         {
                                 // Detailed logging for first 5 faults: full register dump
+                                // (R10/R11/R12/R13/R14 added per user request — needed to
+                                // diagnose 'cmp qword ptr [r12+0x38], 0' style faults where
+                                // R12 holds the offending pointer.)
                                 var rax = ReadCtxU64(contextRecord, 120);
                                 var rbx = ReadCtxU64(contextRecord, 144);
                                 var rcx = ReadCtxU64(contextRecord, 128);
@@ -524,16 +527,25 @@ public sealed partial class DirectExecutionBackend
                                 var rdi = ReadCtxU64(contextRecord, 176);
                                 var r8 = ReadCtxU64(contextRecord, 184);
                                 var r9 = ReadCtxU64(contextRecord, 192);
+                                var r10 = ReadCtxU64(contextRecord, 200);
+                                var r11 = ReadCtxU64(contextRecord, 208);
+                                var r12 = ReadCtxU64(contextRecord, 216);
+                                var r13 = ReadCtxU64(contextRecord, 224);
+                                var r14 = ReadCtxU64(contextRecord, 232);
                                 var r15 = ReadCtxU64(contextRecord, 240);
                                 var rsp = ReadCtxU64(contextRecord, 152);
+                                var rbp = ReadCtxU64(contextRecord, 160);
                                 var threadHandle = SharpEmu.HLE.GuestThreadExecution.CurrentGuestThreadHandle;
+                                var threadName = _activeGuestThreadState?.Name ?? "?";
                                 Console.Error.WriteLine(
                                         $"[UNMAPPED] #{_unmappedReadRecoveries} {(accessType == 0 ? "READ" : "WRITE")} " +
                                         $"rip=0x{rip:X16} fault=0x{faultAddress:X16} " +
                                         $"instr='{instruction}' len={instructionLength}\n" +
                                         $"  RAX=0x{rax:X16} RBX=0x{rbx:X16} RCX=0x{rcx:X16} RDX=0x{rdx:X16}\n" +
                                         $"  RSI=0x{rsi:X16} RDI=0x{rdi:X16} R8=0x{r8:X16} R9=0x{r9:X16}\n" +
-                                        $"  R15=0x{r15:X16} RSP=0x{rsp:X16} thread=0x{threadHandle:X16}");
+                                        $"  R10=0x{r10:X16} R11=0x{r11:X16} R12=0x{r12:X16} R13=0x{r13:X16}\n" +
+                                        $"  R14=0x{r14:X16} R15=0x{r15:X16} RBP=0x{rbp:X16} RSP=0x{rsp:X16}\n" +
+                                        $"  thread=0x{threadHandle:X16} name='{threadName}'");
                         }
                         else if (_unmappedReadRecoveries % 100 == 0)
                                 Console.Error.WriteLine($"[LOADER][WARN] Unmapped {(accessType == 0 ? "read" : "write")} recovery #{_unmappedReadRecoveries}: rip=0x{rip:X16} fault=0x{faultAddress:X16} instr='{instruction}' len={instructionLength}");

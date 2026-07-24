@@ -937,3 +937,203 @@ Investigation approach:
   but not the only root cause. Section 19 documents the additional finding.
 - Next P1: investigate UNMAPPED fault at rip=0x800B28A0D
 - New env var: SHARPEMU_VIDEOOUT_FALLBACK_IMAGE=1 (fallback image creation)
+
+---
+
+# 20. CRITICAL UPDATE: ROOT CAUSE FOUND — Empty unity_builtin_extra
+
+## User's Cheap Test #4 — Most Insightful Yet
+
+User suggested: grep source for `0xC0DEC0DECAFEBA00` before doing any
+disassembly. If the magic marker is SharpEmu's own (e.g., a TLS canary),
+the entire "Unity error state" interpretation collapses.
+
+## Step 1: Cheap Grep Test
+
+Searched SharpEmu source for `0xC0DEC0DECAFEBA00`. Found 5 occurrences,
+ALL in SharpEmu source (NOT in any Unity-related code):
+
+```
+src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.cs:4550:
+    !context.TryWriteUInt64(tlsBase + 0x28, 0xC0DEC0DECAFEBA00UL)
+
+src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.Imports.cs:36:
+    private const ulong StackCheckGuardValue = 0xC0DEC0DECAFEBA00UL;
+
+src/SharpEmu.Core/Cpu/CpuDispatcher.cs:378:
+    !context.TryWriteUInt64(tlsBase + 0x28, 0xC0DEC0DECAFEBA00UL)
+
+src/SharpEmu.HLE/HleDataSymbols.cs:18:
+    private const ulong StackChkGuardValue = 0xC0DEC0DECAFEBA00UL;
+
+src/SharpEmu.Libs/Kernel/KernelRuntimeCompatExports.cs:55:
+    private static readonly ulong _stackChkGuardValue = 0xC0DEC0DECAFEBA00UL;
+```
+
+**CONCLUSION:** `0xC0DEC0DECAFEBA00` is SharpEmu's TLS stack canary value
+(written to `tlsBase + 0x28`, the standard `__stack_chk_guard` location).
+It is NOT a Unity error-state marker. Previous interpretation in section 19
+("RCX=0xC0DEC0DECAFEBA00 — Unity's error state magic marker") was WRONG.
+
+The reason RCX has this value at the fault is because RAX was just XOR'd
+to 0, and RCX happens to hold the TLS canary (loaded earlier for stack
+check validation), which is a normal occurrence for any function call.
+
+## Step 2: Enhanced UNMAPPED Logger + Full Register Dump
+
+Found that the existing UNMAPPED logger dumped RAX/RBX/RCX/RDX/RSI/RDI/R8/R9/
+R15/RSP but was missing R10/R11/R12/R13/R14/RBP. For `cmp [r12+0x38], 0`
+faults, R12 is the key register.
+
+Enhanced logger to dump all registers + thread name. Built and ran Yatzi
+with fallback enabled.
+
+```
+[UNMAPPED] #1 READ rip=0x800B28A0D fault=0x38 instr='cmp qword ptr [r12+38h],0'
+  RAX=0x0 RBX=0x801BB0024 RCX=0xC0DEC0DECAFEBA00 RDX=0x1
+  RSI=0x60250010 RDI=0x600500A0 R8=0x400000 R9=0x0
+  R10=0x602500C0 R11=0x602500CF R12=0x0 R13=0x801EF2A70
+  R14=0x0 R15=0x7F3C44ED7920 RBP=0x6FFFF01FBA40 RSP=0x6FFFF01FB980
+  thread=0x0 name='?'
+```
+
+**KEY FINDING: R12 = 0 (NULL).** The fault reads from address 0x38 (= R12 + 0x38).
+
+## Step 3: Disassembly — INTENTIONAL NULL Dereference
+
+Wrote `/home/z/my-project/scripts/disasm_around_rip.py` (uses pyelftools +
+capstone). Disassembled 80 instructions before and 50 after the fault site.
+
+Discovered the abort pattern:
+
+```asm
+0x800B28A08:  xor      eax, eax        ; RAX = 0
+0x800B28A0A:  xor      r12d, r12d      ; R12 = 0 (INTENTIONAL!)
+0x800B28A0D:  cmp      qword ptr [r12 + 0x38], 0    ; FAULT — reading NULL+0x38
+0x800B28A13:  jne      0x800b27dd0     ; jump if [0x38] != 0 (impossible)
+0x800B28A19:  jmp      0x800b289ed     ; else error path
+0x800B28A1B:  call     0x801938160     ; abort handler
+0x800B28A20:  ud2                       ; UNDEFINED INSTRUCTION — abort()
+```
+
+The code DELIBERATELY sets R12 = NULL then dereferences it. This is Unity's
+assertion abort pattern — when an invariant fails, the code jumps to a
+crash site that intentionally NULL-derefs to trigger SIGSEGV.
+
+## Step 4: Caller Analysis — What Triggered the Abort?
+
+Found two conditional jumps to the abort site `0x800B28A08`:
+- `0x800B27D98:  je 0x800b28a08`
+- `0x800B27DCA:  je 0x800b289ed`
+
+Disassembled around `0x800B27D98`. Found a shader lookup sequence:
+
+```asm
+0x800B27D54:  mov r12, qword ptr [rip + 0x13cb18d]  ; r12 = global cache
+0x800B27D5B:  test r12, r12
+0x800B27D5E:  jne 0x800b27dc2                       ; if cached, skip lookup
+0x800B27D60:  lea rbx, [rip + 0x10882bd]            ; arg1 = string1
+0x800B27D67:  mov rdi, rbx
+0x800B27D6A:  call 0x800c12d20                       ; (type lookup, returns rax)
+0x800B27D6F:  mov rdi, qword ptr [rip + 0x13724ea]  ; arg1 = global
+0x800B27D76:  lea rsi, [rip + 0x12c837b]            ; arg2 = string2
+0x800B27D7D:  lea rdx, [rbp - 0x50]
+0x800B27D81:  mov qword ptr [rbp - 0x50], rbx
+0x800B27D85:  mov qword ptr [rbp - 0x48], rax
+0x800B27D89:  call 0x800aba330                       ; <-- KEY CALL (lookup)
+0x800B27D8E:  mov qword ptr [rip + 0x13cb153], rax  ; cache result
+0x800B27D95:  test rax, rax
+0x800B27D98:  je 0x800b28a08                        ; if NULL -> abort site
+```
+
+The lookup function at `0x800aba330` returns NULL, triggering the abort.
+
+## Step 5: Read String Argument — "Internal-ErrorShader.shader"
+
+Read the string at guest address `0x801BB0024` (= `0x800B27D67 + 0x10882bd`):
+
+```python
+ASCII at 0x801BB0024: 'Internal-ErrorShader.shader'
+```
+
+**This is Unity's built-in error shader name!** Unity is trying to find its
+INTERNAL ERROR SHADER (used as fallback when a regular shader fails to load),
+and the lookup function returns NULL because the shader isn't available.
+
+## Step 6: ROOT CAUSE — Empty Unity Built-in Resource Files
+
+Checked Yatzi's `Media/Resources/` directory:
+
+```
+$ ls -la /tmp/games/yatzi/Media/Resources/
+-rw-rw-r-- 0 bytes  unity default resources
+-rw-rw-r-- 0 bytes  unity_builtin_extra
+```
+
+**Both files are 0 bytes!** These are Unity's built-in resource bundles that
+contain ALL built-in shaders, including `Internal-ErrorShader.shader`. The
+game ships with EMPTY files — either the dump was incomplete or these were
+stripped to save space (they're normally multi-MB files containing the
+entire Unity shader library).
+
+When Unity tries to load the Internal-ErrorShader:
+1. It calls the lookup function at `0x800aba330`
+2. The function reads from `unity_builtin_extra` (which is empty)
+3. The shader is not found → returns NULL
+4. Unity deliberately NULL-derefs R12 to abort
+
+## Step 7: Timeline (Corrected Once More)
+
+Line-by-line timeline of Yatzi boot:
+
+```
+Line 2148: VideoOutManager backend selected (VulkanVideoPresenter)
+Line 2150: First NID-TRACE — NID loop starts (NOT error handler — corrected)
+Line 2156: UnityEOPThread scheduled
+Line 2157: [DEBUG][PRINF] todo: void GfxDevicePS5SharedData::CreateWorkload()
+           (Unity's OWN printf — Unity engine has unimplemented function)
+Line 2158-2160: GfxFlipThread, UnityGfxDeviceWorker scheduled
+Line 2161: 1D0H2KNjshE NID loop continues
+Line 2247: Vulkan VideoOut ready
+Line 2248: UNMAPPED fault #1 (Internal-ErrorShader lookup returns NULL → abort)
+Line 2295: First frame presented (with fallback)
+Line 2333: NID loop completes (60343/19968 calls)
+```
+
+The NID loop runs alongside normal init, NOT as error handler. The fault at
+line 2248 is the actual abort triggered by the missing shader.
+
+## Conclusion
+
+**Previous sections 17, 18, 19 all had partially-correct conclusions:**
+
+- Section 17: NID loop is finite ✓, but not "error handler" — it's normal init
+- Section 18: flip_capture_failed was a real bug ✓, fallback fix is correct
+- Section 19: UNMAPPED at 0x800B28A0D happens before flip ✓, but cause is
+  missing shader, not missing graphics object
+
+**Actual root cause:** Yatzi ships with empty `unity_builtin_extra` and
+`unity default resources` files. Unity cannot find `Internal-ErrorShader`
+and aborts.
+
+**The fix is NOT in SharpEmu code.** It's a game data issue. Options:
+1. User provides a real `unity_builtin_extra` from a Unity PS5 build
+2. SharpEmu implements a synthetic shader loader (very invasive)
+3. SharpEmu intercepts the lookup function `0x800aba330` to return a
+   placeholder shader object (would require knowing the shader object layout)
+
+## Status
+
+- ✅ User's cheap test #4 (grep source) executed — found 0xC0DEC0DECAFEBA00 is
+  SharpEmu's TLS canary, NOT Unity's error marker
+- ✅ Full register dump captured — R12=0 at fault
+- ✅ Disassembly revealed INTENTIONAL NULL deref (Unity assertion abort)
+- ✅ Caller identified — shader lookup at 0x800ABA330 returned NULL
+- ✅ String read — "Internal-ErrorShader.shader" (Unity built-in)
+- ✅ ROOT CAUSE FOUND — empty unity_builtin_extra file in game data
+- ✅ Did NOT modify any IL2CPP stubs (per user's instruction)
+- ✅ Golden test still passes (140 frames, 188 colors)
+- ⚠️ This is a game data issue, not SharpEmu code issue
+- Modified file: src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.Exceptions.cs
+  (added R10-R14, RBP, thread name to UNMAPPED logger — broadly useful)
+- New reusable tool: scripts/disasm_around_rip.py
