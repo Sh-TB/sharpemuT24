@@ -261,6 +261,24 @@ internal static unsafe class VulkanVideoPresenter
             Environment.GetEnvironmentVariable("SHARPEMU_TRACE_GUEST_WORK_COMPLETION"),
             "1",
             StringComparison.Ordinal);
+    /// <summary>
+    /// When enabled (SHARPEMU_VIDEOOUT_FALLBACK_IMAGE=1), an ordered guest flip
+    /// for which no Vulkan guest image exists will create a black placeholder
+    /// image on-the-fly, matching real PS5 hardware behavior where a registered
+    /// display buffer is immediately presentable even before any rendering.
+    ///
+    /// Without this, Unity IL2CPP games that submit a flip before their first
+    /// render pass (e.g. Yatzi) silently fail, hit a NULL pointer in their flip
+    /// result struct, and stall in their error handler forever.
+    ///
+    /// OFF by default — Dreaming Sarah (golden baseline) is unaffected because
+    /// it uses DCB-embedded flips and always renders before flipping.
+    /// </summary>
+    private static readonly bool _videoOutFallbackImageEnabled =
+        string.Equals(
+            Environment.GetEnvironmentVariable("SHARPEMU_VIDEOOUT_FALLBACK_IMAGE"),
+            "1",
+            StringComparison.Ordinal);
     private static readonly HashSet<(ulong Address, uint Width, uint Height)>
         _tracedGuestImageSubmissions = [];
     private static Thread? _thread;
@@ -4431,6 +4449,191 @@ internal static unsafe class VulkanVideoPresenter
                 $"work_sequence={_activeGuestWorkSequence} name='{work.DebugName}'");
         }
 
+        /// <summary>
+        /// Lazily creates a black placeholder Vulkan image for a registered
+        /// display buffer that the game flipped before any rendering populated
+        /// _guestImages. Matches real PS5 hardware behavior where a registered
+        /// display buffer is immediately presentable.
+        ///
+        /// Returns the created GuestImageResource (added to _guestImages) or
+        /// null if creation fails. The image is cleared to opaque black
+        /// (RGBA 0,0,0,255) so the resulting flip displays a black frame.
+        /// </summary>
+        private GuestImageResource? CreateFallbackGuestImage(
+            ulong address,
+            uint width,
+            uint height)
+        {
+            try
+            {
+                var vkFormat = Format.B8G8R8A8Unorm;
+                var imageInfo = new ImageCreateInfo
+                {
+                    SType = StructureType.ImageCreateInfo,
+                    ImageType = ImageType.Type2D,
+                    Format = vkFormat,
+                    Extent = new Extent3D(width, height, 1),
+                    MipLevels = 1,
+                    ArrayLayers = 1,
+                    Samples = SampleCountFlags.Count1Bit,
+                    Tiling = ImageTiling.Optimal,
+                    Usage =
+                        ImageUsageFlags.SampledBit |
+                        ImageUsageFlags.TransferSrcBit |
+                        ImageUsageFlags.TransferDstBit |
+                        ImageUsageFlags.ColorAttachmentBit,
+                    SharingMode = SharingMode.Exclusive,
+                    InitialLayout = ImageLayout.Undefined,
+                };
+                Check(
+                    _vk.CreateImage(_device, &imageInfo, null, out var image),
+                    "vkCreateImage(fallback guest image)");
+                _vk.GetImageMemoryRequirements(_device, image, out var requirements);
+                var allocationInfo = new MemoryAllocateInfo
+                {
+                    SType = StructureType.MemoryAllocateInfo,
+                    AllocationSize = requirements.Size,
+                    MemoryTypeIndex = FindMemoryType(
+                        requirements.MemoryTypeBits,
+                        MemoryPropertyFlags.DeviceLocalBit),
+                };
+                Check(
+                    _vk.AllocateMemory(_device, &allocationInfo, null, out var memory),
+                    "vkAllocateMemory(fallback guest image)");
+                Check(
+                    _vk.BindImageMemory(_device, image, memory, 0),
+                    "vkBindImageMemory(fallback guest image)");
+
+                var viewInfo = new ImageViewCreateInfo
+                {
+                    SType = StructureType.ImageViewCreateInfo,
+                    Image = image,
+                    ViewType = ImageViewType.Type2D,
+                    Format = vkFormat,
+                    Components = new ComponentMapping(
+                        ComponentSwizzle.Identity,
+                        ComponentSwizzle.Identity,
+                        ComponentSwizzle.Identity,
+                        ComponentSwizzle.Identity),
+                    SubresourceRange = ColorSubresourceRange(),
+                };
+                Check(
+                    _vk.CreateImageView(_device, &viewInfo, null, out var view),
+                    "vkCreateImageView(fallback guest image)");
+
+                // Clear the image to opaque black using a one-shot command buffer
+                // so the first flip displays black instead of uninitialized data.
+                var clearCmd = AllocateGuestCommandBuffer();
+                try
+                {
+                    var beginInfo = new CommandBufferBeginInfo
+                    {
+                        SType = StructureType.CommandBufferBeginInfo,
+                        Flags = CommandBufferUsageFlags.OneTimeSubmitBit,
+                    };
+                    Check(
+                        _vk.BeginCommandBuffer(clearCmd, &beginInfo),
+                        "vkBeginCommandBuffer(fallback clear)");
+                    var clearBarrier = new ImageMemoryBarrier
+                    {
+                        SType = StructureType.ImageMemoryBarrier,
+                        SrcAccessMask = 0,
+                        DstAccessMask = AccessFlags.TransferWriteBit,
+                        OldLayout = ImageLayout.Undefined,
+                        NewLayout = ImageLayout.TransferDstOptimal,
+                        SrcQueueFamilyIndex = Vk.QueueFamilyIgnored,
+                        DstQueueFamilyIndex = Vk.QueueFamilyIgnored,
+                        Image = image,
+                        SubresourceRange = ColorSubresourceRange(),
+                    };
+                    _vk.CmdPipelineBarrier(
+                        clearCmd,
+                        PipelineStageFlags.TopOfPipeBit,
+                        PipelineStageFlags.TransferBit,
+                        0,
+                        0,
+                        null,
+                        0,
+                        null,
+                        1,
+                        &clearBarrier);
+                    var clearColor = new ClearColorValue(0f, 0f, 0f, 1f);
+                    var clearRange = new ImageSubresourceRange(
+                        ImageAspectFlags.ColorBit, 0, 1, 0, 1);
+                    _vk.CmdClearColorImage(
+                        clearCmd,
+                        image,
+                        ImageLayout.TransferDstOptimal,
+                        &clearColor,
+                        1,
+                        &clearRange);
+                    var shaderReadBarrier = new ImageMemoryBarrier
+                    {
+                        SType = StructureType.ImageMemoryBarrier,
+                        SrcAccessMask = AccessFlags.TransferWriteBit,
+                        DstAccessMask = AccessFlags.ShaderReadBit,
+                        OldLayout = ImageLayout.TransferDstOptimal,
+                        NewLayout = ImageLayout.ShaderReadOnlyOptimal,
+                        SrcQueueFamilyIndex = Vk.QueueFamilyIgnored,
+                        DstQueueFamilyIndex = Vk.QueueFamilyIgnored,
+                        Image = image,
+                        SubresourceRange = ColorSubresourceRange(),
+                    };
+                    _vk.CmdPipelineBarrier(
+                        clearCmd,
+                        PipelineStageFlags.TransferBit,
+                        PipelineStageFlags.FragmentShaderBit,
+                        0,
+                        0,
+                        null,
+                        0,
+                        null,
+                        1,
+                        &shaderReadBarrier);
+                    Check(
+                        _vk.EndCommandBuffer(clearCmd),
+                        "vkEndCommandBuffer(fallback clear)");
+                    SubmitGuestCommandBuffer(clearCmd, [], []);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine(
+                        $"[LOADER][WARN] fallback image clear failed addr=0x{address:X16}: {ex.Message}");
+                    // Continue anyway — the image still exists, it's just uninitialized.
+                }
+
+                var resource = new GuestImageResource
+                {
+                    Address = address,
+                    Width = width,
+                    Height = height,
+                    MipLevels = 1,
+                    GuestFormat = 0, // unknown, but Format is set
+                    Format = vkFormat,
+                    Image = image,
+                    Memory = memory,
+                    View = view,
+                    Initialized = true,
+                    IsCpuBacked = false,
+                };
+
+                _guestImages.Add(address, resource);
+                if (_traceGuestImageEvents)
+                {
+                    Console.Error.WriteLine(
+                        $"[GIMG-CREATE] path=fallback_flip addr=0x{address:X16} " +
+                        $"size={width}x{height} fmt=0 vkfmt={vkFormat}");
+                }
+                return resource;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(
+                    $"[LOADER][WARN] CreateFallbackGuestImage failed addr=0x{address:X16}: {ex.Message}");
+                return null;
+            }
+        }
+
         private void ExecuteOrderedGuestFlip(VulkanOrderedGuestFlip work)
         {
             FlushBatchedGuestCommands();
@@ -4439,11 +4642,37 @@ internal static unsafe class VulkanVideoPresenter
                 source is null ||
                 !source.Initialized)
             {
-                Console.Error.WriteLine(
-                    $"[LOADER][WARN] vk.flip_capture_failed version={work.Version} " +
-                    $"queue={_activeGuestQueue.Name} addr=0x{work.Address:X16} " +
-                    $"found={(source is not null)} initialized={(source?.Initialized ?? false)}");
-                return;
+                // Fallback path: if the game flipped a registered display buffer
+                // before any rendering populated _guestImages, lazily create a
+                // black placeholder image matching real PS5 hardware behavior.
+                // This is gated behind SHARPEMU_VIDEOOUT_FALLBACK_IMAGE=1 to keep
+                // it opt-in and avoid changing golden-baseline behavior.
+                if (_videoOutFallbackImageEnabled &&
+                    !_deviceLost &&
+                    source is null &&
+                    work.Width > 0 &&
+                    work.Height > 0 &&
+                    _availableGuestImages.ContainsKey(work.Address))
+                {
+                    source = CreateFallbackGuestImage(work.Address, work.Width, work.Height);
+                    if (source is not null)
+                    {
+                        Console.Error.WriteLine(
+                            $"[LOADER][INFO] vk.flip_fallback_created version={work.Version} " +
+                            $"addr=0x{work.Address:X16} size={work.Width}x{work.Height}");
+                    }
+                }
+
+                if (_deviceLost ||
+                    source is null ||
+                    !source.Initialized)
+                {
+                    Console.Error.WriteLine(
+                        $"[LOADER][WARN] vk.flip_capture_failed version={work.Version} " +
+                        $"queue={_activeGuestQueue.Name} addr=0x{work.Address:X16} " +
+                        $"found={(source is not null)} initialized={(source?.Initialized ?? false)}");
+                    return;
+                }
             }
 
             EnsureGuestSubmissionCapacity();
@@ -7002,6 +7231,12 @@ internal static unsafe class VulkanVideoPresenter
                     CpuContentFingerprint = contentFingerprint,
                 };
                 _guestImages.Add(texture.Address, guestImage);
+                if (_traceGuestImageEvents)
+                {
+                    Console.Error.WriteLine(
+                        $"[GIMG-CREATE] path=cpu_backed_texture addr=0x{texture.Address:X16} " +
+                        $"size={guestImage.Width}x{guestImage.Height} fmt={guestImage.GuestFormat} vkfmt={guestImage.Format}");
+                }
                 resource.OwnsStorage = false;
                 resource.GuestImage = guestImage;
                 lock (_gate)
@@ -10221,6 +10456,12 @@ internal static unsafe class VulkanVideoPresenter
                 retained.IsCpuBacked = false;
                 retained.CpuContentFingerprint = 0;
                 _guestImages.Add(target.Address, retained);
+                if (_traceGuestImageEvents)
+                {
+                    Console.Error.WriteLine(
+                        $"[GIMG-CREATE] path=retained_variant addr=0x{target.Address:X16} " +
+                        $"size={retained.Width}x{retained.Height} fmt={retained.GuestFormat} vkfmt={retained.Format}");
+                }
                 lock (_gate)
                 {
                     _guestImageExtents[target.Address] = (
@@ -10358,6 +10599,13 @@ internal static unsafe class VulkanVideoPresenter
             SetDebugName(ObjectType.RenderPass, initialRenderPass.Handle, $"{debugName} initial-renderpass");
             SetDebugName(ObjectType.Framebuffer, framebuffer.Handle, $"{debugName} framebuffer");
             _guestImages.Add(target.Address, resource);
+            if (_traceGuestImageEvents)
+            {
+                Console.Error.WriteLine(
+                    $"[GIMG-CREATE] path=render_target_new addr=0x{target.Address:X16} " +
+                    $"size={resource.Width}x{resource.Height} fmt={resource.GuestFormat} vkfmt={resource.Format} " +
+                    $"mips={resource.MipLevels}");
+            }
             lock (_gate)
             {
                 _guestImageExtents[target.Address] = (

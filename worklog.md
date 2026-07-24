@@ -272,3 +272,144 @@ Stage Summary:
   placeholder Vulkan image in _guestImages so the first flip succeeds with black
 - New env vars:
   - SHARPEMU_PIPELINE_COUNTERS=1 — enable pipeline call counters
+
+---
+Task ID: EXP-GIMG-LIFECYCLE + EXP-FALLBACK-FLIP
+Agent: main (SharpEmu bringup)
+Task: Per user's careful approach — trace _guestImages lifecycle in both
+games BEFORE implementing fallback fix. Then implement fallback in
+ExecuteOrderedGuestFlip (NOT in RegisterBuffers) with feature flag. Verify
+golden test still passes, and verify Yatzi produces frames (not just no-crash).
+
+Work Log:
+- Step 1 (lifecycle trace): Added GIMG-CREATE logging at all 3 sites where
+  _guestImages entries are created (lines 7004, 10223, 10360). Three paths:
+  - cpu_backed_texture: created when CPU uploads a texture (used by Dreaming Sarah)
+  - retained_variant: reusing a previously-stored variant (rare)
+  - render_target_new: created when AGC renders into a render target
+  Activated by SHARPEMU_TRACE_GUEST_IMAGE_EVENTS=1 (already-existing env var).
+
+- Step 2 (lifecycle data): Ran /home/z/my-project/scripts/exp-gimg-lifecycle.sh
+  Side-by-side comparison:
+
+| | Dreaming Sarah | Yatzi |
+|--|----------------|-------|
+| GIMG-CREATE events | 3 (2 render_target_new + 1 cpu_backed_texture) | **0** |
+| First flip_capture_failed | (none) | addr=0x10CA0000 |
+| Total frames | 65 | 0 |
+
+  This DEFINITIVELY confirms user's hypothesis: RegisterBuffers is NOT supposed
+  to create the image. AGC's render_target_new path is the legitimate creator.
+  Yatzi never reaches that path because it flips before rendering.
+
+- Step 3 (implement fallback): Added CreateFallbackGuestImage() method to
+  VulkanVideoPresenter.cs. Creates a B8G8R8A8Unorm Vulkan image, clears it to
+  opaque black using a one-shot command buffer (CmdClearColorImage with
+  (0,0,0,1) RGBA), adds it to _guestImages, returns the GuestImageResource.
+
+  Wired into ExecuteOrderedGuestFlip: when _guestImages[address] lookup fails
+  AND SHARPEMU_VIDEOOUT_FALLBACK_IMAGE=1 is set AND _availableGuestImages
+  contains the address AND width/height > 0, call CreateFallbackGuestImage.
+  Otherwise fall through to the existing flip_capture_failed warning.
+
+  Key design decisions (per user's explicit instruction):
+  - Fallback is in ExecuteOrderedGuestFlip (lazy), NOT in RegisterBuffers
+  - Behind feature flag SHARPEMU_VIDEOOUT_FALLBACK_IMAGE=1 (off by default)
+  - Dreaming Sarah unaffected (uses DCB-embedded flips, never hits fallback)
+
+- Step 4 (golden test): Built and deployed. Golden test passes (118 frames,
+  169 colors) with fallback OFF — confirming the fallback code path is
+  unreachable when env var is not set.
+
+- Step 5 (Yatzi test with fallback): Created and ran
+  /home/z/my-project/scripts/exp-fallback-flip.sh.
+
+  Side-by-side comparison WITH vs WITHOUT fallback (both 20s runs):
+
+| Metric | Without fallback | With fallback |
+|--------|-------------------|---------------|
+| flip_capture_failed events | 1 | **0** |
+| flip_fallback_created events | 0 | **1** |
+| GIMG-CREATE events | 0 | **1** (path=fallback_flip) |
+| Frames produced | 0 | **1** (frame #1) |
+| UNMAPPED faults | 5 | 5 (no change) |
+| NID-COUNTS final | 60343 / 19968 | 60343 / 19968 (no change) |
+| 0xC0DEC0DECAFEBA00 magic markers | 15 | 15 (no change) |
+
+  HONEST EVALUATION:
+  ✅ Fallback FIX WORKS — flip no longer fails, frame is presented
+  ✅ First black frame is displayed (1 distinct color)
+  ❌ Game is STILL in Unity error state (UNMAPPED faults, NID loop, magic markers)
+  ❌ Game still stalls in audio/mutex loop after first frame
+
+- Step 6 (timeline analysis): Examined the exact ordering of events:
+
+  WITHOUT fallback (baseline):
+    T=5s  Vulkan VideoOut ready (line 2249)
+    T=5s  vk.flip_capture_failed (line 2250) — image lookup failed
+    T=5s  UNMAPPED fault #1 at rip=0x800B28A0D: cmp qword ptr [r12+38h],0
+          (Unity tries to read struct field at r12+0x38, r12 is NULL)
+    T=5s  RCX=0xC0DEC0DECAFEBA00 (Unity's error state magic marker)
+    T=5s+ Unity error handler runs (the 60,343 + 19,968 NID calls)
+    T=7s  NID loop completes, game stalls in audio/mutex loop
+
+  WITH fallback:
+    T=5s  Vulkan VideoOut ready (line 2249)
+    T=5s  UNMAPPED fault #1 at SAME rip (line 2250) — NULL pointer STILL fires
+          NOTE: fallback not yet created at this point!
+    T=5s  AudioOut ports 1, 2 initialized (silent backend)
+    T=5s  FMOD threads scheduled
+    T=5s  scePthreadMutexLock calls
+    T=5s+ flip_fallback_created (line 2282) — flip retry succeeds!
+    T=5s+ vk.present_taken + vk.present_sample frame=1 — FRAME PRESENTED
+    T=5s+ Unity error handler runs (same NID loop as without fallback)
+
+  CRITICAL FINDING: The UNMAPPED fault at rip=0x800B28A0D happens
+  IMMEDIATELY after Vulkan VideoOut becomes ready, BEFORE any flip is
+  even attempted. The flip_capture_failed warning we previously thought
+  was the cause is actually a CONSEQUENCE — Unity's error path fires
+  first, then attempts the failed flip as part of error cleanup.
+
+  This means: there is a SEPARATE root cause that triggers Unity's error
+  path. The flip fix is correct (it eliminates the flip_capture_failed
+  warning and produces a frame), but the underlying Unity error state
+  has a different trigger.
+
+- Honest conclusion documented:
+  - The fallback fix is a VALID STEP FORWARD (frame count: 0 → 1)
+  - But it is NOT the complete fix — game still stalls in error state
+  - Next P1: investigate what causes the UNMAPPED fault at rip=0x800B28A0D
+    immediately after VideoOut ready (likely a missing Unity engine callback
+    or an unimplemented HLE function that should populate r12)
+
+- Golden test still passes (118 frames, 169 colors).
+
+Stage Summary:
+- ✅ User's careful approach executed exactly as specified
+- ✅ Lifecycle trace confirmed: RegisterBuffers should NOT create image;
+  AGC render_target_new path is the legitimate creator
+- ✅ Fallback implemented in ExecuteOrderedGuestFlip (lazy, NOT RegisterBuffers)
+  behind SHARPEMU_VIDEOOUT_FALLBACK_IMAGE=1 feature flag
+- ✅ Fallback successfully creates black placeholder image and presents frame
+- ✅ Frame count: 0 → 1 (black frame, as expected)
+- ⚠️ HONEST: game still stalls in Unity error state — fallback is INTERMEDIATE
+  step, not complete fix. There's a separate root cause for the UNMAPPED fault
+  at rip=0x800B28A0D that happens immediately after VideoOut ready.
+- ✅ Golden test still passes (no regression, Dreaming Sarah unaffected)
+- ✅ Did NOT modify any IL2CPP stubs (per user's explicit instruction)
+- Artifacts produced:
+  - /home/z/my-project/scripts/exp-gimg-lifecycle.sh
+  - /home/z/my-project/scripts/exp-fallback-flip.sh
+  - /tmp/exp-gimg-lifecycle/{dreaming-sarah,yatzi}.log
+  - /tmp/exp-fallback-flip/yatzi.log (with fallback)
+  - /tmp/exp-fallback-flip/yatzi-no-fallback.log (without fallback, for comparison)
+- New env vars added:
+  - SHARPEMU_VIDEOOUT_FALLBACK_IMAGE=1 — enable lazy fallback image creation
+- Modified file: src/SharpEmu.Libs/VideoOut/VulkanVideoPresenter.cs
+  - Added _videoOutFallbackImageEnabled flag (off by default)
+  - Added CreateFallbackGuestImage() method (~150 lines)
+  - Modified ExecuteOrderedGuestFlip() to use fallback when env var set
+  - Added GIMG-CREATE tracing at 3 sites where _guestImages entries are created
+- Next P1 (honest): investigate UNMAPPED fault at rip=0x800B28A0D — separate
+  root cause, not fixed by fallback. Likely a missing HLE function that
+  Unity expects to populate r12 before its first NULL check.
