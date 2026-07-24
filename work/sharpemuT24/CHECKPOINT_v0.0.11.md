@@ -469,3 +469,50 @@ The main thread is NOT waiting on any semaphore — it's in a busy loop:
 
 The main thread is stuck in a loop, not in a semaphore wait.
 Need to trace what the main thread is actually executing.
+
+---
+
+# 16. NID Argument Analysis (commit 7012c3e)
+
+## Corrected: R8 is NOT a double
+
+Previous analysis incorrectly said R8=0x3FF0000000000000 (1.0 as double) was dominant.
+**Corrected**: R8=0x100 (256) is the dominant value (82% of calls).
+
+## 1D0H2KNjshE (60,343 calls in 15s)
+
+| Register | Value | Frequency | Interpretation |
+|----------|-------|-----------|----------------|
+| RDI | 0x601183C90 | 99.97% | Guest heap object (IL2CPP runtime) |
+| R8 | 0x100 (256) | 99.97% | Cache line size or buffer size |
+| R9 | 0x40 (64) | 99.97% | Alignment or secondary size |
+| RDX | 3-13 | varying | Small indices |
+| RCX | 0x17-0x3F | varying | Small indices |
+
+## hsi9drzHR2k (19,968 calls in 15s)
+
+| Register | Value | Frequency | Interpretation |
+|----------|-------|-----------|----------------|
+| RDI | 0x601183C90 | 82% | Same object as 1D0H2KNjshE |
+| R8 | 0x100 (256) | 82% | Same as 1D0H2KNjshE |
+| R8 | 1.0-7.0 (double) | 18% | Initialization phase only |
+| RCX | 0x10, 0x2D-0x3F | varying | Indices/sizes |
+
+## Interpretation
+
+R8=0x100 (256) and R9=0x40 (64) strongly suggest:
+- 256 = PS5 GPU cache line size or buffer allocation size
+- 64 = CPU cache line size or alignment
+
+Both NIDs operate on the SAME guest object (0x601183C90).
+This is likely an IL2CPP GC heap object or thread-local storage.
+
+The main thread is in a tight polling loop (~4000 calls/second).
+Return-zero prevents the loop from exiting.
+
+## Next Step
+
+Need caller mapping (return address → module) to determine:
+- Is the caller inside eboot.bin (Unity engine code)?
+- Is the caller inside Il2cppUserAssemblies.prx (IL2CPP compiled game code)?
+- What is the loop structure (cmp/test after call)?
