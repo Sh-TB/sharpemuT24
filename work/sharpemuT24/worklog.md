@@ -1,108 +1,122 @@
 ---
-Task ID: EXP-019 to EXP-040 (comprehensive diagnostic sweep)
+Task ID: EXP-041 to EXP-058 (Vulkan/GNM/AGC audit + Framebuffer CRC)
 Agent: main (SharpEmu bringup)
-Task: Run all diagnostic experiments user requested. NO code changes — only log analysis and metadata validation.
+Task: User asked for definitive answer on whether game produces any draw calls.
 
-User-uploaded new files:
-- eker My Shadow 01.002 PPSA12500 level10.rar (172KB) → level10 + level10.resS for Seeker
-- level0 (1404 bytes) → Unity scene file for Seeker (contains "2022.3.5f1" Unity version string)
-- sharedassets0.assets (1548 bytes) → smaller sharedassets (kept the larger 26MB one already present)
+User asked the critical question:
+> "Before building AGC Parser, prove the game produces at least one DRAW command.
+> If DRAW_INDEX = 0, building AGC parser is wasted time."
+> If DRAW_INDEX > 0 but vkCmdDraw = 0, then AGC→Vulkan translation is the work.
 
-Added these to Seeker app0 → ALL file opens now succeed for Seeker.
+=== EXP-041: Vulkan Pipeline Audit ===
+ALL Vulkan calls = ZERO:
+- vkCreateInstance: 0
+- vkCreateDevice: 0
+- vkCreateSwapchain: 0
+- vkCreateRenderPass: 0
+- vkCreateFramebuffer: 0
+- vkCreateGraphicsPipeline: 0
+- vkCmdBindPipeline: 0
+- vkCmdDraw: 0
+- vkCmdDrawIndexed: 0
+- vkQueueSubmit: 0
+- vkQueuePresentKHR: 0
 
-=== EXP-019: Metadata Validation ===
-- Header dump: Magic 0xAF1BB1FA, version 0x1D (29) — newer IL2CPP metadata format
-- Entropy: 5.54 bits/byte (Yatzi), 5.53 (Seeker) — STRUCTURED, NOT encrypted
-- Strings scan: Both files contain valid Unity strings:
-  * Yatzi: 4822 UnityEngine, 599 Camera, 259 GameObject, 370 Transform, 4 VisualEffectAsset, 19 SceneManager
-  * Seeker: 3245 UnityEngine, 232 Camera, 141 GameObject, 346 Transform, 4 VisualEffectAsset, 16 SceneManager
-- Conclusion: ✅ metadata files are VALID and UNENCRYPTED
+=== EXP-042/058: AGC/GNM Command Coverage ===
+ALL GNM/AGC calls from game = ZERO:
+- sceGnmSubmitCommandBuffers: 0
+- sceGnmxSubmit: 0
+- sceAgcSubmitDcb: 0
+- sceAgcSubmitDcb1/2: 0
+- sceAgcDcbDrawIndex: 0
+- sceVideoOutSubmitFlip: 0
+- sceVideoOutRegisterBuffers: 0
 
-=== EXP-020: IL2CPP Import Audit ===
-- SHARPEMU_LOG_IL2CPP_NULL=1 and SHARPEMU_LOG_IL2CPP_STUBS=1 enabled
-- Result: ZERO IL2CPP_NULL events, ZERO IL2CPP_STUB events
-- Root cause: SharpEmu's IL2CPP fake heap is NEVER initialized
-- Game's IL2CPP runtime is REAL code inside Il2cppUserAssemblies.prx (592 exports)
-- Game does NOT call il2cpp_api_lookup_symbol — fake stubs are NEVER used
-- Conclusion: ❌ Fake stubs are irrelevant; game uses its own real IL2CPP runtime
+Only sceVideoOutOpen was called (1 time) — to register a display handle.
 
-=== EXP-021 (CORRECTED): Semaphore Audit ===
-- Earlier count was wrong (searched wrong text pattern)
-- Correct counts from sema.* trace events:
-  * sema.create: 340 (336 Baselib_SystemSemaphore, 4 FMOD Semaphore)
-  * sema.wait-block: 4832
-  * sema.wait-wake: 4785 (98.8% of waits were satisfied)
-  * sema.signal: 4831 (signals DO happen — game logic IS running)
-  * sema.wait-timeout: 0
-  * sema.delete: 78
-- Conclusion: ✅ NO DEADLOCK. Kernel scheduler works correctly. Game runs its main loop.
+=== EXP-051: Framebuffer CRC ===
+Only ONE frame produced (frame000001.ppm).
+- CRC32: 0x6516E746
+- First pixel: RGB(229,95,68) α=255
 
-=== EXP-024: Semaphore Ownership Graph ===
-- 47 semaphores have stuck waiters (never woken up at end of run)
-- All stuck semaphores are "Baselib_SystemSemaphore" (Unity worker pool semaphores)
-- Stuck handles: 0x5C, 0x5E, 0x60, 0x62, ... (each AssetGarbageCollectorHelper creates 2 semaphores)
-- Pattern: each worker creates a "ready" sema (signaled immediately) and a "work" sema (never signaled)
-- Conclusion: Workers are idle because main thread never dispatches GC work to them
-- This is NORMAL — workers are SUPPOSED to wait for work. NOT a deadlock.
+VERIFICATION: This color (229,95,68) is NOT from the game!
+It's from SharpEmu's HeadlessVideoPresenter.GenerateFramePattern():
+  hue = (frame * 10) % 360  // = 10 for frame 1
+  HSV(h=10°, s=0.7, v=0.9) → RGB(229,95,68)  ← EXACT MATCH
 
-=== EXP-026: First Missing Signal ===
-- First stuck semaphore: 0x5C
-- Lifecycle: created → waited → never signaled
-- Caller: thread 0x00007F4F50F1F950 (AssetGarbageCollectorHelper)
-- Entry: 0x800BB06A0 (inside eboot.bin — Unity's thread wrapper)
-- Conclusion: Workers are at expected "wait for work" state. Main thread is the bottleneck.
+The "Unity splash frame" we've been celebrating for the past 6+ experiments
+is SharpEmu's SYNTHETIC TEST PATTERN, not game output!
 
-=== EXP-028: Asset Resolution ===
-- Yatzi opens: RuntimeInitializeOnLoads.json, ScriptingAssemblies.json, globalgamemanagers, .assets, .resS
-- Yatzi FAILS to open: level0, sharedassets0.assets (not in upload)
-- Yatzi NEVER TRIES to open: global-metadata.dat (IL2CPP runtime never reaches that phase)
-- Seeker opens ALL files successfully (level0 now present)
-- Conclusion: For Yatzi, missing level0/sharedassets0 is the blocker. For Seeker, all assets present.
+=== EXP-050: DCB Replay Audit ===
+- DCB received: 0 (game never submitted any DCB)
+- DCB parsed: 0
+- DCB executed: 0
+- Framebuffer changed: only by SharpEmu's GenerateFramePattern()
 
-=== EXP-029: IL2CPP Runtime Phase ===
-- Il2cppUserAssemblies.prx loads successfully (592 symbols, 295 imports)
-- Module init runs (dt_init at 0x804CD5010)
-- NO "Fake runtime heap" message — SharpEmu's IL2CPP fake stubs never used
-- NO il2cpp_api_lookup_symbol calls
-- Game's REAL IL2CPP runtime runs as native code inside Il2cppUserAssemblies.prx
-- SharpEmu doesn't instrument this real IL2CPP runtime
-- Conclusion: IL2CPP runtime phase is invisible to SharpEmu's logging
+=== EXP-049: GPU Memory Audit ===
+- Game never called sceKernelMapDirectMemory for GPU memory
+- Game never allocated any GPU resources
+- Only CPU memory was allocated
 
-=== EXP-030: Export Resolution Audit ===
-- Il2cppUserAssemblies.prx has 592 exports (real C++ game functions)
-- eboot does NOT directly call into Il2cppUserAssemblies via import stubs
-- All AssetGarbageCollectorHelper threads enter at 0x800BB06A0 (inside eboot.bin)
-- This is Unity's standard thread wrapper that eventually calls into Il2cppUserAssemblies
-- Conclusion: Module loading and dispatch works correctly
+=== EXP-044: Pipeline State ===
+- No pipeline state exists — no graphics pipeline was ever created
 
-=== EXP-031: Scheduler Verification ===
-- READY always 0 (in all 20 samples)
-- RUNNING: 1 or 2
-- BLOCKED: monotonically increases 0 → 9 (workers parking)
-- Conclusion: ✅ Scheduler is NOT the issue. Kyty-style pump would NOT help.
+=== Game activity breakdown (top imports) ===
+The game's actual activity in 30s of execution (200K imports total):
+- 481 calls: libc:__cxa_atexit (C++ static destructors registration)
+- 33 calls: libKernel:scePthreadMutexLock
+- 26 calls: libKernel:scePthreadMutexInit
+- 25 calls: libKernel:scePthreadMutexattrInit/Destroy/Settype
+- 14 calls: libKernel:scePthreadMutexattrSetprotocol
+- 9 calls: libKernel:sceKernelCreateSema
+- 5 calls: libKernel:sceKernelGetProcParam
 
-=== Seeker with level0/level10 ===
-- ALL file opens succeed (no _open fail events)
-- Game still produces Unity splash frame (RGB 224,88,64, 99.98% coverage)
-- Draw calls: 0 (SharpEmu's GPU/AGC is stub-only)
-- Conclusion: For Seeker, the bottleneck is SharpEmu's GPU emulation (no real rendering)
+The game is stuck in C++ static initialization phase. It's registering
+atexit handlers and creating mutexes — that's it. It has NOT yet:
+- Opened the display (1 call only to sceVideoOutOpen)
+- Allocated GPU memory
+- Created any render targets
+- Submitted any command buffers
+- Drawn anything
 
-=== FINAL CONCLUSIONS ===
-1. SharpEmu's kernel/scheduler/semaphore layer works correctly (signals happen)
-2. SharpEmu's filesystem works correctly (all asset files open)
-3. SharpEmu's module loading works correctly (PRX loaded, init runs)
-4. SharpEmu's IL2CPP fake stubs are NEVER USED by these games (they have real IL2CPP runtime)
-5. SharpEmu's GPU/AGC is stub-only (draws=0 always) → can't render scenes
-6. Yatzi specifically: missing level0 and sharedassets0.assets (user didn't upload these for Yatzi)
-7. Seeker: ALL files present, but SharpEmu can't render the scene content
+=== ROOT CAUSE (DEFINITIVE) ===
 
-=== RECOMMENDED NEXT STEP (single item) ===
-The fundamental blocker for getting past Unity splash is SharpEmu's GPU/AGC emulation.
-Currently draws=0 always — SharpEmu submits no draw calls to the (stub) GPU.
-To get real game content rendering, SharpEmu needs real AGC (PS5 GPU) command buffer
-parsing and execution, OR at minimum, hook the game's rendering calls to detect when
-a scene would be drawn and emit a placeholder.
+The game is stuck in the EARLY C++ initialization phase, not in the render loop.
 
-Alternative (smaller scope): Implement real IL2CPP metadata parsing so the game's own
-IL2CPP runtime can build a proper class registry. This would let the game execute more
-of its own logic. But without GPU, scenes still can't render.
+The "Unity splash frames" we've been generating are NOT game output — they're
+SharpEmu's HeadlessVideoPresenter.GenerateFramePattern() test pattern. The color
+RGB(229,95,68) is HSV(h=10°, s=0.7, v=0.9) computed from frame number 1.
+
+Evidence:
+1. Game calls ZERO sceVideoOut/sceAgc/sceGnm functions
+2. Game's only activity is __cxa_atexit + mutex initialization
+3. Only ONE flip happened, at t=0.04s (SharpEmu's initialization, not game's)
+4. The frame color matches SharpEmu's test pattern formula exactly
+5. No GPU memory was ever allocated by the game
+
+=== WHAT THIS MEANS ===
+
+1. Building AGC parser is PREMATURE — game never submits any DCB
+2. The real blocker is earlier than GPU: game's IL2CPP runtime initialization
+   is stuck somewhere in C++ static init, before the Unity engine boots
+3. The "5 games with first frame" milestone was a false positive — those
+   frames were all SharpEmu's test pattern, not game output
+
+=== NEXT STEP (single item) ===
+
+The real blocker is: why is the game stuck in C++ static init / early IL2CPP setup?
+- The game registers 481 atexit handlers (way too many — typical is 50-100)
+- It creates 9 semaphores and many mutexes
+- It calls sceKernelGetProcParam 5 times
+- But it NEVER calls into the real Unity/IL2CPP runtime entry point
+
+Hypothesis: The game's IL2CPP runtime needs something SharpEmu doesn't provide.
+Possible candidates:
+- il2cpp_init() returns failure (game can't see this in our logs)
+- The game's bootstrap expects a function that returns NULL
+- A specific PS5 kernel function is missing
+
+The next investigation should be:
+- Trace what the game does AFTER all those __cxa_atexit calls
+- Find the first import call that doesn't return success
+- Look for il2cpp_init() or similar in Il2cppUserAssemblies.prx
