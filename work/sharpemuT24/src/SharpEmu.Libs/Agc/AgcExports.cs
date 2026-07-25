@@ -214,6 +214,18 @@ public static partial class AgcExports
         Environment.GetEnvironmentVariable("SHARPEMU_LOG_AGC"),
         "1",
         StringComparison.Ordinal);
+
+    // Experimental: auto-chain KRz-touched buffers in SubmitDcb.
+    // Unity's GfxDevicePS5 multi-buffer rendering writes draw commands to a
+    // separate buffer that KRz registers. This flag enables auto-processing
+    // of pending KRz buffers after each SubmitDcb.
+    private static readonly bool _autoChainKrzBuffers = string.Equals(
+        Environment.GetEnvironmentVariable("SHARPEMU_AGC_AUTO_CHAIN_KRZ_BUFFERS"),
+        "1",
+        StringComparison.Ordinal);
+    private static readonly List<ulong> _krzTouchedBuffers = new();
+    private static readonly HashSet<ulong> _krzProcessedBuffers = new();
+    private static readonly Dictionary<ulong, ulong> _krzBufferCommandBase = new();
     // Drop a draw on an undecodable texture descriptor instead of substituting
     // a 1x1 fallback binding. Off by default so a garbage descriptor degrades
     // the pass rather than dropping it (Demon's Souls composite feeders).
@@ -1537,6 +1549,16 @@ public static partial class AgcExports
         }
 
         TraceAgc($"agc.dcb_draw_index_auto buf=0x{commandBufferAddress:X16} cmd=0x{commandAddress:X16} count={indexCount}");
+
+        // Experimental: after writing a draw command, try auto-chaining any
+        // pending KRz buffers. This is the moment when the draw buffer is
+        // complete and ready for submission.
+        if (_autoChainKrzBuffers)
+        {
+            var gpuState = _submittedGpuStates.GetValue(ctx.Memory, static _ => new SubmittedGpuState());
+            ProcessPendingKrzBuffers(ctx, gpuState, tracePackets: _traceAgc);
+        }
+
         return ReturnPointer(ctx, commandAddress);
     }
 
@@ -2703,6 +2725,15 @@ public static partial class AgcExports
             DrainResumableDcbs(ctx, gpuState, tracePackets);
         }
 
+        // Experimental: auto-chain pending KRz-touched buffers.
+        // After submitting the main DCB, check if there are KRz-registered
+        // buffers that haven't been submitted yet. These contain draw commands
+        // that Unity wrote to separate command buffers.
+        if (_autoChainKrzBuffers)
+        {
+            ProcessPendingKrzBuffers(ctx, gpuState, tracePackets);
+        }
+
         ctx[CpuRegister.Rax] = 0;
         return (int)OrbisGen2Result.ORBIS_GEN2_OK;
     }
@@ -2852,10 +2883,36 @@ public static partial class AgcExports
     LibraryName = "libSceAgc")]
     public static int DriverUnknownKRzWekV120(CpuContext ctx)
     {
+        var bufferAddress = ctx[CpuRegister.Rdi];
         TraceAgc(
-            $"agc.driver_unknown_krz rdi=0x{ctx[CpuRegister.Rdi]:X16} " +
+            $"agc.driver_unknown_krz rdi=0x{bufferAddress:X16} " +
             $"rsi=0x{ctx[CpuRegister.Rsi]:X16} rdx=0x{ctx[CpuRegister.Rdx]:X16} " +
             $"rcx=0x{ctx[CpuRegister.Rcx]:X16} r8=0x{ctx[CpuRegister.R8]:X16} r9=0x{ctx[CpuRegister.R9]:X16}");
+
+        // Experimental: track KRz-touched buffers for auto-chain in SubmitDcb.
+        // Unity's GfxDevicePS5 uses multi-buffer rendering where draw commands
+        // are written to a separate buffer that needs to be chained to the
+        // submitted setup buffer. On real PS5, KRz likely registers the buffer
+        // for auto-submission. SharpEmu's stub does nothing, orphaning the draw.
+        if (_autoChainKrzBuffers && bufferAddress != 0)
+        {
+            lock (_krzTouchedBuffers)
+            {
+                if (!_krzTouchedBuffers.Contains(bufferAddress))
+                {
+                    _krzTouchedBuffers.Add(bufferAddress);
+                    // Save the initial cursorUp as the command base address.
+                    // cursorUp at this point is where the first command will be written.
+                    if (TryReadUInt64(ctx, bufferAddress + CommandBufferCursorUpOffset, out var initialCursorUp))
+                    {
+                        _krzBufferCommandBase[bufferAddress] = initialCursorUp;
+                    }
+                    TraceAgc(
+                        $"agc.krz_buffer_registered buf=0x{bufferAddress:X16} " +
+                        $"total_pending={_krzTouchedBuffers.Count}");
+                }
+            }
+        }
 
         return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_OK);
     }
@@ -2896,6 +2953,126 @@ public static partial class AgcExports
         return ReturnPointer(ctx, commandAddress);
     }
     #pragma warning restore SHEM006
+
+    /// <summary>
+    /// Experimental: process pending KRz-touched buffers that haven't been
+    /// submitted yet. Unity's GfxDevicePS5 writes draw commands to separate
+    /// command buffers registered via KRz. This method reads the command
+    /// buffer header to extract the command address and dword count, then
+    /// enqueues them for processing — effectively auto-chaining them.
+    /// </summary>
+    /// <summary>
+    /// Public entry point for auto-chaining pending KRz buffers.
+    /// Called from WaitSema pump path to flush any draw commands that
+    /// Unity wrote to separate command buffers after SubmitDcb.
+    /// </summary>
+    public static void TryAutoChainKrzBuffers(CpuContext ctx)
+    {
+        if (!_autoChainKrzBuffers)
+        {
+            return;
+        }
+
+        var gpuState = _submittedGpuStates.GetValue(ctx.Memory, static _ => new SubmittedGpuState());
+        ProcessPendingKrzBuffers(ctx, gpuState, tracePackets: false);
+    }
+
+    private static void ProcessPendingKrzBuffers(
+        CpuContext ctx,
+        SubmittedGpuState gpuState,
+        bool tracePackets)
+    {
+        List<ulong> toProcess;
+        lock (_krzTouchedBuffers)
+        {
+            toProcess = _krzTouchedBuffers
+                .Where(b => !_krzProcessedBuffers.Contains(b))
+                .ToList();
+        }
+
+        if (toProcess.Count == 0)
+        {
+            return;
+        }
+
+        TraceAgc($"agc.krz_process_pending count={toProcess.Count}");
+
+        foreach (var bufferAddress in toProcess)
+        {
+            if (!TryReadUInt64(ctx, bufferAddress + CommandBufferCursorUpOffset, out var cursorUp))
+            {
+                TraceAgc($"agc.krz_skip buf=0x{bufferAddress:X16} reason=read_failed");
+                continue;
+            }
+
+            // Get the saved initial command base (from when KRz first touched this buffer)
+            ulong commandStart;
+            lock (_krzTouchedBuffers)
+            {
+                if (!_krzBufferCommandBase.TryGetValue(bufferAddress, out commandStart))
+                {
+                    TraceAgc($"agc.krz_skip buf=0x{bufferAddress:X16} reason=no_base");
+                    continue;
+                }
+            }
+
+            // cursorUp = current write position (end of written commands)
+            // commandStart = initial cursorUp (start of commands, saved at KRz time)
+            var commandEnd = cursorUp;
+            if (commandEnd <= commandStart)
+            {
+                TraceAgc(
+                    $"agc.krz_skip buf=0x{bufferAddress:X16} " +
+                    $"reason=no_commands start=0x{commandStart:X16} end=0x{commandEnd:X16}");
+                continue;
+            }
+
+            var dwordCount = (uint)((commandEnd - commandStart) / sizeof(uint));
+            if (dwordCount == 0 || dwordCount > 0x10000)
+            {
+                TraceAgc(
+                    $"agc.krz_skip buf=0x{bufferAddress:X16} " +
+                    $"reason=bad_count dwords={dwordCount}");
+                continue;
+            }
+
+            // Skip the setup buffer (it was already submitted via SubmitDcb)
+            // We can detect it by checking if its commandStart matches the
+            // address that was already submitted.
+            // For now, just submit all non-empty buffers.
+
+            TraceAgc(
+                $"agc.krz_auto_chain buf=0x{bufferAddress:X16} " +
+                $"cmd=0x{commandStart:X16} dwords={dwordCount}");
+
+            try
+            {
+                lock (gpuState.Gate)
+                {
+                    EnqueueSubmittedDcb(
+                        ctx,
+                        gpuState,
+                        gpuState.Graphics,
+                        commandStart,
+                        dwordCount,
+                        ++gpuState.SubmissionSequence,
+                        tracePackets);
+                    DrainResumableDcbs(ctx, gpuState, tracePackets);
+                }
+            }
+            catch (Exception ex)
+            {
+                TraceAgc($"agc.krz_auto_chain_error buf=0x{bufferAddress:X16} error={ex.Message}");
+            }
+            finally
+            {
+                lock (_krzTouchedBuffers)
+                {
+                    _krzProcessedBuffers.Add(bufferAddress);
+                }
+            }
+        }
+    }
 
     private static void EnqueueSubmittedDcb(
         CpuContext ctx,
