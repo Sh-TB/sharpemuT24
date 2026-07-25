@@ -581,3 +581,50 @@ Stage Summary:
        games.
 
 - This test was pure investigation, no code changes.
+
+---
+Task ID: EXP-021-checkpoint
+Agent: main (SharpEmu bringup)
+Task: Pre-experiment checkpoint before investigating Unity's dcb_set_flip
+      displayBufferIndex=0 choice. NO code changes in this commit. The
+      user's strict constraints for the upcoming experiment:
+
+        - Do NOT modify rendering.
+        - Do NOT modify KRz.
+        - Do NOT merge buffers.
+        - Only diagnostic flag may be added.
+        - Commit only if test proves visible output.
+
+Confirmed facts (locked in):
+
+  * VulkanOffscreenGuestDraw executes.
+  * Draw packet executes.
+  * Render target writer: 0x11390000.
+  * Shader ES/PS are valid (es=0x601540500, ps=0x601540D00).
+  * VideoOut registered buffers:
+      slot 0 = 0x10B20000  (fallback image)
+      slot 1 = 0x11390000  (AGC RT — slot Unity should flip but doesn't)
+      slot 2 = 0x11C00000
+
+Remaining issue: buffer selection during RFlip. Unity's dcb_set_flip uses
+displayBufferIndex=0 (fallback), not 1 (RT).
+
+Planned experiments (EXP-021):
+  Test 1: Trace sceAgcDcbSetFlip arguments — handle, displayBufferIndex,
+          address mapping (already partially done in EXP-020 Test 1; will
+          extend).
+  Test 2: Check whether Unity changes displayBufferIndex after draw
+          completion (monitor multi-flip across longer run).
+  Test 3: Verify PS5 AGC semantics — is Draw RT != VideoOut flip buffer
+          legal?
+  Test 4: SHARPEMU_AGC_FORCE_FLIP_RENDER_TARGET=1 diagnostic. When RFlip
+          occurs and slot 0 is the fallback but slot 1 has a completed GPU
+          draw, temporarily present slot 1.
+
+Stage Summary:
+- ✅ Working tree clean. Local main == origin/main.
+- ✅ All commits through 639697a are pushed.
+- ✅ Checkpoint recorded; experiments may now begin.
+- ❌ If Test 4 does not produce visible output, the diagnostic will be
+  rolled back to the experimental branch only — never deleted from
+  history.
