@@ -454,3 +454,62 @@ Stage Summary:
 - 🔍 Next: Test 3 will determine whether submitGpuImage=false is real AGC
   behavior or an HLE mistake. Test 2 will prove whether forcing a present
   of the RT after the draw produces visible pixels.
+
+---
+Task ID: EXP-020-Test-2
+Agent: main (SharpEmu bringup)
+Task: Add SHARPEMU_VIDEOOUT_FORCE_PRESENT_RENDER_TARGET=1 diagnostic that
+      fires AFTER VulkanOffscreenGuestDraw completes (different from EXP-019
+      which fired at flip time, BEFORE the draw). Goal: prove whether the
+      rendered RT has visible pixels independent of the broken SubmitFlip
+      path.
+
+Work Log:
+- Added _forcePresentRenderTargetAfterDraw static flag gated by env var
+  SHARPEMU_VIDEOOUT_FORCE_PRESENT_RENDER_TARGET=1.
+- Hooked into ExecuteOffscreenDraw (in VulkanVideoPresenter.cs) AFTER
+  ExecuteOffscreenDrawCore returns. For each colour target, calls
+  TrySubmitGuestImage with target.Address / Width / Height.
+- Logs: vk.force_present_rt_after_draw addr=0x... submitted=True|False
+- Built, ran Yatzi 50s with the flag ON plus all EXP-019 diag flags OFF
+  (to isolate this diagnostic).
+
+Test 2 Results:
+
+  Single draw executed:
+    vk.render_work_enter #0 sequence=65 VulkanOffscreenGuestDraw
+    agc.rt_writer target=0x11390000 es=0x601540500 ps=0x601540D00
+    GIMG-CREATE render_target_new addr=0x11390000 R8G8B8A8Unorm 1920x1080
+
+  Force-present fired AFTER draw completion:
+    vk.submit_guest_image addr=0x11390000 size=1920x1080 pitch=1920
+    vk.force_present_rt_after_draw addr=0x11390000 1920x1080 submitted=True
+    vk.present_taken addr=0x11390000 version=0 drawKind=None hasPixels=False
+
+  But swapchain output for the post-draw frame:
+    vk.swapchain_image size=1280x720 nonzero_bytes=0/3686400
+                       nonblack_pixels=0/921600 hash=0xD395E456E4E72325
+  -> ALL BLACK (different hash from the fallback frame, but still 0 nonblack).
+
+Stage Summary:
+- ❌ NEGATIVE result: forcing present of the RT after the draw did NOT
+  produce visible pixels. The swapchain output is all-black even though
+  the draw DID execute (render_work_enter fired, rt_writer logged,
+  ExecuteOffscreenDrawCore returned without error).
+- 🔍 Hypothesis: the draw executes but writes nothing visible. The
+  shader_draw trace shows a SUSPICIOUS viewport:
+    viewport=0,1080,1920x-1080:0-1
+  The negative height (-1080) is standard Vulkan Y-flip, but combined
+  with origin (0,1080) and Z range 0-1, the actual scissored region may
+  be entirely outside the visible framebuffer area. OR the shader may
+  be producing zero output (e.g. uninitialized vertex buffer).
+- ✅ No regression: Golden Test PASS (137f, 256c).
+- This test gives us IMPORTANT information: even if we fix the present
+  path (SubmitFlip routing, SubmitFlipFromAgc submitGpuImage=true), the
+  draw itself may not produce visible pixels in Yatzi's case. The present
+  path AND the draw output both need investigation.
+- However: this is a SINGLE draw of 3 vertices (one triangle). Yatzi may
+  issue many more draws after this one, and the first draw could just be
+  a setup/clear operation. The real test will be whether Yatzi issues
+  further draws after the auto-chained one (currently it does not, because
+  Unity is stuck waiting on a GPU completion event that never fires).

@@ -279,6 +279,19 @@ internal static unsafe class VulkanVideoPresenter
             Environment.GetEnvironmentVariable("SHARPEMU_VIDEOOUT_FALLBACK_IMAGE"),
             "1",
             StringComparison.Ordinal);
+
+    /// <summary>
+    /// EXP-020 Test 2 diagnostic: when an offscreen guest draw completes,
+    /// immediately call TrySubmitGuestImage for every colour target's
+    /// address. This proves whether the rendered RT has visible pixels,
+    /// independent of the (broken) SubmitFlip path. Pure diagnostic; off
+    /// by default. Real fix will route through SubmitFlip properly.
+    /// </summary>
+    private static readonly bool _forcePresentRenderTargetAfterDraw =
+        string.Equals(
+            Environment.GetEnvironmentVariable("SHARPEMU_VIDEOOUT_FORCE_PRESENT_RENDER_TARGET"),
+            "1",
+            StringComparison.Ordinal);
     private static readonly HashSet<(ulong Address, uint Width, uint Height)>
         _tracedGuestImageSubmissions = [];
     private static Thread? _thread;
@@ -9587,6 +9600,30 @@ internal static unsafe class VulkanVideoPresenter
                 Interlocked.Add(
                     ref _perfDrawTicks,
                     System.Diagnostics.Stopwatch.GetTimestamp() - perfStart);
+            }
+
+            // EXP-020 Test 2 diagnostic: now that the draw has executed and the
+            // RT image storage is initialised with real pixels, force a present
+            // of each colour target. This bypasses the broken SubmitFlip path
+            // and proves whether the GPU pipeline produced visible content.
+            if (_forcePresentRenderTargetAfterDraw)
+            {
+                foreach (var target in work.Targets)
+                {
+                    if (target.Address == 0 || target.Width == 0 || target.Height == 0)
+                    {
+                        continue;
+                    }
+                    var submitted = TrySubmitGuestImage(
+                        target.Address,
+                        target.Width,
+                        target.Height,
+                        pitchInPixel: target.Width);
+                    Console.Error.WriteLine(
+                        $"[LOADER][TRACE] vk.force_present_rt_after_draw " +
+                        $"addr=0x{target.Address:X16} {target.Width}x{target.Height} " +
+                        $"submitted={submitted}");
+                }
             }
         }
 
