@@ -404,3 +404,53 @@ Stage Summary:
 - Next: run EXP-020 Test 1 (enhanced SubmitFlip trace), Test 2 (force-present
   RT after draw completion), Test 3 (investigate SubmitFlipFromAgc
   submitGpuImage=false rationale).
+
+---
+Task ID: EXP-020-Test-1
+Agent: main (SharpEmu bringup)
+Task: Enhanced SubmitFlip trace — log caller (sceVideoOutSubmitFlip vs
+      SubmitFlipFromAgc), submitGpuImage flag, and the registered GPU address
+      for the flipped slot. Compare against AGC RT address.
+
+Work Log:
+- Added `caller=` and `submitGpuImage=` fields to videoout.submit_flip trace.
+- Added videoout.submit_flip_slot_registered / submit_flip_slot_unregistered
+  trace lines that print the GPU address bound at the flipped slot.
+- Built, ran Yatzi 40s with SHARPEMU_LOG_VIDEOOUT=1 +
+  SHARPEMU_AGC_AUTO_CHAIN_KRZ_BUFFERS=1.
+
+Test 1 Results (3 SubmitFlip calls observed):
+
+  Call #1:
+    caller=sceVideoOutSubmitFlip
+    index=-1 (probe / mode=1 = ORBIS_VIDEO_OUT_FLIP_VSYNC)
+    submitGpuImage=True
+    addr=0x0 (no slot bound at index -1)
+  Call #2:
+    caller=SubmitFlipFromAgc
+    index=0  mode=2 (ORBIS_VIDEO_OUT_FLIP_HSYNC?)
+    submitGpuImage=False
+    registered_addr=0x10B20000 (slot 0 = FALLBACK image)
+    arg=0x8000000000000000 (bit 63 set, ~0 arg marker)
+  Call #3:
+    caller=SubmitFlipFromAgc
+    index=0  mode=2
+    submitGpuImage=False
+    registered_addr=0x10B20000 (same fallback)
+    arg=0x8000000000000000
+
+Three RegisterBuffers2 slots:
+  slot 0 = 0x10B20000 (fallback image)
+  slot 1 = 0x11390000 (the AGC RT — Unity never flips this slot!)
+  slot 2 = 0x11C00000 (second RT)
+
+Stage Summary:
+- ✅ CONFIRMED: Unity never calls sceVideoOutSubmitFlip with index=1.
+  All real flips come through SubmitFlipFromAgc with index=0, which is
+  the fallback slot.
+- ✅ CONFIRMED: SubmitFlipFromAgc passes submitGpuImage=false, so
+  TrySubmitGuestImage is never invoked along the AGC flip path.
+- ✅ Golden Test still PASS (137f, 250c — within baseline variance).
+- 🔍 Next: Test 3 will determine whether submitGpuImage=false is real AGC
+  behavior or an HLE mistake. Test 2 will prove whether forcing a present
+  of the RT after the draw produces visible pixels.

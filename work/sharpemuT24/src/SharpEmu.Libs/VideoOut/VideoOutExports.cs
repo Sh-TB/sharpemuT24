@@ -1359,7 +1359,28 @@ public static class VideoOutExports
         TraceVideoOut(
             $"videoout.submit_flip handle={handle} index={bufferIndex} mode={flipMode} " +
             $"arg={flipArg} addr=0x{guestImageAddress:X16} submitted={guestImageSubmitted} " +
-            $"events={flipEventCount} ordered_completion={!submitGpuImage}");
+            $"events={flipEventCount} ordered_completion={!submitGpuImage} " +
+            $"caller={(submitGpuImage ? "sceVideoOutSubmitFlip" : "SubmitFlipFromAgc")} " +
+            $"submitGpuImage={submitGpuImage}");
+
+        // EXP-020 Test 1: dump the registered buffer address for this slot
+        // (if any) so we can compare the flipped slot against the AGC RT address.
+        if (_traceVideoOut &&
+            bufferIndex >= 0 &&
+            TryGetDisplayBufferInfo(handle, bufferIndex, out var traceRegisteredBuffer))
+        {
+            TraceVideoOut(
+                $"videoout.submit_flip_slot_registered handle={handle} index={bufferIndex} " +
+                $"registered_addr=0x{traceRegisteredBuffer.Address:X16} " +
+                $"w={traceRegisteredBuffer.Width} h={traceRegisteredBuffer.Height} " +
+                $"pitch={traceRegisteredBuffer.PitchInPixel}");
+        }
+        else if (_traceVideoOut && bufferIndex >= 0)
+        {
+            TraceVideoOut(
+                $"videoout.submit_flip_slot_unregistered handle={handle} index={bufferIndex} " +
+                $"(no DisplayBufferInfo bound at this slot)");
+        }
         ReportFrameRate(presented: false);
         var diagnosticFlipNumber = Interlocked.Increment(ref _diagnosticFlipCount);
         if (_holdFirstFlipMilliseconds > 0 && diagnosticFlipNumber == _holdFlipNumber)
