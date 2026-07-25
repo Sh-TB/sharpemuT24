@@ -17,6 +17,14 @@ public static class KernelSemaphoreCompatExports
     // EXP-018 — counter to throttle WaitSema scheduler-pump diagnostic log.
     private static int _exp018LogCount = 0;
 
+    /// <summary>
+    /// PS5 applications (especially Unity/Baselib) pass semaphore handles with
+    /// bit 31 set (0x80000000) as a kernel-handle flag. SharpEmu creates
+    /// handles without this bit. This helper strips the flag so lookups
+    /// succeed consistently across all semaphore APIs.
+    /// </summary>
+    private static uint ResolveSemaphoreHandle(uint handle) => handle & 0x7FFFFFFFu;
+
     private sealed class KernelSemaphoreState
     {
         public required string Name { get; init; }
@@ -97,7 +105,7 @@ public static class KernelSemaphoreCompatExports
         LibraryName = "libKernel")]
     public static int KernelWaitSema(CpuContext ctx)
     {
-        var handle = unchecked((uint)ctx[CpuRegister.Rdi]);
+        var handle = ResolveSemaphoreHandle(unchecked((uint)ctx[CpuRegister.Rdi]));
         var needCount = unchecked((int)ctx[CpuRegister.Rsi]);
         var timeoutAddress = ctx[CpuRegister.Rdx];
 
@@ -307,6 +315,7 @@ public static class KernelSemaphoreCompatExports
         LibraryName = "libKernel")]
     public static int KernelPollSema(CpuContext ctx, uint handle, int needCount)
     {
+        handle = ResolveSemaphoreHandle(handle);
         if (!_semaphores.TryGetValue(handle, out var semaphore))
         {
             return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_ERROR_NOT_FOUND);
@@ -338,6 +347,7 @@ public static class KernelSemaphoreCompatExports
         LibraryName = "libKernel")]
     public static int KernelSignalSema(CpuContext ctx, uint handle, int signalCount)
     {
+        handle = ResolveSemaphoreHandle(handle);
         if (!_semaphores.TryGetValue(handle, out var semaphore))
         {
             return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_ERROR_NOT_FOUND);
@@ -379,6 +389,7 @@ public static class KernelSemaphoreCompatExports
         LibraryName = "libKernel")]
     public static int KernelCancelSema(CpuContext ctx, uint handle, int setCount, ulong waitingThreadsAddress)
     {
+        handle = ResolveSemaphoreHandle(handle);
         if (!_semaphores.TryGetValue(handle, out var semaphore))
         {
             return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_ERROR_NOT_FOUND);
@@ -413,7 +424,7 @@ public static class KernelSemaphoreCompatExports
         LibraryName = "libKernel")]
     public static int KernelDeleteSema(CpuContext ctx)
     {
-        var handle = unchecked((uint)ctx[CpuRegister.Rdi]);
+        var handle = ResolveSemaphoreHandle(unchecked((uint)ctx[CpuRegister.Rdi]));
         if (!_semaphores.TryRemove(handle, out var semaphore))
         {
             return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_ERROR_NOT_FOUND);
