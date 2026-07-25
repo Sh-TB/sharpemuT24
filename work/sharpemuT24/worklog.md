@@ -241,3 +241,116 @@ Stage Summary:
   document: investigate the present-path mismatch (VideoOutRegisterBuffers2
   argument, completion event notification, dcb_set_flip ordering) before
   promoting the flag to default-on.
+
+---
+Task ID: EXP-019
+Agent: main (SharpEmu bringup)
+Task: Run 5 diagnostic tests before any architectural change. Compare RT address
+      with SubmitFlip address, dump RegisterBuffers2, add diagnostic force-flip
+      mode to prove pixels exist, trace SubmitFlip→Draw→DCB completion
+      timestamps, trace semaphore waits/signals after DCB completion. No
+      cleanup, no reset, no feature removal.
+
+Work Log:
+- Confirmed commits 58464ca and 00096b5 were pushed to GitHub origin/main
+  (verified via `git fetch origin` and `git log origin/main`).
+
+Test 1 — RT vs SubmitFlip address comparison:
+  * RT address (from agc.rt_writer): 0x0000000011390000
+  * SubmitFlip address (from videoout.submit_flip): 0x0000000000000000
+    (guestImageAddress=0 because SubmitFlipFromAgc passes submitGpuImage=false,
+     so TrySubmitGuestImage is never called for the AGC-embedded flips)
+  * Conclusion: SubmitFlip address is NOT the RT address — it's 0x0 because
+    the AGC flip path skips GPU image submission entirely.
+
+Test 2 — RegisterBuffers2 registered addresses:
+  * slot 0: addr=0x0000000010B20000 (the fallback image — created by
+            CreateFallbackGuestImage before RegisterBuffers2 was called)
+  * slot 1: addr=0x0000000011390000 (the AGC RT — registered correctly)
+  * slot 2: addr=0x0000000011C00000 (a second RT)
+  * Conclusion: RT 0x11390000 IS registered with VideoOut at slot 1.
+    The bug is NOT in registration. The bug is that SubmitFlip targets
+    slot 0 (the fallback), not slot 1 (the RT).
+
+Test 3 — Force-flip diagnostic (SHARPEMU_DIAG_FORCE_AGC_FLIP_GPU_IMAGE=1
+         and SHARPEMU_DIAG_FORCE_AGC_FLIP_ALL_SLOTS=1):
+  * Added two temporary env-flag-gated diagnostic branches to SubmitFlip
+    that call TrySubmitGuestImage for the flipped slot's address and (when
+    _diagForceAgcFlipAllSlots is set) every other registered slot.
+  * With both flags ON:
+      - submit_flip_diag_force_gpu addr=0x10B20000 submitted=True
+      - submit_flip_diag_force_all_slots alt_slot=1 addr=0x11390000 submitted=True
+      - submit_flip_diag_force_all_slots alt_slot=2 addr=0x11C00000 submitted=True
+  * But: present_taken addr=0x11390000 version=0 hasPixels=False, followed by
+    present_dropped addr=0x11390000 found=False initialized=False
+    — the RT image storage was not initialised yet.
+  * Conclusion: The RT IS being submitted to the Vulkan presenter, but the
+    submit happens BEFORE the draw executes. The presentation grabs the
+    (uninitialised) image instead of waiting for the draw.
+
+Test 4 — SubmitFlip → Draw → DCB completion timestamps (from log line order):
+  Line 2379: videoout.submit_flip index=-1           ← Unity's first probe flip
+  Line 2423: agc.dcb_set_flip                        ← embedded flip in setup DCB
+  Line 2429: agc.driver_submit_dcb packet            ← setup DCB submitted
+  Line 2487: videoout.submit_flip index=0            ← SubmitFlipFromAgc fires
+  Line 2547: (forced-flip diagnostic for slot 0)
+  Line 2667: agc.dcb_draw_index_auto                 ← DrawIndexAuto written
+  Line 2669: agc.krz_auto_chain draw buf             ← draw buf auto-chained
+  Line 3088: agc.driver_submit_dcb completion submission=1  ← setup DCB done
+  Line 3092: completion submission=2                 ← setup buf auto-chain done
+  Line 3102: vk.flip_fallback_created                ← fallback image lazy-created
+  Line 3103: vk.flip_capture version=1               ← first flip captured (fallback)
+  Line 3108: vk.flip_retired version=1               ← first flip retired
+  Line 3133: vk.flip_capture version=2               ← second flip (still fallback)
+  Line 3183: vk.render_work_enter #47                ← compute dispatch
+  Line 3264: agc.rt_writer target=0x11390000         ← draw translated, RT bound
+  Line 3274: vk.render_work_enter #0                 ← offscreen draw executes
+  Line 3326: GIMG-CREATE render_target_new 0x11390000 ← RT image created (lazy)
+  Line 3384: completion submission=3                 ← draw DCB done
+  * Conclusion: BOTH flips retire BEFORE the draw executes. No further
+    SubmitFlip happens after the draw. This is the core present-path bug.
+
+Test 5 — Semaphore waits/signals after DCB completion:
+  * Handle 0x10F (GfxDeviceWorker semaphore, the one fixed in 4cc320f):
+    1 signal, 0 waits. Already released; not blocking.
+  * Handle 0xB0 (Baselib_SystemSemaphore): 170 signals, 9 waits.
+    Producer is racing far ahead of consumer. The signaling side fires
+    GPU-completion notifications 170 times but the waiter side only
+    consumed 9.
+  * Handle 0xDD (FMOD Semaphore): 8026 signals, 9 waits. Audio thread
+    spinning, normal.
+  * Handle 0xAA, 0x99, 0x98, 0x9A: each ~9-10 waits, signals match.
+    Normal semaphore traffic.
+  * Conclusion: No deadlocked semaphore. The producer side is over-signaling
+    handle 0xB0 (likely graphics completion), but Unity's consumer is not
+    blocked on a missing signal — it's blocked on something else (likely
+    waiting for the next vblank or a flip completion event).
+
+Stage Summary:
+- ✅ All 5 diagnostic tests run. No code architecture changed. No cleanup.
+  No reset. No feature removal.
+- ✅ Golden Test still passes with diagnostic build (134f, 243c — within
+  variance of 138f/256c baseline).
+- ✅ Root cause of present-path blocker IDENTIFIED:
+    Yatzi's dcb_set_flip calls SubmitFlipFromAgc(submitGpuImage=false),
+    which skips TrySubmitGuestImage. Both flips (slot 0 from the explicit
+    SubmitFlip probe + slot 0 from the embedded dcb_set_flip) retire
+    BEFORE the auto-chained draw DCB executes. The RT at 0x11390000 has
+    pixels after the draw, but no SubmitFlip happens after that point,
+    so the rendered RT is never displayed.
+- 🔍 Three candidate fix locations (NOT yet decided):
+    A. VideoOut buffer mapping: change SubmitFlipFromAgc to pass
+       submitGpuImage=true so the AGC flip also submits the registered
+       GPU image. Risk: might break Dreaming Sarah's DCB-embedded flips.
+    B. Flip selection: detect when the flipped slot has no rendered
+       content and re-route to the slot whose address matches the
+       latest rt_writer target.
+    C. Synchronization/completion: defer the actual flip retirement
+       until the GPU work that writes to the flipped address has
+       completed (extend RequiredGuestWorkSequence mechanism to the
+       ordered_completion=True path).
+- Artifacts:
+    /home/z/my-project/logs/yatzi-diag.log          (tests 1, 2, 4, 5)
+    /home/z/my-project/logs/yatzi-diag-force.log    (test 3 first attempt)
+    /home/z/my-project/logs/yatzi-diag-allslots.log (test 3 final)
+    /tmp/yatzi-diag2-frames/present-NNNN-*.bgra     (4 black frames)

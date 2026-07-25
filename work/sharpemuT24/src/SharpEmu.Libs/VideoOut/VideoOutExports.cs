@@ -1120,6 +1120,17 @@ public static class VideoOutExports
         }
 
         var groupIndex = RegisterBufferRange(port, bufferIndexStart, addresses[..bufferNum], attribute, setIndex);
+        // EXP-019 diagnostic: log every GPU address registered with VideoOut so we
+        // can compare against the AGC render target address (e.g. 0x11390000 in
+        // Yatzi). Pure trace, no behaviour change.
+        for (var i = 0; i < bufferNum; i++)
+        {
+            TraceVideoOut(
+                $"videoout.register_buffers2 handle={handle} setIndex={setIndex} " +
+                $"slot={bufferIndexStart + i} addr=0x{addresses[i]:X16} " +
+                $"w={attribute.Width} h={attribute.Height} fmt=0x{attribute.PixelFormat:X} " +
+                $"pitch={attribute.PitchInPixel} group={groupIndex}");
+        }
         return groupIndex < 0 ? groupIndex : setIndex;
     }
 
@@ -1251,6 +1262,55 @@ public static class VideoOutExports
                 displayBuffer.Width,
                 displayBuffer.Height,
                 displayBuffer.PitchInPixel);
+        }
+        else if (_diagForceAgcFlipGpuImage &&
+                 !submitGpuImage &&
+                 bufferIndex >= 0 &&
+                 TryGetDisplayBufferInfo(handle, bufferIndex, out var diagDisplayBuffer))
+        {
+            // EXP-019 diagnostic: SubmitFlipFromAgc normally skips TrySubmitGuestImage
+            // (submitGpuImage=false). When this flag is set, we ALSO submit the GPU
+            // image registered at this buffer slot — proving whether the RT has been
+            // rendered to. Pure diagnostic; off by default.
+            guestImageAddress = diagDisplayBuffer.Address;
+            guestImageSubmitted = GuestGpu.Current.TrySubmitGuestImage(
+                diagDisplayBuffer.Address,
+                diagDisplayBuffer.Width,
+                diagDisplayBuffer.Height,
+                diagDisplayBuffer.PitchInPixel);
+            TraceVideoOut(
+                $"videoout.submit_flip_diag_force_gpu handle={handle} index={bufferIndex} " +
+                $"addr=0x{diagDisplayBuffer.Address:X16} submitted={guestImageSubmitted}");
+
+            // EXP-019 diagnostic extension: ALSO try submitting every other registered
+            // buffer slot's address, in case Unity rendered to a different slot than
+            // the one it flipped. This proves whether any registered RT has pixels.
+            if (_diagForceAgcFlipAllSlots)
+            {
+                for (var diagSlot = 0; diagSlot < MaxDisplayBuffers; diagSlot++)
+                {
+                    if (diagSlot == bufferIndex)
+                    {
+                        continue;
+                    }
+                    if (!TryGetDisplayBufferInfo(handle, diagSlot, out var diagOtherBuffer))
+                    {
+                        continue;
+                    }
+                    var diagOtherSubmitted = GuestGpu.Current.TrySubmitGuestImage(
+                        diagOtherBuffer.Address,
+                        diagOtherBuffer.Width,
+                        diagOtherBuffer.Height,
+                        diagOtherBuffer.PitchInPixel);
+                    if (diagOtherSubmitted)
+                    {
+                        TraceVideoOut(
+                            $"videoout.submit_flip_diag_force_all_slots handle={handle} " +
+                            $"flipped_index={bufferIndex} alt_slot={diagSlot} " +
+                            $"addr=0x{diagOtherBuffer.Address:X16} submitted=True");
+                    }
+                }
+            }
         }
 
         if (_dumpVideoOut)
@@ -2149,6 +2209,22 @@ public static class VideoOutExports
         Environment.GetEnvironmentVariable("SHARPEMU_DUMP_VIDEOOUT"),
         "1",
         StringComparison.Ordinal) || true; // Force enabled for bring-up debugging
+
+    // EXP-019 diagnostic: force SubmitFlipFromAgc to also submit the GPU image
+    // registered at the flipped buffer slot. Used to prove whether the AGC RT
+    // has been rendered to before fixing the present-path properly.
+    private static readonly bool _diagForceAgcFlipGpuImage = string.Equals(
+        Environment.GetEnvironmentVariable("SHARPEMU_DIAG_FORCE_AGC_FLIP_GPU_IMAGE"),
+        "1",
+        StringComparison.Ordinal);
+
+    // EXP-019 diagnostic extension: when forcing GPU image submit, also try
+    // every other registered buffer slot's address. Useful when Unity flips
+    // slot 0 but renders to slot 1.
+    private static readonly bool _diagForceAgcFlipAllSlots = string.Equals(
+        Environment.GetEnvironmentVariable("SHARPEMU_DIAG_FORCE_AGC_FLIP_ALL_SLOTS"),
+        "1",
+        StringComparison.Ordinal);
 
     private static void TraceVideoOut(string message)
     {
