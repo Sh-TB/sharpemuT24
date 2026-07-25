@@ -513,3 +513,71 @@ Stage Summary:
   a setup/clear operation. The real test will be whether Yatzi issues
   further draws after the auto-chained one (currently it does not, because
   Unity is stuck waiting on a GPU completion event that never fires).
+
+---
+Task ID: EXP-020-Test-3
+Agent: main (SharpEmu bringup)
+Task: Investigate why SubmitFlipFromAgc uses submitGpuImage=false. Is this
+      real AGC behavior or an HLE mistake?
+
+Work Log:
+- Read SubmitFlipFromAgc (VideoOutExports.cs line 815): single-line method
+  that calls SubmitFlip with submitGpuImage=false.
+- Read the RFlip packet handler in AgcExports.cs (line 3539+). This is the
+  actual code path that runs when a dcb_set_flip packet is parsed inside
+  a submitted DCB. It does, in priority order:
+
+    Step 1 (line 3602-3619): TrySubmitOrderedGuestImageFlip
+      — if TryGetDisplayBufferInfo succeeds AND the GPU image for that
+        address is cached, enqueue an ordered flip. THIS is the path
+        that submits the GPU image for display.
+    Step 2 (line 3620-3646): draw-fallback path
+      — if no ordered flip but there is a TranslatedDraw, run a
+        software composite (SubmitTranslatedDraw).
+    Step 3 (line 3664-3670): TrySoftwarePresent
+      — fallback texture-based present.
+    Step 4 (line 3672-3683): SubmitGuestDraw
+      — guest draw kind present.
+    Step 5 (line 3685): SubmitFlipFromAgc(submitGpuImage=false)
+      — ALWAYS fires. Only triggers flip events. Does NOT submit image.
+
+- Conclusion: The `submitGpuImage=false` design is INTENTIONAL and
+  CORRECT. The real GPU image submission happens at step 1 via
+  TrySubmitOrderedGuestImageFlip. SubmitFlipFromAgc is purely for
+  flip-event signaling.
+
+- Test 3 verification (Yatzi test2 log):
+    agc.display_buffer handle=1 index=0 addr=0x10B20000 path=gpu-cache
+  -> Step 1 DID fire. But it used the FALLBACK address (0x10B20000),
+     not the AGC RT address (0x11390000).
+
+- Why? Because Unity called sceAgcDcbSetFlip with displayBufferIndex=0
+  (slot 0 = fallback image), not displayBufferIndex=1 (slot 1 = RT).
+  Unity on real PS5 expects the GPU to have already resolved/copied
+  the RT to the flip buffer by the time the flip retires. SharpEmu
+  does not perform this resolve step.
+
+Stage Summary:
+- ✅ CONFIRMED: submitGpuImage=false is correct AGC behavior, not a
+  mistake. The HLE routing is correct.
+- ✅ CONFIRMED: TrySubmitOrderedGuestImageFlip DOES fire for Yatzi's
+  dcb_set_flip — but for slot 0 (fallback), not slot 1 (RT).
+- 🔍 ROOT CAUSE OF PRESENT BLOCKER:
+    Unity calls sceAgcDcbSetFlip(handle=1, index=0, ...).
+    Slot 0 = fallback image at 0x10B20000.
+    The actual rendered content is at slot 1 = 0x11390000.
+    On real PS5, the GPU resolves the RT to the flip buffer before
+    the flip retires. SharpEmu does not perform this resolve, so the
+    fallback image is presented (empty/black).
+- 💡 This points to the fix location: NOT in SubmitFlipFromAgc, NOT
+  in SubmitFlip. The fix needs to be either:
+    A. A "resolve RT to flip buffer" step before retirement (mimics
+       real PS5 hardware behavior). This is the most correct fix.
+    B. A routing override: when dcb_set_flip targets slot 0 and a
+       different slot was rendered to, present that other slot.
+       HLE workaround, less correct but simpler.
+    C. A shader/draw fix: make Yatzi's draw write directly to slot 0
+       (force RT address = flip buffer address). Risk: breaks other
+       games.
+
+- This test was pure investigation, no code changes.
