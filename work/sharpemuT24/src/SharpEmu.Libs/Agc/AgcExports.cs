@@ -226,6 +226,22 @@ public static partial class AgcExports
     private static readonly List<ulong> _krzTouchedBuffers = new();
     private static readonly HashSet<ulong> _krzProcessedBuffers = new();
     private static readonly Dictionary<ulong, ulong> _krzBufferCommandBase = new();
+
+    // EXP-021 Test 4 diagnostic: when an RFlip packet targets a slot that has
+    // no completed GPU draw (rt_writer_count=0 or the flipped slot's address
+    // does not match any RenderTargetWriter), override the flip target to
+    // present the most recently written RT instead. This proves whether the
+    // rendered RT has visible pixels, independent of Unity's slot choice.
+    //
+    // Constraints (per user instruction):
+    //   - Does NOT modify rendering.
+    //   - Does NOT modify KRz.
+    //   - Does NOT merge buffers.
+    //   - Pure diagnostic; off by default.
+    private static readonly bool _forceFlipRenderTarget = string.Equals(
+        Environment.GetEnvironmentVariable("SHARPEMU_AGC_FORCE_FLIP_RENDER_TARGET"),
+        "1",
+        StringComparison.Ordinal);
     // Drop a draw on an undecodable texture descriptor instead of substituting
     // a 1x1 fallback binding. Off by default so a garbage descriptor degrades
     // the pass rather than dropping it (Demon's Souls composite feeders).
@@ -2619,6 +2635,27 @@ public static partial class AgcExports
         }
 
         TraceAgc($"agc.dcb_set_flip buf=0x{commandBufferAddress:X16} cmd=0x{commandAddress:X16} handle={videoOutHandle} index={displayBufferIndex} mode={flipMode} arg=0x{flipArg:X16}");
+
+        // EXP-021 Test 1: log the registered GPU address for this slot so we
+        // can compare the flipped slot against the AGC RT address.
+        if (VideoOutExports.TryGetDisplayBufferInfo(
+                unchecked((int)videoOutHandle),
+                displayBufferIndex,
+                out var flipDisplayBuffer))
+        {
+            TraceAgc(
+                $"agc.dcb_set_flip_slot handle={videoOutHandle} index={displayBufferIndex} " +
+                $"registered_addr=0x{flipDisplayBuffer.Address:X16} " +
+                $"w={flipDisplayBuffer.Width} h={flipDisplayBuffer.Height} " +
+                $"pitch={flipDisplayBuffer.PitchInPixel}");
+        }
+        else
+        {
+            TraceAgc(
+                $"agc.dcb_set_flip_slot handle={videoOutHandle} index={displayBufferIndex} " +
+                $"registered_addr=(unregistered)");
+        }
+
         return ReturnPointer(ctx, commandAddress);
     }
 
@@ -3552,6 +3589,52 @@ public static partial class AgcExports
                 var flipArg = unchecked((long)(((ulong)flipArgHi << 32) | flipArgLo));
                 var displayBufferIndex = unchecked((int)displayBufferIndexRaw);
                 var handle = unchecked((int)videoOutHandle);
+
+                // EXP-021 Test 1: log which registered slot address the RFlip
+                // packet is targeting, so we can confirm whether Unity chose
+                // the fallback slot or the AGC RT slot.
+                ulong rFlipRegisteredAddress = 0;
+                var rFlipHasRegistered = VideoOutExports.TryGetDisplayBufferInfo(
+                    handle,
+                    displayBufferIndex,
+                    out var rFlipDisplayBuffer);
+                if (rFlipHasRegistered)
+                {
+                    rFlipRegisteredAddress = rFlipDisplayBuffer.Address;
+                    TraceAgc(
+                        $"agc.rflip_packet queue={state.QueueName} " +
+                        $"submission={state.ActiveSubmissionId} " +
+                        $"handle={handle} index={displayBufferIndex} " +
+                        $"registered_addr=0x{rFlipDisplayBuffer.Address:X16} " +
+                        $"mode={flipMode} arg=0x{(ulong)flipArg:X16} " +
+                        $"rt_writer_count={state.RenderTargetWriters.Count}");
+                }
+                else
+                {
+                    TraceAgc(
+                        $"agc.rflip_packet queue={state.QueueName} " +
+                        $"submission={state.ActiveSubmissionId} " +
+                        $"handle={handle} index={displayBufferIndex} " +
+                        $"registered_addr=(unregistered) " +
+                        $"mode={flipMode} arg=0x{(ulong)flipArg:X16} " +
+                        $"rt_writer_count={state.RenderTargetWriters.Count}");
+                }
+
+                // Also log the most recently written RT for cross-reference.
+                if (state.RenderTargetWriters.Count > 0)
+                {
+                    var lastRt = state.RenderTargetWriters
+                        .OrderByDescending(kv => kv.Value.Sequence)
+                        .First();
+                    TraceAgc(
+                        $"agc.rflip_last_rt addr=0x{lastRt.Key:X16} " +
+                        $"seq={lastRt.Value.Sequence} " +
+                        $"es=0x{lastRt.Value.ExportShaderAddress:X16} " +
+                        $"ps=0x{lastRt.Value.PixelShaderAddress:X16} " +
+                        $"vertices={lastRt.Value.VertexCount} " +
+                        $"flipped_addr_is_rt={lastRt.Key == rFlipRegisteredAddress}");
+                }
+
                 if (state.PendingTargetlessDraw is { } pendingComposite &&
                     VideoOutExports.TryGetDisplayBufferInfo(
                         handle,
@@ -3680,6 +3763,58 @@ public static partial class AgcExports
                         state.GuestDrawKind,
                         displayBuffer.Width,
                         displayBuffer.Height);
+                }
+
+                // EXP-021 Test 4 diagnostic: if the flipped slot's address is
+                // not the most recently written RT (e.g. Unity flipped the
+                // fallback slot 0 but the GPU just wrote to RT at slot 1),
+                // submit an ADDITIONAL ordered flip for the recently-written
+                // RT. This is pure diagnostic: it does not change Unity's
+                // slot choice, it just lets the Vulkan presenter also show
+                // the rendered RT so we can confirm pixels are visible.
+                if (_forceFlipRenderTarget &&
+                    rFlipHasRegistered &&
+                    state.RenderTargetWriters.Count > 0)
+                {
+                    var lastRt = state.RenderTargetWriters
+                        .OrderByDescending(kv => kv.Value.Sequence)
+                        .First();
+                    if (lastRt.Key != rFlipRegisteredAddress)
+                    {
+                        // Find a display buffer slot whose registered address
+                        // matches the most recently written RT. If found, use
+                        // that slot's index. Otherwise pass the RT address
+                        // directly with the original index.
+                        var overrideIndex = displayBufferIndex;
+                        for (var slot = 0; slot < 16; slot++)
+                        {
+                            if (VideoOutExports.TryGetDisplayBufferInfo(
+                                    handle,
+                                    slot,
+                                    out var overrideDisplayBuffer) &&
+                                overrideDisplayBuffer.Address == lastRt.Key)
+                            {
+                                overrideIndex = slot;
+                                break;
+                            }
+                        }
+
+                        var overrideSubmitted = GuestGpu.Current.TrySubmitOrderedGuestImageFlip(
+                            handle,
+                            overrideIndex,
+                            lastRt.Key,
+                            rFlipDisplayBuffer.Width,
+                            rFlipDisplayBuffer.Height,
+                            rFlipDisplayBuffer.PitchInPixel);
+                        TraceAgc(
+                            $"agc.rflip_force_rt_override handle={handle} " +
+                            $"original_index={displayBufferIndex} " +
+                            $"override_index={overrideIndex} " +
+                            $"rt_addr=0x{lastRt.Key:X16} " +
+                            $"flipped_addr=0x{rFlipRegisteredAddress:X16} " +
+                            $"rt_seq={lastRt.Value.Sequence} " +
+                            $"submitted={overrideSubmitted}");
+                    }
                 }
 
                 _ = VideoOutExports.SubmitFlipFromAgc(ctx, handle, displayBufferIndex, unchecked((int)flipMode), flipArg);
@@ -5472,6 +5607,40 @@ public static partial class AgcExports
                     pixelShaderAddress,
                     vertexCount,
                     primitiveType);
+
+                // EXP-021 Test 4 diagnostic extension: when a new RT writer is
+                // registered, immediately submit an ordered flip for the RT
+                // address. This catches the case where the RFlip packet fired
+                // BEFORE the draw (rt_writer_count=0 at flip time), so the
+                // original override at RFlip time did nothing. Firing here,
+                // AFTER the draw translates, lets the Vulkan presenter also
+                // present the rendered RT once the GPU finishes executing.
+                if (_forceFlipRenderTarget)
+                {
+                    for (var slot = 0; slot < 16; slot++)
+                    {
+                        if (VideoOutExports.TryGetDisplayBufferInfo(
+                                1, // Yatzi's only VideoOut handle
+                                slot,
+                                out var rtOverrideDisplayBuffer) &&
+                            rtOverrideDisplayBuffer.Address == target.Address)
+                        {
+                            var rtOverrideSubmitted = GuestGpu.Current.TrySubmitOrderedGuestImageFlip(
+                                1,
+                                slot,
+                                target.Address,
+                                rtOverrideDisplayBuffer.Width,
+                                rtOverrideDisplayBuffer.Height,
+                                rtOverrideDisplayBuffer.PitchInPixel);
+                            TraceAgc(
+                                $"agc.rt_writer_force_present rt_addr=0x{target.Address:X16} " +
+                                $"slot={slot} submitted={rtOverrideSubmitted} " +
+                                $"seq={drawSequence} es=0x{(hasExportShader ? exportShaderAddress : 0):X16} " +
+                                $"ps=0x{pixelShaderAddress:X16}");
+                            break;
+                        }
+                    }
+                }
             }
 
             if (_traceAgcShader ||
