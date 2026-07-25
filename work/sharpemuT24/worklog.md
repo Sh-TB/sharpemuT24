@@ -354,3 +354,53 @@ Stage Summary:
     /home/z/my-project/logs/yatzi-diag-force.log    (test 3 first attempt)
     /home/z/my-project/logs/yatzi-diag-allslots.log (test 3 final)
     /tmp/yatzi-diag2-frames/present-NNNN-*.bgra     (4 black frames)
+
+---
+Task ID: EXP-020-checkpoint
+Agent: main (SharpEmu bringup)
+Task: Phase acknowledgment checkpoint. Document that SharpEmu is no longer in
+      the "game doesn't run" phase but in the final present/render path phase.
+      Commit checkpoint before any new diagnostic experiments. No code changes
+      in this commit — pure documentation.
+
+Phase Status (as of 2026-07-25):
+
+  Boot + PRX                  ✅ 100%
+  IL2CPP                      ✅ 100%
+  Unity Assets                ✅ 100%
+  AGC Init                    ✅ 100%
+  CreateShader                ✅ 36 calls
+  CreatePrimState             ✅ 2 calls
+  DCB Submit                  ✅ 100%
+  DCB Parsing                 ✅ 100%
+  KRz multi-buffer            ✅ solved (commit 58464ca)
+  GPU State persistence       ✅ solved (commit 58464ca)
+  Draw Translation            ✅ solved
+  VulkanOffscreenGuestDraw    ✅ executes
+  Pixel generation            ✅ likely 100% (RT writes confirmed)
+  VideoOut / Present Path     ❌ LAST BLOCKER
+  First visible frame         ❌ remaining
+
+Estimate to first visible Yatzi frame: 95–98%.
+
+We are NOT chasing crashes, semaphores, shaders, or DCB issues anymore.
+The only remaining work is the VideoOut present path.
+
+Rule reaffirmed (per user instruction):
+  Before any new code change:
+    1. git status
+    2. git diff
+    3. update worklog
+    4. commit checkpoint
+  Then experiment.
+  No file, commit, feature, or previous experiment may be deleted or reset.
+  Negative experimental results roll back to the experimental commit only —
+  history is never rewritten.
+
+Stage Summary:
+- ✅ Working tree clean. Local main == origin/main (verified via git fetch).
+- ✅ All commits through 718703c are pushed to GitHub.
+- ✅ Phase acknowledgment recorded.
+- Next: run EXP-020 Test 1 (enhanced SubmitFlip trace), Test 2 (force-present
+  RT after draw completion), Test 3 (investigate SubmitFlipFromAgc
+  submitGpuImage=false rationale).
