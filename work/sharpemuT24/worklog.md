@@ -1909,3 +1909,43 @@ Next steps:
   - Identify what init function should set 0x801ED6360
   - Check if there's a Unity/IL2CPP init call that returns error
   - The loop at 0x801367A00 is likely iterating over a registration table
+
+---
+Task ID: EXP-024-T4-deep
+Agent: main (SharpEmu bringup)
+Task: Deep analysis of NULL fault GOT entry 0x801ED6360.
+
+Findings:
+  309 instructions in eboot.bin all call through the same GOT entry
+  at 0x801ED6360. This is a dispatch table with 309+ entries.
+
+  The GOT entry at 0x801ED6360 contains 0x08 — a RELRO relative
+  offset that should be relocated by the loader at load time.
+  Nearby entries (0x801ED6320, 0x801ED6330, etc.) all contain
+  similar 0x08 values — a pattern of uninitialized RELRO entries.
+
+  The 309 calls are all from the same function at 0x801367A00-0x801368300
+  which is a 3388-iteration loop (0xd3c = 3388) that calls through
+  a dispatch table. Each table entry is a function pointer that
+  should have been relocated by the loader.
+
+ROOT CAUSE (refined):
+  The SharpEmu ELF loader is not correctly relocating RELRO entries
+  in the .data segment. The GOT at 0x801ED6360 should contain a
+  function pointer (after relocation) but still contains the raw
+  RELRO offset (0x08).
+
+  This is NOT a missing HLE function — it's a loader/relocation bug.
+  The RELRO entries should be processed during module load, converting
+  relative offsets to absolute addresses.
+
+  The 309 affected calls are all in the same function, which is likely
+  an IL2CPP type/method registration function that iterates over a
+  table of 3388 entries, calling a dispatch function for each.
+
+NEXT STEP:
+  Investigate the SharpEmu ELF loader's RELRO relocation handling.
+  Check if the RELA section entries for 0x801ED6360 are being processed.
+  The GOT address 0x801ED6360 was NOT found in JMPREL or RELA — this
+  suggests the relocations for this address are in a different section
+  or use a different relocation type that SharpEmu doesn't handle.
