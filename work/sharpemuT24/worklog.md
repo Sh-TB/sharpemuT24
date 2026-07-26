@@ -2378,3 +2378,65 @@ Next step:
   to the HLE handler (DispatchIl2CppApiLookupSymbol) before the
   callback runs. The "direct bridge" setup might be bypassing the
   HLE dispatch for this NID.
+
+---
+Task ID: EXP-026-B1-C2-D2-E1
+Agent: main (SharpEmu bringup)
+Task: Debug tests B1, C1/C2, D1/D2, E1 per user's plan.
+
+=== Test B1: Crash disassembly ===
+Status: COMPLETED
+Result: r12 is loaded at 0x8013FB0C2 from [0x801D1A558].
+  This is __stack_chk_guard (NID: f7uOxY9mM1U).
+  The GLOB_DAT relocation writes a function stub address instead of
+  the canary data address → r12 = stub → [r12] = garbage → crash.
+  The function start is 0x8013FB0B0 (NOT 0x8013FB2C9).
+  0x8013FB2C9 is the resolver section, reached only after setup.
+
+=== Test C1/C2: GOT trace ===
+Status: COMPLETED
+Result: PLT at 0x8019374D0 → GOT at 0x1D1ACE0.
+  GOT entry for r8mvOaWdi28 is resolved via "direct bridge" during loading.
+  The GLOB_DAT for __stack_chk_guard at 0x1D1A558 is type 6 (R_X86_64_GLOB_DAT).
+  Symbol: f7uOxY9mM1U, st_value=0 (import).
+  RELA entry exists and is processed, but writes a stub address, not data address.
+
+=== Test D1: PRX export check ===
+Status: COMPLETED
+Result: r8mvOaWdi28 NOT in PRX exports (PRX has 0 visible dynamic symbols).
+  The NID is handled by HLE (DispatchIl2CppApiLookupSymbol at line 607).
+
+=== Test D2: Resolve path ===
+Status: COMPLETED
+Result: GLOB_DAT for __stack_chk_guard resolved through import stub mechanism.
+  Creates a function stub, not a data address.
+  The stub address is written to 0x801D1A558.
+  The callback reads [0x801D1A558] expecting a data pointer → gets code address.
+
+=== Test E1: HLE registration ===
+Status: COMPLETED
+Result: __stack_chk_guard IS registered as HLE (SysAbiExport at line 1130).
+  HleDataSymbols.TryGetAddress returns a HOST address (Marshal.AllocHGlobal).
+  This is NOT a guest address. The GLOB_DAT needs a guest address.
+  HleDataSymbols is NOT referenced in the loader.
+
+=== FIX APPLIED: Write TLS canary address to GLOB_DAT ===
+  Before callback: write 0x6FFE00000028 (tlsBase + 0x28) to 0x801D1A558.
+  Result: Stack canary check PASSED. Callback ran further.
+  BUT: callback returned 1 (non-zero) → treated as failure.
+  0 resolver calls — the "already initialized" check skipped the resolver.
+
+=== ROOT CAUSE OF CALLBACK RETURNING 1 ===
+  The function at 0x8013FB0B0 has an internal EXECUTE_ONCE mechanism.
+  It calls 0x8007DEE60 which does some initialization.
+  Then it checks [rbp-0x158] — if already initialized, skips resolver calls.
+  The function returned 1 meaning "already initialized" or "success without resolver".
+  
+  The resolver calls start at 0x8013FB25B (NOT 0x8013FB2C9 as previously thought).
+  They're only reached if the initialization check says "not yet done".
+
+=== NEXT STEP ===
+  Need to understand why the initialization check says "already done".
+  The EXECUTE_ONCE flag at 0x801E50D90 might be set by a previous call.
+  OR: the setup function 0x8013E4160 sets the flag.
+  Need to trace the EXECUTE_ONCE flag and the [rbp-0x158] check.

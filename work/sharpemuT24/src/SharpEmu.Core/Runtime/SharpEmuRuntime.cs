@@ -497,7 +497,31 @@ public sealed class SharpEmuRuntime : ISharpEmuRuntime
             var imageBase = mainImage.EntryPoint >= mainImage.ElfHeader.EntryPoint
                 ? mainImage.EntryPoint - mainImage.ElfHeader.EntryPoint
                 : 0x800000000UL;
-            var callbackAddress = imageBase + 0x13FB2C9UL;
+
+            // EXP-026: Fix __stack_chk_guard GLOB_DAT before calling the callback.
+            // The callback function reads r12 from [imageBase + 0x1D1A558] which
+            // should contain the address of the stack canary. The GLOB_DAT relocation
+            // for f7uOxY9mM1U (__stack_chk_guard) writes a function stub address
+            // instead of the canary data address. We fix this by writing the TLS
+            // canary address (tlsBase + 0x28) directly.
+            var stackChkGuardGot = imageBase + 0x1D1A558UL;
+            var tlsCanaryAddress = 0x6FFE_0000_0000UL + 0x28UL; // Linux TLS base + canary offset
+            Span<byte> canaryPtr = stackalloc byte[8];
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(canaryPtr, tlsCanaryAddress);
+            if (_virtualMemory.TryWrite(stackChkGuardGot, canaryPtr))
+            {
+                Console.Error.WriteLine(
+                    $"[EXP-026] Fixed __stack_chk_guard GLOB_DAT at 0x{stackChkGuardGot:X16} " +
+                    $"→ 0x{tlsCanaryAddress:X16}");
+            }
+            else
+            {
+                Console.Error.WriteLine(
+                    $"[EXP-026] WARNING: Failed to write __stack_chk_guard GLOB_DAT " +
+                    $"at 0x{stackChkGuardGot:X16}");
+            }
+
+            var callbackAddress = imageBase + 0x13FB0B0UL; // Full function start (not 0x13FB2C9)
             Console.Error.WriteLine(
                 $"[EXP-026] Calling IL2CPP init callback at 0x{callbackAddress:X16} " +
                 $"(imageBase=0x{imageBase:X16})");
