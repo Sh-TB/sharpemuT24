@@ -1413,3 +1413,47 @@ hsi9drzHR2k in Yatzi's eboot.bin. These 80311 calls are the main
 thread's busy loop. If we can identify what return value Unity expects,
 we may unblock the entire pipeline.
 
+
+---
+Task ID: EXP-024-checkpoint
+Agent: main (SharpEmu bringup)
+Task: Pre-experiment checkpoint before EXP-024 comprehensive investigation.
+      NO code changes in this commit. User's new requirements:
+      1. Mandatory screenshots for ALL Golden Tests
+      2. EBOOT disassembly for Unity state machine analysis
+      3. Comprehensive 2-min run with ALL trace flags
+      4. New hypothesis list (A1-A6, B1-B3)
+      5. Independent review answering 7 questions
+
+User's strict constraints (still in force):
+  - Do NOT modify rendering / KRz / buffer merge / VideoOut architecture
+  - Diagnostics only — no workarounds
+  - Goal: find first divergence point between PS5 and SharpEmu
+
+Phase shift acknowledged:
+  "GPU completion doesn't reach Unity" → RESOLVED (EXP-022)
+  "Unity state machine doesn't advance" → CURRENT (EXP-023 → EXP-024)
+
+New hypothesis list:
+  A1: Unity PlayerLoop stall (WaitForEndOfFrame)
+  A2: Command buffer recording stall (buffer pool/ring)
+  A3: VBlank / Present Complete missing (HIGH PRIORITY per user)
+  A4: Unity threading mode mismatch (CPU count/frequency)
+  A5: Fence off-by-one (expected ref vs actual value)
+  A6: Unity Job System / Burst (lib_burst_generated)
+  B1: Thread priority / starvation
+  B2: Buffer index desync (Yatzi always 0 vs Dreaming Sarah 0,1,0,1)
+  B3: Silent exception in catch{} blocks
+
+New tools available:
+  - objdump, readelf, nm, strings (for EBOOT disassembly)
+  - capstone 5.0.7, pyelftools 0.33 (Python disassembly)
+  - .NET 10 SDK at /home/z/.dotnet
+  - Lavapipe at /home/z/.local/vulkan
+  - Yatzi + Dreaming Sarah game files restored
+
+Stage Summary:
+- ✅ Working tree clean. Local main == origin/main (HEAD = de29388).
+- ✅ All tools available for disassembly and tracing.
+- ✅ Game files restored (Yatzi + Dreaming Sarah).
+- ✅ Pre-experiment checkpoint recorded.
