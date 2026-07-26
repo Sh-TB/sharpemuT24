@@ -2285,3 +2285,58 @@ Task: Execute all 10 required tests before removing il2cpp_init stub.
 === Test 5-10: Not yet executable ===
   The fix requires a different approach (Option C above).
   Tests 5-10 will be executed after implementing Option C.
+
+---
+Task ID: EXP-026-Test-1.1-2
+Agent: main (SharpEmu bringup)
+Task: Disassemble init callback and check dependencies.
+
+=== Test 1.1: Disassemble Callback ===
+Function at 0x8013FB2C9 confirmed as IL2CPP API resolver callback.
+
+Pattern (repeated 54 times):
+  lea rdi, [rip + string_offset]   ; load function name
+  call 0x8019374D0                  ; call resolver (r8mvOaWdi28 PLT)
+  mov [rip + got_offset], rax       ; store result (32 times)
+  test rax, rax                    ; check NULL
+  jne continue                     ; if OK, continue
+  xor eax, eax                     ; if NULL, prepare abort
+  call 0x800015310                  ; call abort/error function
+
+126 IL2CPP API function names extracted, including:
+  il2cpp_init, il2cpp_resolve_icall, il2cpp_set_data_dir,
+  il2cpp_set_memory_callbacks, il2cpp_get_corlib,
+  il2cpp_add_internal_call, il2cpp_domain_get, il2cpp_class_from_name,
+  il2cpp_gc_collect, il2cpp_thread_attach, etc.
+
+=== Test 2: Callback Dependencies ===
+| Dependency        | Found | Status |
+|-------------------|-------|--------|
+| metadata          | NO    | N/A    |
+| TLS               | NO    | N/A    |
+| pthread           | NO    | N/A    |
+| memory allocation | NO    | N/A    |
+| PRX function      | YES   | r8mvOaWdi28 (resolver) — ALREADY HLED |
+| syscall           | NO    | N/A    |
+
+The callback has ONLY ONE dependency: the resolver PLT (r8mvOaWdi28).
+This is already handled by SharpEmu (DispatchIl2CppApiLookupSymbol).
+No other dependencies — no metadata, no TLS, no thread state.
+
+=== Option C: CONFIRMED SAFE ===
+The callback at 0x8013FB2C9 can be called directly from HLE code:
+  1. It takes no arguments
+  2. It only calls the resolver (already HLE'd)
+  3. It stores results in GOT entries (BSS)
+  4. No other dependencies
+  5. If resolver returns non-NULL, callback continues
+  6. If resolver returns NULL, callback calls abort (0x800015310)
+     — but SharpEmu's NULL fault recovery will handle this
+
+IMPLEMENTATION PLAN:
+  After module loading (in RunPreloadedModuleInitializers or similar),
+  dispatch a guest function call to 0x8013FB2C9.
+  The call will:
+  - Invoke the resolver PLT for each of 126 IL2CPP API functions
+  - Store resolved addresses in GOT entries
+  - Fix the NULL fault loop
