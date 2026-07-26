@@ -194,6 +194,22 @@ public static class KernelSemaphoreCompatExports
             }
 
             TraceSemaphore($"wait-timeout handle=0x{handle:X8} name='{semaphore.Name}' need={needCount} count={semaphore.Count}");
+
+            // EXP-024 S1: Force-signal on timeout for specific semaphores.
+            // If SHARPEMU_FORCE_SIGNAL_SEMA_TIMEOUT=1, return OK instead of TIMED_OUT
+            // and increment the semaphore count so the next wait succeeds.
+            if (_forceSignalSemaTimeout)
+            {
+                lock (semaphore.Gate)
+                {
+                    semaphore.Count += needCount;
+                }
+                Console.Error.WriteLine(
+                    $"[EXP-024-S1] Force-signal sema handle=0x{handle:X8} name='{semaphore.Name}' " +
+                    $"need={needCount} count={semaphore.Count}");
+                return (int)OrbisGen2Result.ORBIS_GEN2_OK;
+            }
+
             return (int)OrbisGen2Result.ORBIS_GEN2_ERROR_TIMED_OUT;
         }
 
@@ -668,6 +684,11 @@ public static class KernelSemaphoreCompatExports
     // strings would otherwise be allocated on every semaphore op even with tracing off.
     private static readonly bool _traceSema =
         string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_LOG_SEMA"), "1", StringComparison.Ordinal);
+
+    // EXP-024 S1: Force-signal semaphores on timeout instead of returning TIMED_OUT.
+    // Diagnostic to test if NULL faults are caused by semaphore timeout.
+    private static readonly bool _forceSignalSemaTimeout =
+        string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_FORCE_SIGNAL_SEMA_TIMEOUT"), "1", StringComparison.Ordinal);
 
     private static void TraceSemaphore(string message)
     {

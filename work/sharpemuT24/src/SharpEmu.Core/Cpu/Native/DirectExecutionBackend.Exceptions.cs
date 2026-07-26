@@ -447,11 +447,40 @@ public sealed partial class DirectExecutionBackend
                 var returnZeroStub = GetNullCallRecoveryStub();
                 if (returnZeroStub == 0) return false;
                 if (Interlocked.Increment(ref _nullExecuteRecoveries) > 100000) return false;
+
+                // EXP-024 T4: Log the return address (caller) for the first 10 NULL faults
+                // to identify which function pointer is NULL.
+                if (_nullExecuteRecoveries <= 10)
+                {
+                        var rsp = ReadCtxU64(contextRecord, CTX_RSP);
+                        var rbp = ReadCtxU64(contextRecord, CTX_RBP);
+                        // The return address is at [RSP] after a CALL instruction
+                        ulong returnAddress = 0;
+                        try { returnAddress = *(ulong*)rsp; } catch { }
+                        Console.Error.WriteLine(
+                                $"[EXP-024-T4] NULL fault #{_nullExecuteRecoveries}: " +
+                                $"rsp=0x{rsp:X16} rbp=0x{rbp:X16} " +
+                                $"return_addr=0x{returnAddress:X16} " +
+                                $"caller_module={IdentifyGuestModule(returnAddress)}");
+                }
+
                 WriteCtxU64(contextRecord, 248, returnZeroStub);
                 WriteCtxU64(contextRecord, 120, 0);
                 if (_nullExecuteRecoveries <= 5 || _nullExecuteRecoveries % 100 == 0)
                         Console.Error.WriteLine($"[LOADER][WARN] NULL execute fault recovered #{_nullExecuteRecoveries}");
                 return true;
+        }
+
+        private static string IdentifyGuestModule(ulong address)
+        {
+                if (address == 0) return "NULL";
+                if (address >= 0x800000000 && address < 0x810000000) return "eboot.bin";
+                if (address >= 0x804342000 && address < 0x804CD5000) return "libSceNpCppWebApi.prx";
+                if (address >= 0x804CD5000 && address < 0x809839000) return "Il2cppUserAssemblies.prx";
+                if (address >= 0x809839000 && address < 0x809A46000) return "PS5Util.prx";
+                if (address >= 0x809A46000 && address < 0x809BBD000) return "lib_burst_generated.prx";
+                if (address >= 0x801930000 && address < 0x801C80000) return "libc.prx";
+                return $"unknown(0x{address:X16})";
         }
 
         private ulong _nullCallRecoveryStub;

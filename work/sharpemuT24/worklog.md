@@ -1858,3 +1858,54 @@ Remaining work:
 Distance to first visible Yatzi frame: 85-90% complete.
   The FlipStatus fix was necessary but not sufficient.
   The NULL fault loop is the next blocker to solve.
+
+---
+Task ID: EXP-024-S1-T4
+Agent: main (SharpEmu bringup)
+Task: S1 (force-signal sema) + T4 (NULL caller trace) + disassembly.
+
+S1 Result — Force-Signal Semaphore Timeout:
+  SHARPEMU_FORCE_SIGNAL_SEMA_TIMEOUT=1 flag added.
+  Result: 0 force-signal events in 30s run.
+  CONCLUSION: NULL faults are NOT caused by semaphore timeout.
+  The TIMED_OUT calls (3 in 120s) are rare and not in the NULL fault loop.
+
+T4 Result — NULL Caller Trace:
+  Enhanced TryRecoverNullExecuteFault to log return address.
+  ALL 10 logged NULL faults have the SAME return address: 0x801367A0C
+  All from eboot.bin, same rsp=0x6FFFF01FBA28, same rbp=0x6FFFF01FBA60.
+  This is a TIGHT LOOP in eboot.bin.
+
+Disassembly of 0x801367A06 (the CALL instruction):
+  0x801367A06: call qword ptr [rip + 0xb6e954]  ; indirect call through GOT
+  0x801367A0C: inc r15                           ; loop counter++
+  0x801367A0F: cmp r15, 0xd3c                    ; 3388 iterations
+  0x801367A16: je 0x801367A5F                     ; exit when done
+
+  The GOT target is at 0x801ED6360 — this is NOT in the PLT GOT (0x1D1A590).
+  It's in the .data segment. The GOT entry contains 0x8 (placeholder).
+  This is NOT a standard import — it's a function pointer in .data that
+  should be initialized by some init function but wasn't.
+
+  The loop iterates 3388 times (0xd3c), calling through this function
+  pointer each time. Each call faults (NULL), gets recovered to a
+  "return 0" stub, and the loop continues.
+
+ROOT CAUSE IDENTIFIED:
+  The NULL fault loop is at 0x801367A06 in eboot.bin.
+  It's a 3388-iteration loop calling through an uninitialized function
+  pointer at GOT address 0x801ED6360.
+  The function pointer should have been set by an initialization function
+  that either:
+  a) Was never called (missing init sequence)
+  b) Was called but failed (returned error before setting the pointer)
+  c) Depends on a missing HLE function
+
+  This is likely an IL2CPP or Unity engine initialization function that
+  sets up a dispatch table. The table has 3388 entries, and the init
+  function that should populate them failed or was never called.
+
+Next steps:
+  - Identify what init function should set 0x801ED6360
+  - Check if there's a Unity/IL2CPP init call that returns error
+  - The loop at 0x801367A00 is likely iterating over a registration table
