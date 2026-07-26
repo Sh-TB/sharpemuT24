@@ -2004,3 +2004,12 @@ This is the FIRST DIVERGENCE POINT:
   PS5: il2cpp_resolve_icall returns valid function pointers
   SharpEmu: il2cpp_resolve_icall returns NULL (not implemented)
   Result: 309 icall dispatches fail, Unity stuck in init loop
+
+---
+Task ID: EXP-025-checkpoint
+Agent: main (SharpEmu bringup)
+Task: Pre-experiment checkpoint. User's directive: DO NOT ASSUME root cause
+      is il2cpp_resolve_icall. Every hypothesis must be proven or eliminated
+      with logs and evidence. 18 phases (A-R) to execute.
+
+NO CODE CHANGES in this commit.
