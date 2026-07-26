@@ -2962,7 +2962,14 @@ public static partial class AgcExports
         LibraryName = "libSceAgc")]
     public static int SuspendPoint(CpuContext ctx)
     {
-        TraceAgc("agc.suspend_point");
+        // EXP-022 Test A-3: log all argument registers so we can see what
+        // target value / fence / address Unity is requesting. The stub
+        // still returns immediately without blocking — diagnostic only.
+        TraceAgc(
+            $"agc.suspend_point rdi=0x{ctx[CpuRegister.Rdi]:X16} " +
+            $"rsi=0x{ctx[CpuRegister.Rsi]:X16} rdx=0x{ctx[CpuRegister.Rdx]:X16} " +
+            $"rcx=0x{ctx[CpuRegister.Rcx]:X16} r8=0x{ctx[CpuRegister.R8]:X16} " +
+            $"r9=0x{ctx[CpuRegister.R9]:X16}");
         ctx[CpuRegister.Rax] = 0;
         return (int)OrbisGen2Result.ORBIS_GEN2_OK;
     }
