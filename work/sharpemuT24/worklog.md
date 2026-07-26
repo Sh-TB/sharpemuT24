@@ -2203,3 +2203,85 @@ REMAINING UNCERTAINTY:
   which IS handled by SharpEmu (DispatchIl2CppApiLookupSymbol), so
   the icall resolution should work. But metadata loading might need
   additional HLE support.
+
+---
+Task ID: EXP-026-Tests-1-10
+Agent: main (SharpEmu bringup)
+Task: Execute all 10 required tests before removing il2cpp_init stub.
+
+=== Test 1: git blame ===
+  Commit: 7ea98b48 (initial file creation, 2026-07-23)
+  The stub was part of the original IL2CPP bootstrap.
+  NOT added for a specific game — was the default HLE approach.
+  SharpEmu uses fake IL2CPP stubs for ALL il2cpp_* functions.
+
+=== Test 2: Real il2cpp_init location ===
+  eboot.bin: "il2cpp_init" string exists (used as resolver name)
+  Il2cppUserAssemblies.prx: "il2cpp_init" string exists
+  PRX has 0 visible dynamic symbols (PS5-specific format, stripped for standard tools)
+  PRX has SYMTAB at VA 0x4096E08, STRTAB at VA 0x4094780
+  Cannot read symbol table — PS5-specific ELF format
+  CONCLUSION: il2cpp_init is exported from the PRX but SharpEmu can't find it
+
+=== Test 3: Feature flag SHARPEMU_REAL_IL2CPP_INIT=1 ===
+  Implemented in DirectExecutionBackend.Imports.cs:
+    When flag is set, TryResolveIl2CppApiAddress returns false for il2cpp_init
+    This should cause the PLT resolver to look for the real function
+  BUT: il2cpp_init is NOT in the PLT/JMPREL table
+  It's resolved at RUNTIME via il2cpp_api_lookup_symbol (r8mvOaWdi28)
+  The flag doesn't help because the init function at 0x8013FB2C9 never runs
+
+=== Test 4: Run with real init flag ===
+  Result: IDENTICAL to without flag (95 NULL faults, 0 resolver calls)
+  The flag has NO EFFECT because:
+  - il2cpp_init is not a PLT import (not in JMPREL)
+  - The init function at 0x8013FB2C9 is never called
+  - The flag only affects TryResolveIl2CppApiAddress which is called
+    from DispatchIl2CppApiLookupSymbol, which is only called when
+    the init function runs
+
+=== ROOT CAUSE CHAIN (confirmed) ===
+  1. il2cpp_init is intercepted by HLE → returns 0 without running
+  2. Real il2cpp_init (in PRX) never runs
+  3. il2cpp_init would have called the callback at 0x8013FB2C9
+  4. The callback resolves il2cpp API functions via r8mvOaWdi28
+  5. Without the callback, GOT entries stay NULL
+  6. Code calling through NULL GOT → 95 SIGSEGV faults
+  7. Main thread stuck → no new frames → equeue 5 timeouts → black screen
+
+=== WHY THE FLAG DOESN'T WORK ===
+  The flag skips the fake stub in TryResolveIl2CppApiAddress.
+  But TryResolveIl2CppApiAddress is only called from:
+    DispatchIl2CppApiLookupSymbol (runtime resolver r8mvOaWdi28)
+  And r8mvOaWdi28 is only called from the init function at 0x8013FB2C9.
+  And the init function is only called by the real il2cpp_init (from PRX).
+  And the real il2cpp_init is intercepted by the HLE.
+
+  Circular dependency:
+    HLE intercepts il2cpp_init → real init never runs →
+    callback never runs → resolver never called → GOT stays NULL
+
+=== REQUIRED FIX (different approach) ===
+  The HLE for il2cpp_init needs to be removed at the IMPORT DISPATCH level,
+  not at the TryResolveIl2CppApiAddress level.
+  
+  The import dispatch (ImportDispatchGatewayManaged) checks for specific NIDs.
+  When it encounters il2cpp_init's NID, it should NOT return 0.
+  Instead, it should let the call pass through to the real function.
+  
+  But the real function is in the PRX which has no visible exports.
+  SharpEmu needs to either:
+  A. Parse the PRX's PS5-specific symbol table to find il2cpp_init
+  B. Find il2cpp_init by scanning the PRX code for known patterns
+  C. Call the init function (0x8013FB2C9) directly from HLE code
+     as a substitute for the full il2cpp_init
+  
+  Option C is the most practical:
+  - Call 0x8013FB2C9 (the icall resolver callback) from SharpEmu
+  - This populates the GOT entries via DispatchIl2CppApiLookupSymbol
+  - The resolver IS implemented and will resolve the icalls
+  - After the GOT is populated, the dispatch loop will work
+
+=== Test 5-10: Not yet executable ===
+  The fix requires a different approach (Option C above).
+  Tests 5-10 will be executed after implementing Option C.

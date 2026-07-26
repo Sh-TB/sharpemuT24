@@ -2283,8 +2283,22 @@ public sealed partial class DirectExecutionBackend
                 // virtual call on a fake object safely returns 0. Per-function stubs return the
                 // appropriate non-NULL pointer (domain/thread/class/image/assembly) so games
                 // don't crash on NULL dispatch.
+                //
+                // EXP-026: When SHARPEMU_REAL_IL2CPP_INIT=1, skip the fake stub for
+                // il2cpp_init and il2cpp_shutdown so the real function in eboot.bin runs.
+                // This allows the real IL2CPP init to resolve icalls, populate GOT entries,
+                // and load metadata — fixing the NULL fault loop that prevents frame advancement.
                 if (!string.IsNullOrEmpty(symbolName) && symbolName.StartsWith("il2cpp_", StringComparison.Ordinal))
                 {
+                        if (_realIl2CppInit && symbolName is "il2cpp_init" or "il2cpp_shutdown")
+                        {
+                                Console.Error.WriteLine(
+                                        $"[EXP-026] Skipping fake stub for '{symbolName}' — " +
+                                        "letting real function run");
+                                address = 0;
+                                return false;
+                        }
+
                         var stub = GetIl2CppStubForFunction(symbolName);
                         if (stub == 0) return false;
                         address = stub;
@@ -2308,6 +2322,11 @@ public sealed partial class DirectExecutionBackend
         //   0x1700 - 0x17FF : fake Il2CppType
         //   0x2000 - 0xFFFF : per-function stub space (16 bytes each, 3584 stubs max)
         private ulong _il2cppHeap;
+
+        // EXP-026: When true, skip the fake HLE stub for il2cpp_init/shutdown
+        // and let the real function in eboot.bin execute.
+        private static readonly bool _realIl2CppInit =
+                string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_REAL_IL2CPP_INIT"), "1", StringComparison.Ordinal);
         private const ulong Il2CppHeapSize = 0x10000;
         private const ulong Il2CppVtableBase = 0x0000;
         private const ulong Il2CppReturnZeroStubOffset = 0x1000;
