@@ -84,8 +84,8 @@ public static class PadExports
             return ctx.SetReturn(OrbisPadErrorDeviceNoHandle);
         }
 
-        var typeAccepted = extended ? type is 0 or 1 or 2 : type == StandardPortType;
-        if (userId != PrimaryUserId || !typeAccepted || index != 0 || (!extended && parameterAddress != 0))
+        var typeAccepted = extended ? type is 0 or 1 or 2 : type is 0 or 2;
+        if (userId != PrimaryUserId || !typeAccepted || index != 0)
         {
             return ctx.SetReturn(OrbisPadErrorDeviceNotConnected);
         }
