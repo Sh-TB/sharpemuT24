@@ -718,3 +718,68 @@ Stage Summary:
 - ✅ Golden test still passes (138 frames, 188 colors)
 - Recommended next: user provides real unity_builtin_extra from any
   Unity 2022.3.x PS5 game (any game of the same Unity version should work)
+
+---
+Task ID: EXP-022-checkpoint
+Agent: main (SharpEmu bringup)
+Task: Pre-experiment checkpoint before EXP-022 synchronization investigation.
+      NO code changes in this commit.
+
+User's confirmed findings (from EXP-021):
+  - VideoOut buffer mapping is NOT the problem.
+  - RT address mismatch is NOT the problem.
+  - Vulkan presenter is NOT the problem.
+  - Present path VERIFIED WORKING:
+      flip_capture ✅, present_taken ✅, flip_retired ✅
+  - But: captured RT was empty because flip_capture happens BEFORE
+    the actual Vulkan draw execution.
+  - Remaining issue: GPU completion ordering / fence propagation.
+
+User's strict constraints for EXP-022:
+  Do NOT modify:
+    - rendering
+    - KRz
+    - buffer merge
+    - VideoOut architecture
+  Diagnostics only.
+
+Planned investigation:
+  TEST GROUP A — sceAgcSuspendPoint investigation
+    A-1: Find sceAgcSuspendPoint implementation. Is it a real fence/counter
+         or only a stub? What internal value does it track? What value does
+         guest request?
+    A-2: Find DCB opcode 0x46 (EVENT_WRITE). Does it update a GPU fence
+         counter? Write a memory location? Only log?
+    A-3: Trace guest SuspendPoint targetValue vs SharpEmu internal fence
+         value. Verify whether GPU completion increments the fence and
+         whether the guest can see the increment.
+
+  TEST GROUP B — completion propagation
+    B-1: Does submission=3 completion actually signal guest-visible
+         synchronization?
+    B-2: Does NotifySubmittedDcbCompleted call SignalSema /
+         TriggerEvent / UpdateFence / WriteMemory, or only internal
+         callbacks?
+    B-3: If SignalSema happens, check host handle vs guest handle for
+         the kernel-handle-bit mismatch bug (commit 4cc320f precedent).
+
+  TEST GROUP C — scheduler interaction
+    SharpEmu uses cooperative guest scheduling. After a completion event:
+    does the waiting Unity thread immediately resume, or is a scheduler
+    pump required? Measure T1-T0 (completion time vs Unity resume time).
+
+Required output (per user):
+  1. sceAgcSuspendPoint implementation status
+  2. op=0x46 behavior
+  3. submission=3 completion propagation chain
+  4. guest-visible fence/semaphore/event handle
+  5. scheduler resume behavior
+
+Stage Summary:
+- ✅ Working tree clean. Local main == origin/main (HEAD = 799e57f).
+- ✅ Build artifacts and Yatzi logs preserved from prior session.
+- ✅ .NET 10 SDK re-installed at /home/z/.dotnet.
+- ✅ Source tree re-cloned from GitHub to /home/z/my-project/work/sharpemuT24.
+- ⚠️ Yatzi game files (/tmp/games/yatzi) NOT preserved across session
+  reset. Some tests may need to rely on existing log analysis rather
+  than fresh runs.
