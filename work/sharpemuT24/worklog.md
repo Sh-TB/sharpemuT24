@@ -950,3 +950,63 @@ location or expecting a different event type that never fires. Next
 investigation should focus on what Unity expects after submission 3
 completes (memory polling, event filter mismatch, or NID stub return
 value expectations).
+
+---
+Task ID: EXP-023-checkpoint
+Agent: main (SharpEmu bringup)
+Task: Pre-experiment checkpoint before EXP-023 follow-up investigation.
+      NO code changes in this commit. The investigation has shifted phase:
+      "GPU completion doesn't reach Unity" → "completion reaches Unity
+      but Unity state machine doesn't advance."
+
+User's confirmed findings (from EXP-022):
+  ✅ SuspendPoint is a stub (frame-boundary marker, not fence wait)
+  ✅ Completion propagation chain WORKS (NotifySubmittedDcbCompleted →
+     SubmitOrderedGuestAction → TriggerRegisteredEvents →
+     WakeEventQueue → Scheduler.Wake → Unity thread resumes in <1ms)
+  ✅ op=0x46 EVENT_WRITE triggers kernel event queue events
+  ✅ ReleaseMem writes to specific addresses (0x6011775F0, 0x6011775D0,
+     0x601178690, 0x606700148, 0x606700200)
+  ✅ submission=3 completion fires (queues=2)
+  ❌ But Unity doesn't issue more GPU commands
+
+Hypothesis list (per user's plan):
+  F0: Environment regression (Lavapipe version) — Dreaming Sarah 23 colors
+  F1: ReleaseMem value mismatch (timestamp vs expected fence counter)
+  F2: Event filter / event type mismatch
+  F3: Draw completion count mismatch
+  F4: Multiple synchronization objects
+  F5: Unity GfxDeviceWorker / Render Thread blocked
+  F6: VFX Graph / Asset dependency post-completion
+  F7: Missing Unity assets (silent stall)
+  F8: NID stub return value (low priority — previously disproven)
+
+User's strict constraints (still in force):
+  - Do NOT modify rendering
+  - Do NOT modify KRz
+  - Do NOT merge buffers
+  - Do NOT modify VideoOut architecture
+  - Diagnostics only
+
+User's required output:
+  - All test results
+  - Distance-to-first-screen estimate
+  - Independent review (don't just confirm; look for blind spots)
+  - For each hypothesis: one cheap test + one definitive test
+
+Execution order per user's plan:
+  Phase 0: F0 (baseline environment)
+  Phase 1: F1 + F2 (GPU synchronization)
+  Phase 2: F7 (asset audit)
+  Phase 3: F4 + F5 (thread/scheduler)
+  Phase 4: F3 + F6 (deep Unity behavior)
+
+Stage Summary:
+- ✅ Working tree clean. Local main == origin/main (HEAD = b21df17).
+- ✅ Source tree re-cloned from GitHub to /home/z/my-project/work/sharpemuT24.
+- ✅ .NET 10 SDK re-installed at /home/z/.dotnet.
+- ✅ Lavapipe (mesa-vulkan-drivers 25.0.7) re-installed user-local.
+- ✅ Yatzi files restored at /tmp/games/yatzi (verified Media/ structure).
+- ✅ Dreaming Sarah files restored at /tmp/games/dreaming-sarah.
+- ✅ Build artifacts symlinked from /tmp/my-project/work/sharpemu-build.
+- ✅ Investigation logs preserved at /tmp/my-project/logs (symlinked).
