@@ -2246,19 +2246,26 @@ public sealed partial class DirectExecutionBackend
                 var symbolNameAddress = cpuContext[CpuRegister.Rdi];
                 var outputAddress = cpuContext[CpuRegister.Rsi];
                 if (!TryReadAsciiZ(symbolNameAddress, 512, out var symbolName) ||
-                        outputAddress == 0 ||
-                        !TryResolveIl2CppApiAddress(symbolName, out var resolvedAddress) ||
-                        !TryWriteUInt64Compat(outputAddress, resolvedAddress))
+                        !TryResolveIl2CppApiAddress(symbolName, out var resolvedAddress))
                 {
                         Console.Error.WriteLine(
                                 $"[LOADER][WARN] il2cpp_api_lookup_symbol failed: name='{symbolName}' out=0x{outputAddress:X16}");
-                        if (outputAddress != 0)
+                        // EXP-026: Only write to outputAddress if it's a valid guest address.
+                        // The init callback at 0x8013FB2C9 doesn't set rsi, so outputAddress
+                        // may be garbage. Writing to garbage corrupts the stack canary.
+                        if (outputAddress != 0 && outputAddress < 0x800000000000UL)
                         {
                                 _ = TryWriteUInt64Compat(outputAddress, 0);
                         }
 
                         cpuContext[CpuRegister.Rax] = ulong.MaxValue;
                         return OrbisGen2Result.ORBIS_GEN2_OK;
+                }
+
+                // EXP-026: Only write to outputAddress if it's a valid guest address.
+                if (outputAddress != 0 && outputAddress < 0x800000000000UL)
+                {
+                        _ = TryWriteUInt64Compat(outputAddress, resolvedAddress);
                 }
 
                 cpuContext[CpuRegister.Rax] = resolvedAddress;
@@ -2431,7 +2438,10 @@ public sealed partial class DirectExecutionBackend
                 if (name.Contains("get_") || name.Contains("_from_") || name.Contains("_new") ||
                     name.Contains("_alloc") || name.Contains("_open") || name.Contains("_create"))
                         return _il2cppHeap + Il2CppObjectOffset;
-                return 0;
+                // EXP-026: Return a non-NULL stub for ALL remaining il2cpp_* functions.
+                // Previously returned 0 (NULL), causing the init callback to abort.
+                // The return-zero stub is safe — it just returns 0 when called.
+                return _il2cppHeap + Il2CppReturnZeroStubOffset;
         }
 
         private OrbisGen2Result DispatchBootstrapBridge()

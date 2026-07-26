@@ -486,6 +486,41 @@ public sealed class SharpEmuRuntime : ISharpEmuRuntime
             return moduleStartResult;
         }
 
+        // EXP-026: Call the IL2CPP init callback directly.
+        // On real PS5, il2cpp_init (from the PRX) calls this callback to resolve
+        // 126 IL2CPP API functions via il2cpp_api_lookup_symbol. Without this
+        // callback, GOT entries stay NULL and Unity crashes with 95 NULL faults.
+        // Since we can't run the real PRX il2cpp_init (stripped), we call the
+        // callback ourselves. The callback is at imageBase + 0x13FB2C9.
+        if (Environment.GetEnvironmentVariable("SHARPEMU_CALL_IL2CPP_CALLBACK") == "1")
+        {
+            var imageBase = mainImage.EntryPoint >= mainImage.ElfHeader.EntryPoint
+                ? mainImage.EntryPoint - mainImage.ElfHeader.EntryPoint
+                : 0x800000000UL;
+            var callbackAddress = imageBase + 0x13FB2C9UL;
+            Console.Error.WriteLine(
+                $"[EXP-026] Calling IL2CPP init callback at 0x{callbackAddress:X16} " +
+                $"(imageBase=0x{imageBase:X16})");
+
+            var callbackResult = _cpuDispatcher.DispatchModuleInitializer(
+                callbackAddress,
+                generation,
+                activeImportStubs,
+                activeRuntimeSymbols,
+                "il2cpp_init_callback",
+                _cpuExecutionOptions);
+
+            Console.Error.WriteLine(
+                $"[EXP-026] IL2CPP init callback result: {callbackResult}");
+
+            if (callbackResult != OrbisGen2Result.ORBIS_GEN2_OK)
+            {
+                Console.Error.WriteLine(
+                    $"[EXP-026] IL2CPP init callback FAILED: {callbackResult}");
+                // Don't return error — continue startup to see what happens
+            }
+        }
+
         // On current PS5 dumps DT_INIT commonly resolves to imageBase+0x10, which is inside
         // the mapped ELF header rather than a callable guest routine. Startup must remain
         // guest-driven until the PS5 init/module ABI is identified precisely.

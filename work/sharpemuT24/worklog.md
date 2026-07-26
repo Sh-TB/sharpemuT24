@@ -2340,3 +2340,41 @@ IMPLEMENTATION PLAN:
   - Invoke the resolver PLT for each of 126 IL2CPP API functions
   - Store resolved addresses in GOT entries
   - Fix the NULL fault loop
+
+---
+Task ID: EXP-026-OptionC-Test
+Agent: main (SharpEmu bringup)
+Task: Test Option C — call init callback 0x8013FB2C9 from HLE.
+
+Results:
+  - Callback WAS dispatched and started executing
+  - BUT: crashed at 0x8013FCB82 (mov rcx,[r12] where r12=0)
+  - 0 il2cpp_api_lookup_symbol calls in log
+  - Resolver PLT (r8mvOaWdi28) was NOT invoked during callback
+  - Stack canary check failed (__stack_chk_fail)
+  - Return value: non-zero → NOT_IMPLEMENTED
+
+Root cause of callback failure:
+  The callback function is 6329 bytes (0x8013FB2C9 to 0x8013FCBA4+).
+  It contains 54 resolver calls at the beginning, then more code that
+  uses the resolved function pointers. The crash at 0x8013FCB82 is
+  in the post-resolver section where r12 (which should contain a
+  resolved pointer) is NULL.
+
+  The resolver PLT (r8mvOaWdi28) was NOT called because the PLT GOT
+  entry was pre-resolved during module loading (direct bridge) to
+  something other than the HLE handler. The callback's call to
+  0x8019374D0 (PLT stub) jumped to the wrong address.
+
+  Also found: DispatchIl2CppApiLookupSymbol was writing to [rsi]
+  even when rsi was not set by the caller (garbage). Fixed this to
+  only write when rsi is a valid guest address.
+
+  Also fixed: DecideIl2CppReturnValue now returns a non-NULL stub
+  for ALL il2cpp_* functions (previously 64/126 returned NULL).
+
+Next step:
+  Need to ensure the PLT GOT for r8mvOaWdi28 is properly resolved
+  to the HLE handler (DispatchIl2CppApiLookupSymbol) before the
+  callback runs. The "direct bridge" setup might be bypassing the
+  HLE dispatch for this NID.
