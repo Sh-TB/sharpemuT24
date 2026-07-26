@@ -1761,3 +1761,51 @@ CRITICAL NEXT STEP:
     +0x1C: currentBuffer (the currently displayed buffer index)
 
   This is the FIRST DIVERGENCE POINT between SharpEmu and PS5.
+
+---
+Task ID: EXP-024-fixes
+Agent: main (SharpEmu bringup)
+Task: Implement and test FlipStatus struct fix + AcslpN1jHR8 stub.
+
+Changes made:
+1. VideoOutGetFlipStatus struct layout fix (VideoOutExports.cs):
+   - Added LastFlipArg and LastFlipTsc fields to VideoOutPortState
+   - SubmitFlip now stores flipArg and tsc
+   - GetFlipStatus writes correct PS5 struct:
+     +0x00: flipArg (was FlipCount)
+     +0x08: tsc (was 0)
+     +0x10: currentWindow (was 0)
+     +0x18: flipPendingNum (was 0)
+     +0x1C: currentBuffer (was at +0x20)
+     +0x20: processTime (new)
+     +0x28: tscTime (new)
+   - Fix is ON by default; disable with SHARPEMU_DISABLE_FLIP_STATUS_FIX=1
+
+2. AcslpN1jHR8 stub re-added (GameCompatExports.cs):
+   - Was removed as "Harvest Days-specific" but Yatzi also calls it
+   - Returns 0 (success) with argument logging
+
+Test results:
+  Dreaming Sarah: 138 frames, 23 colors — no regression (title screen)
+  Yatzi: 2 frames, 1 color (black) — GetFlipStatus calls UP from 2 to 14
+  BUT: still 95 NULL execute faults, still only 1 draw, still black screen
+
+Root cause of remaining NULL faults:
+  8900+ NULL faults (rip=0x0) happen in a tight loop AFTER:
+    1. AcslpN1jHR8 stub returns 0
+    2. xk0AcarP3V4 (scePadOpen) returns DEVICE_NOT_CONNECTED
+    3. 1-LFLmRFxxM (sceKernelMkdir) returns PERMISSION_DENIED
+  The NULL faults are NOT from these NIDs — they're from Unity's
+  code trying to call a function pointer that was never resolved.
+  This is likely an IL2CPP internal function that depends on a
+  missing import or uninitialized state.
+
+  The NULL fault loop is the CURRENT blocker. Even with the FlipStatus
+  fix (which increased GetFlipStatus calls from 2 to 14), Unity's
+  main thread is stuck in the NULL fault loop and cannot advance to
+  issue more draw commands.
+
+Next steps:
+  - Need to identify which function pointer is NULL
+  - May need to trace the guest code at the NULL fault recovery point
+  - The rsp=0x6FFFF01FBA98/BA28 suggests a specific stack frame

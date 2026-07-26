@@ -177,6 +177,8 @@ public static class VideoOutExports
         public ulong VblankCount { get; set; }
         public ulong FlipCount { get; set; }
         public int CurrentBuffer { get; set; } = -1;
+        public ulong LastFlipArg { get; set; }
+        public long LastFlipTsc { get; set; }
         public uint OutputWidth { get; set; } = 1920;
         public uint OutputHeight { get; set; } = 1080;
         public uint RefreshRate { get; set; } = 60;
@@ -710,17 +712,43 @@ public static class VideoOutExports
 
         ulong count;
         uint currentBuffer;
+        ulong flipArg;
+        long flipTsc;
         lock (_stateGate)
         {
             count = port.FlipCount;
             currentBuffer = unchecked((uint)port.CurrentBuffer);
+            flipArg = port.LastFlipArg;
+            flipTsc = port.LastFlipTsc;
         }
 
-        KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x00, count);
-        KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x08, 0);
-        KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x10, 0);
-        KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x18, 0);
-        KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x20, currentBuffer);
+        if (_fixFlipStatusStruct)
+        {
+            // PS5 SDK SceVideoOutFlipStatus layout:
+            //   +0x00: flipArg (uint64_t) — the arg from SubmitFlip
+            //   +0x08: tsc (uint64_t) — GPU timestamp when flip completed
+            //   +0x10: currentWindow (SceVideoOutWindow, 8 bytes)
+            //   +0x18: flipPendingNum (uint32_t)
+            //   +0x1C: currentBuffer (uint32_t)
+            //   +0x20: processTime (uint64_t, optional)
+            //   +0x28: tscTime (uint64_t, optional)
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x00, flipArg);
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x08, unchecked((ulong)flipTsc));
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x10, 0); // currentWindow
+            ctx.TryWriteUInt32(statusAddress + 0x18, 0); // flipPendingNum
+            ctx.TryWriteUInt32(statusAddress + 0x1C, currentBuffer);
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x20, 0); // processTime
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x28, 0); // tscTime
+        }
+        else
+        {
+            // Legacy (broken) layout — kept for A/B comparison.
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x00, count);
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x08, 0);
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x10, 0);
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x18, 0);
+            KernelMemoryCompatExports.TryWriteUInt64Compat(ctx, statusAddress + 0x20, currentBuffer);
+        }
         return (int)OrbisGen2Result.ORBIS_GEN2_OK;
     }
 
@@ -1237,6 +1265,8 @@ public static class VideoOutExports
 
             port.CurrentBuffer = bufferIndex;
             port.FlipCount++;
+            port.LastFlipArg = unchecked((ulong)flipArg);
+            port.LastFlipTsc = System.Diagnostics.Stopwatch.GetTimestamp();
             eventHint = SceVideoOutInternalEventFlip |
                 ((unchecked((ulong)flipArg) & 0x0000_FFFF_FFFF_FFFFUL) << 16);
             flipEventCount = port.FlipEvents.Count;
@@ -2236,6 +2266,17 @@ public static class VideoOutExports
     // has been rendered to before fixing the present-path properly.
     private static readonly bool _diagForceAgcFlipGpuImage = string.Equals(
         Environment.GetEnvironmentVariable("SHARPEMU_DIAG_FORCE_AGC_FLIP_GPU_IMAGE"),
+        "1",
+        StringComparison.Ordinal);
+
+    // EXP-024 fix: correct the SceVideoOutFlipStatus struct layout.
+    // Before: +0x00=FlipCount (wrong, should be flipArg), +0x08=0 (should be tsc),
+    //         +0x20=currentBuffer (wrong offset, should be +0x1C)
+    // After:  +0x00=flipArg, +0x08=tsc, +0x10=currentWindow, +0x18=flipPendingNum,
+    //         +0x1C=currentBuffer
+    // Unity checks flipArg == flipDoneVal for frame completion.
+    private static readonly bool _fixFlipStatusStruct = !string.Equals(
+        Environment.GetEnvironmentVariable("SHARPEMU_DISABLE_FLIP_STATUS_FIX"),
         "1",
         StringComparison.Ordinal);
 
