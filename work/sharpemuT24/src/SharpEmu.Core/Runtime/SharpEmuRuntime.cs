@@ -522,6 +522,44 @@ public sealed class SharpEmuRuntime : ISharpEmuRuntime
             }
 
             var callbackAddress = imageBase + 0x13FB0B0UL; // Full function start (not 0x13FB2C9)
+
+            // F1: Read flag values before callback
+            Span<byte> flagBuf = stackalloc byte[8];
+            ulong flag1Addr = imageBase + 0x1E50D90UL; // EXECUTE_ONCE flag
+            ulong flag2Addr = imageBase + 0x1EED630UL; // global flag checked in callback
+            ulong flag1Val = 0, flag2Val = 0;
+            if (_virtualMemory.TryRead(flag1Addr, flagBuf))
+                flag1Val = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(flagBuf);
+            if (_virtualMemory.TryRead(flag2Addr, flagBuf))
+                flag2Val = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(flagBuf);
+            Console.Error.WriteLine(
+                $"[EXP-026-F1] Flag 0x{flag1Addr:X16} (EXECUTE_ONCE) = 0x{flag1Val:X16}");
+            Console.Error.WriteLine(
+                $"[EXP-026-F1] Flag 0x{flag2Addr:X16} (callback global) = 0x{flag2Val:X16}");
+
+            // F5: Reset flags to 0 before callback
+            Span<byte> zeroBuf = stackalloc byte[8];
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(zeroBuf, 0);
+            _virtualMemory.TryWrite(flag1Addr, zeroBuf);
+            _virtualMemory.TryWrite(flag2Addr, zeroBuf);
+            Console.Error.WriteLine(
+                $"[EXP-026-F5] Reset both flags to 0");
+
+            // F6: Set app0 base path for sceKernelLoadStartModule
+            // The callback formats "%s/Modules/Il2CppUserAssemblies.prx" using
+            // a global at 0x1EED638 (BSS, zero-initialized = NULL).
+            // Write "/app0" string to BSS and point the global to it.
+            var pathGlobalAddr = imageBase + 0x1EED638UL;
+            var pathStringAddr = imageBase + 0x1EED640UL; // BSS area after the global
+            var pathString = System.Text.Encoding.UTF8.GetBytes("/app0 ");
+            _virtualMemory.TryWrite(pathStringAddr, pathString);
+            Span<byte> ptrBuf = stackalloc byte[8];
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(ptrBuf, pathStringAddr);
+            _virtualMemory.TryWrite(pathGlobalAddr, ptrBuf);
+            Console.Error.WriteLine(
+                $"[EXP-026-F6] Set app0 path: global=0x{pathGlobalAddr:X16} " +
+                $"→ string at 0x{pathStringAddr:X16} = '/app0'");
+
             Console.Error.WriteLine(
                 $"[EXP-026] Calling IL2CPP init callback at 0x{callbackAddress:X16} " +
                 $"(imageBase=0x{imageBase:X16})");

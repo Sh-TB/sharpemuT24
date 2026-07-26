@@ -2440,3 +2440,54 @@ Result: __stack_chk_guard IS registered as HLE (SysAbiExport at line 1130).
   The EXECUTE_ONCE flag at 0x801E50D90 might be set by a previous call.
   OR: the setup function 0x8013E4160 sets the flag.
   Need to trace the EXECUTE_ONCE flag and the [rbp-0x158] check.
+
+---
+Task ID: EXP-026-F1-F6
+Agent: main (SharpEmu bringup)
+Task: Debug EXECUTE_ONCE mechanism and flag values.
+
+=== F1: Flag values before callback ===
+  EXECUTE_ONCE flag (0x801E50D90) = 0 (NOT set)
+  Callback global flag (0x801EED630) = 0 (NOT set)
+  Conclusion: "already initialized" hypothesis REJECTED — flags were 0.
+
+=== F2: Flag check disassembly ===
+  The callback checks [rbp-0x158] (LOCAL, set by setup function 0x8013E4160).
+  NOT a global flag. [rbp-0x158] is filled by the setup function's return struct.
+  The global at 0x801E50D90 is the EXECUTE_ONCE (std::call_once) flag.
+  The global at 0x801EED630 is checked at 0x8013FB12A (controls LoadStartModule args).
+
+=== F5: Flag reset ===
+  Reset both flags to 0 before callback. No effect (flags were already 0).
+
+=== F6: App0 path ===
+  Set "/app0" string at 0x801EED640, pointer at 0x801EED638.
+  No effect — callback still returns 1, 0 resolver calls.
+
+=== KEY DISCOVERY: EXECUTE_ONCE mechanism ===
+  The wrapper function (0x8013FB0B0) calls std::call_once (HLE in CxxAbiExports.cs).
+  std::call_once dispatches to 0x8007DEE60 (the REAL il2cpp init function).
+  0x8007DEE60 returned 0 (success) but did NOT call the resolver.
+  
+  0x8007DEE60 checks [0x801EEFD38] (BSS=0) → jumps to 0x8007DEF5A (init path).
+  The init path clears memory and does some setup, then returns 0.
+  It does NOT call the resolver PLT.
+  
+  The resolver calls are in the WRAPPER (0x8013FB0B0) at 0x8013FB25B.
+  The wrapper should continue after EXECUTE_ONCE returns, but it returns 1.
+  
+  Return value: setns(r14d) where r14d=0 → returns 1.
+  r14d is set by LoadStartModule (0x8013FB155) but LoadStartModule was never called.
+  
+  The wrapper reaches the epilogue (0x8013FCB7F) without calling LoadStartModule.
+  This suggests the function flow is interrupted between EXECUTE_ONCE return
+  and LoadStartModule call.
+
+=== NEXT STEP ===
+  Need to trace exactly what happens after EXECUTE_ONCE returns in the wrapper.
+  The wrapper should continue to format string → LoadStartModule → resolver calls.
+  But it returns 1 instead.
+  Possible causes:
+  1. The setup function (0x8013E4160) set [rbp-0x158] to a value that causes skip
+  2. EXECUTE_ONCE callback modified stack/r14 causing early return
+  3. An exception was thrown during EXECUTE_ONCE that unwound to epilogue
