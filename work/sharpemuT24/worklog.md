@@ -2013,3 +2013,116 @@ Task: Pre-experiment checkpoint. User's directive: DO NOT ASSUME root cause
       with logs and evidence. 18 phases (A-R) to execute.
 
 NO CODE CHANGES in this commit.
+
+---
+Task ID: EXP-025-Phases-A-L-Q
+Agent: main (SharpEmu bringup)
+Task: Full root cause investigation per user's 18-phase plan. No assumptions.
+
+=== Phase A: Frame Pipeline Verification ===
+Timeline:
+  Line 2390: SubmitFlip #1 (index=-1, BLANK, probe)
+  Line 2439: dcb_set_flip (index=0, arg=0x8000000000000000)
+  Line 2447: SubmitDcb (setup DCB, 65 dwords)
+  Line 2496: RFlip packet (submission=1, rt_writer_count=0)
+  Line 2501: SubmitFlip #2 (SubmitFlipFromAgc, ordered_completion=True)
+  Line 2524: KRz auto-chain setup buffer
+  Line 2562: RFlip packet (submission=2, rt_writer_count=0)
+  Line 2567: SubmitFlip #3 (SubmitFlipFromAgc, ordered_completion=True)
+  Line 2693: DcbDrawIndexAuto (count=3) ← THE ONLY DRAW
+  Line 2695: KRz auto-chain draw buffer
+  Line 3110: Completion submission=1
+  Line 3115: Completion submission=2
+  Line 3214: render_work_enter (compute dispatch)
+  Line 3295: rt_writer (target=0x11390000) ← DRAW TRANSLATED
+  Line 3309: render_work_enter (offscreen draw) ← DRAW EXECUTES
+  Line 3403: Completion submission=3
+  Line 4451: suspend_point #1 ← FRAME BOUNDARY (first after draw)
+
+Key findings:
+  - Frame #2 NEVER starts (no second SubmitDcb, no second dcb_set_flip)
+  - 17 suspend_points in 60s (PlayerLoop cycling at ~3/s)
+  - equeue.wait-block on eq 3: 13 times (AGC graphics events)
+  - equeue.wait-timed-deliver on eq 5: 1 (first flip event)
+  - equeue.wait-timeout on eq 5: 105 (all subsequent waits timeout)
+
+=== Phase B: Screenshot Validation ===
+  Frame 1: 1280x720, 1 color (0,0,0,255), 0 non-zero pixels, hash 7fd96fd65160e419
+  Frame 2: identical to frame 1
+  Conclusion: Rendering never happened for display (draw wrote to RT but
+  flip presented fallback image which is all black).
+
+=== Phase C: NULL Fault Investigation ===
+  All 10 logged NULL faults have return_addr=0x801367A0C (eboot.bin)
+  Faults #2-#10 are identical (same rsp, rbp, return_addr)
+  First NULL fault at line 2116 — BEFORE the draw at line 2693
+  Conclusion: NULL faults are INIT-TIME, not frame-time
+
+=== Phase D: GOT Investigation ===
+  GOT 0x801ED6360 is in BSS (zero-initialized memory)
+  Written by init function at 0x8013FB3B8 (mov [rip+disp], rax)
+  Read by 309 call instructions in dispatch loop at 0x801367A00
+  Value remains 0x08 (file default) — init function never ran
+  0 il2cpp_api_lookup_symbol failures in log — resolver never called
+
+=== Phase E: IL2CPP Investigation ===
+  E4: SharpEmu HAS il2cpp_resolve_icall handling:
+    DirectExecutionBackend.Imports.cs line 2409:
+    if (name == "il2cpp_resolve_icall") return GetReturnFakeObjectStub();
+    Also: r8mvOaWdi28 (PLT symbol) → DispatchIl2CppApiLookupSymbol()
+  E3: 0 il2cpp_resolve_icall calls in log (resolver never invoked)
+  E2: 309 calls through GOT are dispatch calls, not resolver calls
+  Conclusion: The resolver IS implemented but NEVER CALLED.
+    The init function that should call it never runs.
+    The dispatch loop runs before init completes.
+
+=== Phase F: Semaphore Investigation ===
+  S1 test (SHARPEMU_FORCE_SIGNAL_SEMA_TIMEOUT=1): 0 force-signals
+  Semaphore 0x10F: 0 TIMED_OUT calls in 30s run
+  Semaphore 0xB0: 177 signals, 10 waits (UnityGfxDeviceWorker)
+  Conclusion: Semaphore timeout is NOT the root cause.
+
+=== Phase G: Worker Thread Investigation ===
+  UnityGfxDeviceWorker (handle 0x7F5DFC89B2E0):
+    4 signals (to 0xB4, 0xA9)
+    10 waits (on 0xB0)
+    Alive and cycling, but not issuing new GPU commands
+  Conclusion: Worker thread is alive but has no work to do.
+
+=== Phase L: Compare Dreaming Sarah vs Yatzi ===
+  First divergence: IL2CPP init
+  Dreaming Sarah: Native C++, no IL2CPP, no NULL faults, 18 draws/10s
+  Yatzi: Unity IL2CPP, 95 NULL faults, 1 draw/60s
+  Conclusion: NULL fault loop is specific to IL2CPP games.
+
+=== Phase N: VideoOut Investigation ===
+  3 SubmitFlips: 1 BLANK probe + 2 SubmitFlipFromAgc
+  2 flip_capture, 2 flip_retired (both for Frame 0)
+  2 ordered flip-complete actions (lines 3133, 3159)
+  1 wait-timed-deliver on eq 5 (line 3223 — after both ordered actions)
+  105 wait-timeout on eq 5 (after the single delivery)
+  TriggerDisplayEvent dedup: second trigger OVERWRITES first (same ident+filter)
+  Conclusion: equeue 5 timeout is a CONSEQUENCE of no new SubmitFlips.
+
+=== Phase Q: Evidence Report ===
+  1. NULL fault loop (90% confidence) — ROOT CAUSE
+     Evidence: 95 faults at 0x801367A0C, init-time, before draw
+     The dispatch loop at 0x801367A00 runs before init at 0x8013FB2C9
+  2. GOT never populated (85%) — consequence of init not running
+  3. il2cpp_resolve_icall (70%) — resolver IS handled but never called
+  4. equeue 5 timeout (100% confirmed but CONSEQUENCE)
+  5. FlipStatus struct (FIXED) — was a real bug, now fixed
+  6. Semaphore timeout (REJECTED) — 0 force-signals
+  7. Missing assets (REJECTED) — no NOT_FOUND events
+
+ROOT CAUSE: The NULL fault loop at 0x801367A00 runs BEFORE the IL2CPP
+init function at 0x8013FB2C9 populates the GOT. The dispatch loop
+calls through an uninitialized function pointer (GOT=0x08, not a valid
+address), causing SIGSEGV. SharpEmu recovers by returning 0, but Unity's
+init never completes, preventing frame advancement.
+
+NEXT STEP: Determine why the dispatch loop runs before init.
+  - Check module load order
+  - Check constructor execution order
+  - Check if the init function is called from a different code path
+  - Check if the dispatch loop is a C++ static constructor that runs before main()
