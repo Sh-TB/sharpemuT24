@@ -1949,3 +1949,58 @@ NEXT STEP:
   The GOT address 0x801ED6360 was NOT found in JMPREL or RELA — this
   suggests the relocations for this address are in a different section
   or use a different relocation type that SharpEmu doesn't handle.
+
+---
+Task ID: EXP-024-ROOT-CAUSE
+Agent: main (SharpEmu bringup)
+Task: Deep EBOOT analysis — identify the exact root cause of NULL fault loop.
+
+ROOT CAUSE FOUND:
+
+The NULL fault loop at 0x801367A06 in eboot.bin is caused by an
+UNRESOLVED IL2CPP ICALL (internal call).
+
+The init function at 0x8013FB2C9-0x8013FB3FB resolves IL2CPP internal
+calls by name:
+  1. lea rdi, [rip + string_offset]  ; load function name string
+  2. call 0x8019374D0                 ; call resolver (PLT stub → external import)
+  3. mov [rip + got_offset], rax     ; store resolved pointer in GOT
+  4. test rax, rax                   ; check if NULL
+  5. jne continue                    ; if non-NULL, continue
+  6. xor eax, eax; call 0x800015310  ; if NULL, call abort/error
+
+The resolver function names found in the init sequence:
+  il2cpp_set_data_dir
+  il2cpp_set_temp_dir
+  il2cpp_set_commandline_arguments
+  il2cpp_set_commandline_arguments_utf16
+  il2cpp_set_config_utf16
+  il2cpp_set_config
+  il2cpp_set_memory_callbacks
+  il2cpp_get_corlib
+  il2cpp_add_internal_call
+  il2cpp_resolve_icall  ← THIS resolves the dispatch table
+
+The GOT entry at 0x801ED6360 stores the result of il2cpp_resolve_icall.
+When this returns NULL (icall not found), the GOT stays NULL.
+The 309 calls through this GOT are IL2CPP internal call dispatches.
+
+The resolver at 0x8019374D0 is a PLT stub (jmp [rip + 0x3e380a])
+that jumps to an external import. If SharpEmu doesn't resolve this
+import, it returns NULL, and all 309 icall dispatches fail.
+
+FIX DIRECTION:
+  The resolver function (likely il2cpp_resolve_icall or similar) needs
+  to be properly HLE'd. When called with a function name, it should:
+  1. Look up the name in a table of known IL2CPP icalls
+  2. Return the corresponding HLE function pointer
+  3. If not found, return a stub that logs the call and returns 0
+
+  The 0x08 value at the GOT entry is likely a partial write from
+  the init loop — the init function may have been interrupted by
+  the NULL fault recovery before completing all 3388 entries.
+
+This is the FIRST DIVERGENCE POINT:
+  PS5: il2cpp_resolve_icall returns valid function pointers
+  SharpEmu: il2cpp_resolve_icall returns NULL (not implemented)
+  Result: 309 icall dispatches fail, Unity stuck in init loop
