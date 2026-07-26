@@ -799,6 +799,15 @@ public sealed class SelfLoader : ISelfLoader
                     $"Failed to patch relocation at 0x{descriptor.TargetAddress:X16}: {writeError}");
             }
 
+            // EXP-026: Trace constructor table relocations
+            if (descriptor.TargetAddress >= 0x801D1C3B0UL && descriptor.TargetAddress <= 0x801D1C3E0UL)
+            {
+                Console.Error.WriteLine(
+                    $"[EXP-026] Constructor reloc: target=0x{descriptor.TargetAddress:X16} " +
+                    $"value=0x{targetValue:X16} addend=0x{descriptor.Addend:X} " +
+                    $"kind={descriptor.ValueKind} write={descriptor.WriteKind}");
+            }
+
             if (descriptor.TargetAddress >= 0x00000008030FC300UL &&
                 descriptor.TargetAddress <= 0x00000008030FC3F0UL)
             {
@@ -922,7 +931,22 @@ public sealed class SelfLoader : ISelfLoader
                 {
                     Console.Error.WriteLine("[LOADER][FOCUS][SKIP] target address not mapped");
                 }
+                // EXP-026: Trace skipped constructor table relocations
+                if (relocation.Offset >= 0x1D1C3B0 && relocation.Offset <= 0x1D1C3E0)
+                {
+                    Console.Error.WriteLine(
+                        $"[EXP-026] SKIPPED reloc: offset=0x{relocation.Offset:X} type={relocation.Type} " +
+                        $"addend=0x{relocation.Addend:X} — target address not mapped");
+                }
                 continue;
+            }
+
+            // EXP-026: Trace constructor table relocations during scan
+            if (relocation.Offset >= 0x1D1C3B0 && relocation.Offset <= 0x1D1C3E0)
+            {
+                Console.Error.WriteLine(
+                    $"[EXP-026] Found reloc: offset=0x{relocation.Offset:X} type={relocation.Type} " +
+                    $"addend=0x{relocation.Addend:X} target=0x{targetAddress:X16}");
             }
 
             if (relocation.Type is RelocationTypeRelative or RelocationTypeRelative64)

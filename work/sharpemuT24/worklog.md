@@ -2126,3 +2126,80 @@ NEXT STEP: Determine why the dispatch loop runs before init.
   - Check constructor execution order
   - Check if the init function is called from a different code path
   - Check if the dispatch loop is a C++ static constructor that runs before main()
+
+---
+Task ID: EXP-026-ROOT-CAUSE-CONFIRMED
+Agent: main (SharpEmu bringup)
+Task: Full autonomous investigation per user's EXP-026 directive.
+
+=== ROOT CAUSE FOUND AND PROVEN ===
+
+PROBLEM: il2cpp_init is HLE'd to return 0 (fake success) without
+running the real initialization code in eboot.bin.
+
+FILE: src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.Imports.cs:2411
+  if (name == "il2cpp_init" || name == "il2cpp_shutdown") return 0;
+
+EVIDENCE CHAIN:
+1. il2cpp_init returns 0 without executing → real init at 0x8013FB2C9 never runs
+2. Init function resolves icalls via r8mvOaWdi28 (DispatchIl2CppApiLookupSymbol)
+3. 0 il2cpp_api_lookup_symbol calls in log → init never called
+4. icall GOT entries at 0x801ED6350-0x801ED6360 stay NULL (BSS default)
+5. Code at 0x8013ECC3F calls through GOT [0x801ED6350] → NULL → SIGSEGV
+6. Dispatch loop at 0x801367A06 calls through GOT [0x801ED6360] → NULL → SIGSEGV
+7. 95 NULL fault recoveries → init incomplete → main thread stuck
+8. No new SubmitDcb, no new SubmitFlip → equeue 5 timeouts (105)
+9. Frame #2 never starts → Yatzi black screen
+
+COMPLETE TIMELINE:
+  Process start
+  → ELF loader (eboot.bin)
+  → RELA relocations applied (47478 entries for data segment) ✓
+  → Constructor table populated (5 entries at 0x1D1C3B0-0x1D1C3D0) ✓
+  → DT_INIT constructor loop runs 5 constructors ✓
+  → Constructors initialize static data (NOT icall resolution)
+  → Main function starts
+  → il2cpp_init called → HLE returns 0 ← DIVERGENCE POINT
+  → Real il2cpp_init (0x8013FB2C9) NEVER RUNS
+  → icall GOT entries stay NULL
+  → IL2CPP metadata loading code calls through NULL GOT
+  → 95 NULL faults (SIGSEGV at rip=0x0)
+  → Recovery: return 0 stub → init incomplete
+  → Partial IL2CPP state → PlayerLoop starts but can't build frames
+  → 1 draw (Frame 0/1) → 3 SubmitFlips → 1 flip event delivered
+  → Frame #2 never starts (equeue 5 timeout × 105)
+  → Yatzi black screen
+
+FIRST DIVERGENCE: il2cpp_init HLE returns 0 instead of running real init
+
+FIX RECOMMENDATION:
+  Remove the HLE stub for il2cpp_init and let the real il2cpp_init
+  function in eboot.bin execute. This will:
+  1. Call il2cpp_resolve_icall (r8mvOaWdi28 → DispatchIl2CppApiLookupSymbol)
+  2. Populate icall GOT entries with resolved function pointers
+  3. Load IL2CPP metadata
+  4. Register types and methods
+  5. Set initialization flags
+  
+  The real il2cpp_init is at the PLT stub for il2cpp_init's NID.
+  Currently, SharpEmu intercepts it and returns 0.
+  Instead, it should let the call pass through to the real function
+  in eboot.bin (or Il2cppUserAssemblies.prx).
+
+DISPROVEN HYPOTHESES:
+  - il2cpp_resolve_icall not implemented → DISPROVEN (it IS implemented)
+  - RELRO relocation bug → DISPROVEN (relocations applied correctly)
+  - Constructor table empty → DISPROVEN (5 entries, all populated)
+  - Semaphore timeout → DISPROVEN (S1: 0 force-signals)
+  - Missing assets → DISPROVEN (no NOT_FOUND)
+  - FlipStatus struct → FIXED (was real bug, now corrected)
+  - equeue 5 dedup → CONSEQUENCE (not root cause)
+  - Module load order → NOT THE ISSUE (constructors run correctly)
+
+REMAINING UNCERTAINTY:
+  Whether removing the il2cpp_init HLE stub will work directly, or
+  whether the real il2cpp_init depends on other HLE'd functions that
+  also need to pass through. The init function calls il2cpp_resolve_icall
+  which IS handled by SharpEmu (DispatchIl2CppApiLookupSymbol), so
+  the icall resolution should work. But metadata loading might need
+  additional HLE support.
