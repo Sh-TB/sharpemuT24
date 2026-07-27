@@ -204,6 +204,12 @@ public static class CxaGuardExports
         Console.Error.WriteLine(
             $"[EXECUTE_ONCE] flag=0x{onceAddress:X16} callback=0x{callbackAddress:X16} " +
             $"arg=0x{argAddress:X16} current_value={onceValue} thread=0x{GuestThreadExecution.CurrentGuestThreadHandle:X16}");
+        // G2/G3: Log caller's callee-saved registers before call_once
+        Console.Error.WriteLine(
+            $"[EXECUTE_ONCE-G2] BEFORE: RAX=0x{ctx[CpuRegister.Rax]:X16} RBX=0x{ctx[CpuRegister.Rbx]:X16} " +
+            $"R12=0x{ctx[CpuRegister.R12]:X16} R13=0x{ctx[CpuRegister.R13]:X16} " +
+            $"R14=0x{ctx[CpuRegister.R14]:X16} R15=0x{ctx[CpuRegister.R15]:X16} " +
+            $"RBP=0x{ctx[CpuRegister.Rbp]:X16} RSP=0x{ctx[CpuRegister.Rsp]:X16}");
 
         // Try to call the guest callback via the scheduler
         var scheduler = GuestThreadExecution.Scheduler;
@@ -228,6 +234,12 @@ public static class CxaGuardExports
             {
                 Console.Error.WriteLine(
                     $"[EXECUTE_ONCE] callback returned {returnValue} error='{error}'");
+                // G2/G3: Log caller's registers AFTER call_once callback
+                Console.Error.WriteLine(
+                    $"[EXECUTE_ONCE-G2] AFTER: RAX=0x{ctx[CpuRegister.Rax]:X16} RBX=0x{ctx[CpuRegister.Rbx]:X16} " +
+                    $"R12=0x{ctx[CpuRegister.R12]:X16} R13=0x{ctx[CpuRegister.R13]:X16} " +
+                    $"R14=0x{ctx[CpuRegister.R14]:X16} R15=0x{ctx[CpuRegister.R15]:X16} " +
+                    $"RBP=0x{ctx[CpuRegister.Rbp]:X16} RSP=0x{ctx[CpuRegister.Rsp]:X16}");
 
                 if (false) // Accept any return value — callback executed
                 {

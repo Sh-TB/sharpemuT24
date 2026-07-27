@@ -2491,3 +2491,53 @@ Task: Debug EXECUTE_ONCE mechanism and flag values.
   1. The setup function (0x8013E4160) set [rbp-0x158] to a value that causes skip
   2. EXECUTE_ONCE callback modified stack/r14 causing early return
   3. An exception was thrown during EXECUTE_ONCE that unwound to epilogue
+
+---
+Task ID: EXP-026-G2-G6
+Agent: main (SharpEmu bringup)
+Task: Debug wrapper flow after call_once returns.
+
+=== G2/G3: Register trace before/after call_once ===
+  BEFORE: R14=0x0, R12=0x6FFE00000028 (TLS canary), RBP=0x6FFFF01FFD80
+  AFTER: R14=0x0 (UNCHANGED), all callee-saved registers IDENTICAL
+  Conclusion: call_once does NOT corrupt registers. R14 was 0 BEFORE call_once.
+
+=== G6: HLE std::call_once register preservation ===
+  TryCallGuestFunction creates a NEW CpuContext (does NOT share callee-saved).
+  ExecuteOnly sets ctx[Rax]=0 after callback. Does NOT modify R14/RBX/R12/etc.
+  Conclusion: HLE call_once preserves callee-saved registers correctly.
+
+=== G4: LoadStartModule hit? ===
+  NOT HIT. The wrapper returned 1 without calling LoadStartModule.
+  No crashes, no posix-signals, no UNMAPPED faults during callback.
+  The function returned cleanly with value 1.
+
+=== G5: Setup function analysis ===
+  Setup function (0x8013E4160) does NOT call call_once directly.
+  call_once is called from a NESTED function (possibly 0x8007E2280).
+  The setup function has 8 calls, none to the ExecuteOnce PLT.
+
+=== KEY FINDING: Wrapper has ~200 resolver calls ===
+  The wrapper function (0x8013FB0B0 to 0x8013FCBA4) contains ~200 calls
+  to 0x8019374D0 (r8mvOaWdi28 = il2cpp_api_lookup_symbol).
+  NOT 54 as previously thought — the earlier disassembly only covered
+  the first 2048 bytes of a 6896-byte function.
+
+=== CURRENT BLOCKER ===
+  The wrapper returns 1 = setns(r14d=0) because LoadStartModule was never called.
+  r14d is only set at 0x8013FB155 (after LoadStartModule returns).
+  The wrapper should ALWAYS reach LoadStartModule at 0x8013FB150.
+  But it returns 1 without reaching it.
+  
+  No crashes, no register corruption, no flag issues.
+  The function simply returns 1 before reaching LoadStartModule.
+  
+  The most likely cause: the setup function (0x8013E4160) or a nested
+  function it calls (like 0x8007E2280) causes the wrapper to unwind
+  to the epilogue without going through LoadStartModule.
+  
+  This could be:
+  1. A C++ exception thrown during setup
+  2. A longjmp during setup
+  3. The HLE call_once dispatch mechanism causing stack unwinding
+  4. The setup function modifying the return address on the stack
