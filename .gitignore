@@ -1,0 +1,112 @@
+# ==============================================================================
+# SharpEmu repo root .gitignore
+# ==============================================================================
+# The git working tree is the entire /home/z/my-project/ workspace, but only
+# the actual SharpEmu source (under work/sharpemuT24/) should be shipped.
+# Everything else (agent skills, runtime uploads, build caches, IDE state,
+# OS junk) is workspace-local and must NOT be committed.
+# ==============================================================================
+
+# -----------------------------------------------------------------------------
+# Workspace-local directories (NOT part of SharpEmu source)
+# -----------------------------------------------------------------------------
+# Claude/Z.ai agent skill definitions — workspace tooling, not emulator code
+skills/
+
+# User-facing command shell scripts — local helper wrappers, not part of repo
+commands/
+
+# Game uploads (ROMs, eboot.bin, RARs) — never commit game data
+upload/
+
+# Generated deliverables (reports, images, dumps) — regenerable outputs
+download/
+
+# Runtime logs and crash dumps
+logs/
+SharpEmu/diagnostics/
+work/sharpemuT24/logs/
+
+# Build cache for compiled SharpEmu binary
+work/sharpemu-build/
+
+# .NET build output (the big bloat — DLLs, .so, executables)
+work/sharpemuT24/artifacts/
+work/sharpemuT24/.packages/
+work/sharpemuT24/localnuget/
+**/bin/
+**/obj/
+[Bb]in/
+[Oo]bj/
+
+# Generated symbol tables (11 MB, fetched by scripts at build time)
+work/sharpemuT24/scripts/ps5_names.txt
+
+# -----------------------------------------------------------------------------
+# Binary / archive patterns (anywhere in the tree)
+# -----------------------------------------------------------------------------
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.nupkg
+*.snupkg
+*.deb
+*.rpm
+*.dmg
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.pdb
+*.bin
+*.prx
+*.sprx
+*.self
+*.pkg
+*.pup
+*.ppm
+*.bmp
+*.dmp
+*.crash
+
+# Single-file host bundles
+singlefilehost
+singlefilehost.exe
+
+# -----------------------------------------------------------------------------
+# Logs / temp / editor state
+# -----------------------------------------------------------------------------
+*.log
+*.tmp
+*.bak
+*.orig
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# -----------------------------------------------------------------------------
+# Secrets
+# -----------------------------------------------------------------------------
+.env
+.env.local
+*.key
+*.pem
+secrets.json
+
+# -----------------------------------------------------------------------------
+# License / build files (already in work/sharpemuT24/)
+# -----------------------------------------------------------------------------
+SharpEmu
+LICENSE.txt
+libglfw*
