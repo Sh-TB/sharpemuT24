@@ -34,8 +34,24 @@ public static class GameCompatExports
     [SysAbiExport(Nid = "-pnj3-7a6QA", ExportName = "unity_mono_set_user_malloc_mutex", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libunity")]
     public static int UnityMonoSetUserMallocMutex(CpuContext ctx)
     {
+        // G3: Dump PRX GOT slot for strcmp
+        try
+        {
+            const ulong strcmpGotSlot = 0x808924090;
+            if (ctx.TryReadUInt64(strcmpGotSlot, out var gotValue))
+            {
+                Console.Error.WriteLine($"[G3-GOT] strcmp GOT slot at 0x{strcmpGotSlot:x} = 0x{gotValue:x}");
+            }
+            else
+            {
+                Console.Error.WriteLine($"[G3-GOT] FAILED to read strcmp GOT slot at 0x{strcmpGotSlot:x}");
+            }
+        }
+        catch { }
+        
         ResolverTraceInstrumentation.ComparePostWrapper(ctx);
         FlagWatchInstrumentation.DumpResolverNodes(ctx, "post-wrapper (Import#2084)");
+        IndependentBSTWalker.DumpFullBST(ctx, "post-wrapper (Import#2084)");
         return ctx.SetReturn(0);
     }
 

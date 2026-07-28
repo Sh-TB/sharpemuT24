@@ -485,6 +485,9 @@ public static partial class KernelMemoryCompatExports
         return (int)OrbisGen2Result.ORBIS_GEN2_OK;
     }
 
+    private static long _strcmpCallCount;
+    private static long _strcmpFailCount;
+
     [SysAbiExport(
         Nid = "Ovb2dSJOAuE",
         ExportName = "strcmp",
@@ -494,9 +497,51 @@ public static partial class KernelMemoryCompatExports
     {
         var left = ctx[CpuRegister.Rdi];
         var right = ctx[CpuRegister.Rsi];
+        var callNum = System.Threading.Interlocked.Increment(ref _strcmpCallCount);
+        
         if (!TryCompareStrings(ctx, left, right, limit: ulong.MaxValue, out var compare))
         {
+            System.Threading.Interlocked.Increment(ref _strcmpFailCount);
+            // Read a few bytes from each address for diagnosis
+            string leftHex = "<unreadable>";
+            string rightHex = "<unreadable>";
+            try
+            {
+                var lb = new byte[16];
+                int ll = 0;
+                for (int i = 0; i < 16; i++)
+                {
+                    byte b;
+                    if (!ctx.TryReadByte(left + (ulong)i, out b)) break;
+                    if (b == 0) break;
+                    lb[i] = b; ll++;
+                }
+                if (ll > 0) leftHex = System.Text.Encoding.ASCII.GetString(lb, 0, ll);
+            } catch { }
+            try
+            {
+                var rb = new byte[16];
+                int rl = 0;
+                for (int i = 0; i < 16; i++)
+                {
+                    byte b;
+                    if (!ctx.TryReadByte(right + (ulong)i, out b)) break;
+                    if (b == 0) break;
+                    rb[i] = b; rl++;
+                }
+                if (rl > 0) rightHex = System.Text.Encoding.ASCII.GetString(rb, 0, rl);
+            } catch { }
+            
+            Console.Error.WriteLine(
+                $"[STRCMP-TRACE] #{callNum} FAIL: left=0x{left:X16} right=0x{right:X16} " +
+                $"left_str='{leftHex}' right_str='{rightHex}' → MEMORY_FAULT");
             return (int)OrbisGen2Result.ORBIS_GEN2_ERROR_MEMORY_FAULT;
+        }
+
+        if (callNum <= 500 || callNum % 100 == 0)
+        {
+            Console.Error.WriteLine(
+                $"[STRCMP-TRACE] #{callNum} OK: left=0x{left:X16} right=0x{right:X16} cmp={compare}");
         }
 
         ctx[CpuRegister.Rax] = unchecked((ulong)compare);
