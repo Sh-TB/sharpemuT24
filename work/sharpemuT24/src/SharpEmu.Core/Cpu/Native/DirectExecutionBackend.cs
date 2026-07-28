@@ -1552,7 +1552,10 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
 
         private static bool IsHlePreferredNid(string nid)
         {
-                return string.Equals(nid, "QrZZdJ8XsX0", StringComparison.Ordinal);
+                // Temporarily re-adding r8mvOaWdi28 to HLE preferred for L1-TRACE logging.
+                // The HLE handler calls the REAL resolver via TryCallGuestFunction.
+                return string.Equals(nid, "QrZZdJ8XsX0", StringComparison.Ordinal) ||
+                       string.Equals(nid, "r8mvOaWdi28", StringComparison.Ordinal);
         }
 
         private static bool IsLibcLibrary(string libraryName)

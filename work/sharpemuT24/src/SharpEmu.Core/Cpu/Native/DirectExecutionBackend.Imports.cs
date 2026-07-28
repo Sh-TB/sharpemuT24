@@ -309,6 +309,14 @@ public sealed partial class DirectExecutionBackend
                 ulong value8 = cpuContext[CpuRegister.R15];
                 ulong num7 = *(ulong*)(argPackPtr + 96);
                 var importStackPointer = (ulong)argPackPtr + 96;
+
+                // FLAG-WATCH: Poll [rbx+0x19] at every import dispatch
+                try
+                {
+                    SharpEmu.Libs.Kernel.FlagWatchInstrumentation.PollAtImport(cpuContext, importStubEntry.Nid, num7);
+                }
+                catch { }
+
                 var probeTarget = (_probeImportReturnAddress != 0 && num7 == _probeImportReturnAddress) ||
                         (string.Equals(importStubEntry.Nid, "2Z+PpY6CaJg", StringComparison.Ordinal) &&
                          importStackPointer >= 0x00006FFFAC1FF000UL &&
@@ -2235,6 +2243,12 @@ public sealed partial class DirectExecutionBackend
                 return alias != null && TryResolveRuntimeSymbolAddress(alias, out address);
         }
 
+        // INSTRUMENTATION: Resolver call counter and logger
+        private static long _resolverCallCount;
+        private static long _resolverReturnZero;
+        private static long _resolverReturnNonZero;
+        private const ulong RealResolverAddress = 0x804ED9B90;
+
         private OrbisGen2Result DispatchIl2CppApiLookupSymbol()
         {
                 var cpuContext = ActiveCpuContext;
@@ -2243,33 +2257,172 @@ public sealed partial class DirectExecutionBackend
                         return OrbisGen2Result.ORBIS_GEN2_ERROR_INVALID_ARGUMENT;
                 }
 
+                // Read the symbol name from RDI (the only argument the wrapper passes)
                 var symbolNameAddress = cpuContext[CpuRegister.Rdi];
-                var outputAddress = cpuContext[CpuRegister.Rsi];
-                if (!TryReadAsciiZ(symbolNameAddress, 512, out var symbolName) ||
-                        !TryResolveIl2CppApiAddress(symbolName, out var resolvedAddress))
-                {
-                        Console.Error.WriteLine(
-                                $"[LOADER][WARN] il2cpp_api_lookup_symbol failed: name='{symbolName}' out=0x{outputAddress:X16}");
-                        // EXP-026: Only write to outputAddress if it's a valid guest address.
-                        // The init callback at 0x8013FB2C9 doesn't set rsi, so outputAddress
-                        // may be garbage. Writing to garbage corrupts the stack canary.
-                        if (outputAddress != 0 && outputAddress < 0x800000000000UL)
-                        {
-                                _ = TryWriteUInt64Compat(outputAddress, 0);
-                        }
+                var returnAddress = cpuContext[CpuRegister.Rsp] != 0
+                        ? TryReadStackU64(cpuContext[CpuRegister.Rsp], out var retAddr) ? retAddr : 0
+                        : 0;
 
-                        cpuContext[CpuRegister.Rax] = ulong.MaxValue;
+                string symbolName = "<unreadable>";
+                try { TryReadAsciiZ(symbolNameAddress, 512, out symbolName); } catch { }
+
+                long callNum = Interlocked.Increment(ref _resolverCallCount);
+
+                // Log entry
+                Console.Error.WriteLine(
+                        $"[RESOLVER-TRACE] Entry #{callNum}: rdi=0x{symbolNameAddress:X16} name='{symbolName}' ret=0x{returnAddress:X16}");
+
+                // L1-TRACE: Full BST walk for first 3 resolver calls
+                try
+                {
+                    ulong listHeadPtrAddr = 0x808B53708;
+                    if (callNum <= 3 && cpuContext.TryReadUInt64(listHeadPtrAddr, out var listHeadStruct))
+                    {
+                        if (cpuContext.TryReadUInt64(listHeadStruct + 8, out var rootNode))
+                        {
+                            Console.Error.WriteLine($"[L1-TRACE] === FULL BST WALK for query '{symbolName}' (call #{callNum}) ===");
+                            
+                            // Walk the BST following the SAME logic as the resolver
+                            ulong currentNode = rootNode;
+                            ulong r12 = listHeadStruct; // r12 starts as r15 (struct ptr)
+                            int level = 0;
+                            
+                            while (level < 20) // max 20 levels
+                            {
+                                byte flag = 0;
+                                cpuContext.TryReadByte(currentNode + 0x19, out flag);
+                                
+                                if (flag != 0)
+                                {
+                                    Console.Error.WriteLine($"[L1-TRACE]   Level {level}: 0x{currentNode:x} = SENTINEL (flag=1) → exit loop");
+                                    break;
+                                }
+                                
+                                // Read node's symbol name
+                                ulong symPtr = 0;
+                                cpuContext.TryReadUInt64(currentNode + 0x20, out symPtr);
+                                string nodeSym = "<null>";
+                                if (symPtr != 0)
+                                {
+                                    var nb = new byte[128]; int nl = 0;
+                                    for (int i = 0; i < 128; i++)
+                                    {
+                                        byte b; if (!cpuContext.TryReadByte(symPtr + (ulong)i, out b)) break;
+                                        if (b == 0) break; nb[i] = b; nl++;
+                                    }
+                                    if (nl > 0) nodeSym = System.Text.Encoding.ASCII.GetString(nb, 0, nl);
+                                }
+                                
+                                // Read left and right children
+                                ulong rightChild = 0, leftChild = 0;
+                                cpuContext.TryReadUInt64(currentNode, out rightChild);
+                                cpuContext.TryReadUInt64(currentNode + 0x10, out leftChild);
+                                
+                                // Simulate strcmp
+                                int cmp = string.CompareOrdinal(symbolName, nodeSym);
+                                string direction = cmp < 0 ? "LEFT" : "RIGHT (candidate)";
+                                
+                                Console.Error.WriteLine(
+                                    $"[L1-TRACE]   Level {level}: 0x{currentNode:x} sym='{nodeSym}' " +
+                                    $"left=0x{leftChild:x} right=0x{rightChild:x} " +
+                                    $"strcmp('{symbolName}','{nodeSym}')={cmp} → go {direction}");
+                                
+                                if (cmp >= 0)
+                                    r12 = currentNode; // track candidate
+                                
+                                // Follow the same path as resolver
+                                if (cmp < 0)
+                                    currentNode = leftChild;
+                                else
+                                    currentNode = rightChild;
+                                
+                                level++;
+                            }
+                            
+                            // After loop: check candidate
+                            if (r12 != listHeadStruct)
+                            {
+                                ulong candSymPtr = 0;
+                                cpuContext.TryReadUInt64(r12 + 0x20, out candSymPtr);
+                                string candSym = "<null>";
+                                if (candSymPtr != 0)
+                                {
+                                    var nb = new byte[128]; int nl = 0;
+                                    for (int i = 0; i < 128; i++)
+                                    {
+                                        byte b; if (!cpuContext.TryReadByte(candSymPtr + (ulong)i, out b)) break;
+                                        if (b == 0) break; nb[i] = b; nl++;
+                                    }
+                                    if (nl > 0) candSym = System.Text.Encoding.ASCII.GetString(nb, 0, nl);
+                                }
+                                ulong funcPtr = 0;
+                                cpuContext.TryReadUInt64(r12 + 0x28, out funcPtr);
+                                
+                                int finalCmp = string.CompareOrdinal(symbolName, candSym);
+                                Console.Error.WriteLine(
+                                    $"[L1-TRACE]   Candidate: 0x{r12:x} sym='{candSym}' " +
+                                    $"func_ptr=0x{funcPtr:x} final_strcmp={finalCmp} " +
+                                    $"→ {(finalCmp == 0 ? "MATCH! Return func_ptr" : "NO MATCH → return 0")}");
+                            }
+                            else
+                            {
+                                Console.Error.WriteLine($"[L1-TRACE]   No candidate found (r12 == r15) → return 0");
+                            }
+                            Console.Error.WriteLine($"[L1-TRACE] === BST WALK COMPLETE ===");
+                        }
+                    }
+                }
+                catch { }
+
+                // Call the REAL resolver at 0x804ED9B90 via TryCallGuestFunction
+                // This preserves behavior — the real resolver runs and returns in RAX
+                var scheduler = GuestThreadExecution.Scheduler;
+                if (scheduler != null)
+                {
+                        try
+                        {
+                                scheduler.TryCallGuestFunction(
+                                        cpuContext,
+                                        RealResolverAddress,
+                                        symbolNameAddress,  // arg0: RDI = symbol name
+                                        0,                  // arg1: RSI (not used by resolver)
+                                        0,                  // arg2
+                                        0,                  // stackAddress
+                                        0,                  // stackSize
+                                        "r8mvOaWdi28_resolver",
+                                        out var returnValue,
+                                        out var error);
+
+                                // Log exit
+                                if (returnValue == 0)
+                                {
+                                    Interlocked.Increment(ref _resolverReturnZero);
+                                    Console.Error.WriteLine(
+                                        $"[RESOLVER-TRACE] Exit  #{callNum}: RAX=0x{returnValue:X16} (NULL) error='{error}'");
+                                }
+                                else
+                                {
+                                    Interlocked.Increment(ref _resolverReturnNonZero);
+                                    Console.Error.WriteLine(
+                                        $"[RESOLVER-TRACE] Exit  #{callNum}: RAX=0x{returnValue:X16} (non-zero) error='{error}'");
+                                }
+
+                                cpuContext[CpuRegister.Rax] = (ulong)returnValue;
+                                return OrbisGen2Result.ORBIS_GEN2_OK;
+                        }
+                        catch (Exception ex)
+                        {
+                                Console.Error.WriteLine($"[RESOLVER-TRACE] ERROR #{callNum}: {ex.Message}");
+                                cpuContext[CpuRegister.Rax] = 0;
+                                return OrbisGen2Result.ORBIS_GEN2_OK;
+                        }
+                }
+                else
+                {
+                        Console.Error.WriteLine($"[RESOLVER-TRACE] Entry #{callNum}: NO SCHEDULER — returning 0");
+                        cpuContext[CpuRegister.Rax] = 0;
                         return OrbisGen2Result.ORBIS_GEN2_OK;
                 }
-
-                // EXP-026: Only write to outputAddress if it's a valid guest address.
-                if (outputAddress != 0 && outputAddress < 0x800000000000UL)
-                {
-                        _ = TryWriteUInt64Compat(outputAddress, resolvedAddress);
-                }
-
-                cpuContext[CpuRegister.Rax] = resolvedAddress;
-                return OrbisGen2Result.ORBIS_GEN2_OK;
         }
 
         private bool TryResolveIl2CppApiAddress(string symbolName, out ulong address)
@@ -2290,22 +2443,8 @@ public sealed partial class DirectExecutionBackend
                 // virtual call on a fake object safely returns 0. Per-function stubs return the
                 // appropriate non-NULL pointer (domain/thread/class/image/assembly) so games
                 // don't crash on NULL dispatch.
-                //
-                // EXP-026: When SHARPEMU_REAL_IL2CPP_INIT=1, skip the fake stub for
-                // il2cpp_init and il2cpp_shutdown so the real function in eboot.bin runs.
-                // This allows the real IL2CPP init to resolve icalls, populate GOT entries,
-                // and load metadata — fixing the NULL fault loop that prevents frame advancement.
                 if (!string.IsNullOrEmpty(symbolName) && symbolName.StartsWith("il2cpp_", StringComparison.Ordinal))
                 {
-                        if (_realIl2CppInit && symbolName is "il2cpp_init" or "il2cpp_shutdown")
-                        {
-                                Console.Error.WriteLine(
-                                        $"[EXP-026] Skipping fake stub for '{symbolName}' — " +
-                                        "letting real function run");
-                                address = 0;
-                                return false;
-                        }
-
                         var stub = GetIl2CppStubForFunction(symbolName);
                         if (stub == 0) return false;
                         address = stub;
@@ -2329,11 +2468,6 @@ public sealed partial class DirectExecutionBackend
         //   0x1700 - 0x17FF : fake Il2CppType
         //   0x2000 - 0xFFFF : per-function stub space (16 bytes each, 3584 stubs max)
         private ulong _il2cppHeap;
-
-        // EXP-026: When true, skip the fake HLE stub for il2cpp_init/shutdown
-        // and let the real function in eboot.bin execute.
-        private static readonly bool _realIl2CppInit =
-                string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_REAL_IL2CPP_INIT"), "1", StringComparison.Ordinal);
         private const ulong Il2CppHeapSize = 0x10000;
         private const ulong Il2CppVtableBase = 0x0000;
         private const ulong Il2CppReturnZeroStubOffset = 0x1000;
@@ -2438,10 +2572,7 @@ public sealed partial class DirectExecutionBackend
                 if (name.Contains("get_") || name.Contains("_from_") || name.Contains("_new") ||
                     name.Contains("_alloc") || name.Contains("_open") || name.Contains("_create"))
                         return _il2cppHeap + Il2CppObjectOffset;
-                // EXP-026: Return a non-NULL stub for ALL remaining il2cpp_* functions.
-                // Previously returned 0 (NULL), causing the init callback to abort.
-                // The return-zero stub is safe — it just returns 0 when called.
-                return _il2cppHeap + Il2CppReturnZeroStubOffset;
+                return 0;
         }
 
         private OrbisGen2Result DispatchBootstrapBridge()
