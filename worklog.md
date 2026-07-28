@@ -839,3 +839,45 @@ Stage Summary:
 - ✅ Evidence: MEMORY_FAULT is negative → BST insertion always goes LEFT
 - ✅ Evidence: Native intrinsic is correct but NOT applied to PRX
 - Next: Apply native intrinsic for PRX's strcmp imports
+
+---
+Task ID: EXP-026-G3-STRCMP-TRACE
+Agent: main (SharpEmu bringup)
+Task: Trace strcmp calls during register_symbols to verify root cause.
+
+Work Log:
+- Added STRCMP-TRACE logging to HLE strcmp (KernelMemoryCompatExports.cs)
+- Result: 0 STRCMP-TRACE lines — HLE strcmp is NOT being called!
+- Added G3-GOT dump to read strcmp GOT slot at runtime
+- Result: GOT slot = 0x6ffffd0005c0 (import stub address)
+- But: SetupImportStubs processes 3652 imports (ALL modules including PRXs)
+- SetupImportStubs applies native intrinsics SILENTLY (no log)
+- The PRX's strcmp PLT was overwritten with native intrinsic by SetupImportStubs
+- strcmp IS working correctly (native intrinsic, not HLE)
+
+- Re-examined BST sorting violations (238/239)
+- Previous hypothesis (TryRead fails for PRX data) is WRONG
+- strcmp works correctly, but BST is still unsorted
+
+- Examined helper function 0x804EDACD0 (tree restructuring)
+- NOT a simple BST insert — appears to be treap/splay tree
+- Uses counter at [rsi+0x10], max size check, tree linking with rotations
+- Standard BST invariant does NOT apply to treap/splay trees
+
+- But resolver uses standard BST search (cmovns direction)
+- If tree is treap/splay, BST invariant should still hold for search
+- 238 violations means the tree IS invalid, not just non-standard
+
+ROOT CAUSE (UPDATED):
+The BST insertion helper (0x804EDACD0) produces an invalid tree structure.
+strcmp IS working correctly (native intrinsic).
+The tree has all 239 nodes but 238 sorting violations.
+The helper function's tree restructuring logic is NOT working correctly in SharpEmu.
+Possible causes: memory layout differences, missing CPU features, or execution context issues.
+
+Stage Summary:
+- ✅ strcmp works correctly (native intrinsic, NOT HLE)
+- ✅ BST has 239 nodes, 0 cycles, all symbols present
+- ❌ BST has 238 sorting violations (tree is invalid)
+- ❌ Resolver returns 0 for all 232 queries (can't find symbols in invalid tree)
+- Next: Trace helper function 0x804EDACD0 execution to find tree corruption point
