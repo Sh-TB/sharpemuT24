@@ -783,3 +783,59 @@ Stage Summary:
 - ⚠️ Yatzi game files (/tmp/games/yatzi) NOT preserved across session
   reset. Some tests may need to rely on existing log analysis rather
   than fresh runs.
+
+---
+Task ID: EXP-026-TEST1-HLE-REMOVAL
+Agent: main (SharpEmu bringup)
+Task: Remove HLE stub for cJ2Y4E-t258 (il2cpp_api_register_symbols), direct-bridge to PRX.
+
+Work Log:
+- Removed [SysAbiExport] for cJ2Y4E-t258 in GameCompatExports.cs
+- SharpEmu now direct-bridges cJ2Y4E-t258 to 0x804ED3AE0 (real PRX function)
+- The real function creates 239 BST nodes with symbol names and function implementations
+- Each node has [0x19]=0 (not matched) allowing resolver lookup
+- Sentinel node has [0x19]=1 (terminator)
+- Flag [rbx+0x19] was set to 1 by DT_INIT list init function (0x804EDD880) — INTENTIONAL
+- The sentinel is a header/terminator, NOT a bug
+
+Stage Summary:
+- ✅ register_symbols now executes (direct-bridged to 0x804ED3AE0)
+- ✅ 239 BST nodes created with correct symbol names
+- ✅ All 239 IL2CPP API symbols present in tree
+- ❌ Resolver still returns 0 for all 232 queries
+- ❌ BST has sorting violations (238/239)
+
+---
+Task ID: EXP-026-ROOT-CAUSE
+Agent: main (SharpEmu bringup)
+Task: Find why resolver returns 0 despite correct BST with 239 nodes.
+
+Work Log:
+- Built independent BST walker (_IndependentBSTWalker.cs) — does NOT use _FlagWatchInstrumentation
+- Walker traverses BOTH left AND right children with cycle detection
+- Result: 239 real nodes + 1 sentinel, 0 cycles, all symbols found
+- Previous "only 6 nodes" finding was WRONG — L1-TRACE only followed RIGHT children
+
+- Checked BST sorting: 238/239 nodes have sorting violations
+- The BST is NOT correctly sorted — it's essentially random
+
+- Root cause investigation:
+  - PRX's strcmp PLT (0x804FC2D40) → HLE dispatch (NOT native intrinsic)
+  - HLE strcmp uses TryCompareStrings → reads bytes via ctx.TryRead
+  - ctx.TryRead FAILS for PRX data section addresses (0x808xxxxxx)
+  - TryCompareStrings returns false → Strcmp returns MEMORY_FAULT (negative)
+  - BST insertion sees negative → always goes LEFT (cmovns not taken)
+  - BST is unsorted → resolver can't find symbols → returns 0
+
+- eboot's strcmp uses native intrinsic (works correctly)
+- PRX's strcmp uses HLE dispatch (fails for PRX data)
+- The native intrinsic is applied by SetupImportStubs (for eboot only)
+- PRX imports are handled by SelfLoader.ResolveAndPatchImportStubs (creates HLE trampolines)
+
+Stage Summary:
+- ✅ ROOT CAUSE FOUND: PRX's strcmp HLE fails to read PRX data section memory
+- ✅ Evidence: 238/239 BST sorting violations (verified by independent Python parser)
+- ✅ Evidence: HLE strcmp returns MEMORY_FAULT when TryCompareStrings fails
+- ✅ Evidence: MEMORY_FAULT is negative → BST insertion always goes LEFT
+- ✅ Evidence: Native intrinsic is correct but NOT applied to PRX
+- Next: Apply native intrinsic for PRX's strcmp imports
