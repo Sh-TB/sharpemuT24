@@ -1209,6 +1209,8 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         }
                         if (TryCreateNativeImportIntrinsic(text2, out var intrinsicAddress))
                         {
+                                if (text2 == "Ovb2dSJOAuE")
+                                        Console.Error.WriteLine($"[INTRINSIC-CHECK] strcmp stub at 0x{num4:X16} -> intrinsic 0x{intrinsicAddress:X16}");
                                 if (!PatchImportStub((nint)(long)num4, intrinsicAddress))
                                 {
                                         LastError = $"Failed to patch native intrinsic import stub at 0x{num4:X16}";
@@ -1552,10 +1554,8 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
 
         private static bool IsHlePreferredNid(string nid)
         {
-                // Temporarily re-adding r8mvOaWdi28 to HLE preferred for L1-TRACE logging.
-                // The HLE handler calls the REAL resolver via TryCallGuestFunction.
-                return string.Equals(nid, "QrZZdJ8XsX0", StringComparison.Ordinal) ||
-                       string.Equals(nid, "r8mvOaWdi28", StringComparison.Ordinal);
+                // r8mvOaWdi28 direct-bridged — resolver runs natively in guest context.
+                return string.Equals(nid, "QrZZdJ8XsX0", StringComparison.Ordinal);
         }
 
         private static bool IsLibcLibrary(string libraryName)

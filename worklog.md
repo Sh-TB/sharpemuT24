@@ -881,3 +881,28 @@ Stage Summary:
 - ❌ BST has 238 sorting violations (tree is invalid)
 - ❌ Resolver returns 0 for all 232 queries (can't find symbols in invalid tree)
 - Next: Trace helper function 0x804EDACD0 execution to find tree corruption point
+
+---
+Task ID: EXP-026-G1-G3-FINAL
+Agent: main (SharpEmu bringup)
+Task: Full helper analysis + independent BST verification + strcmp verification.
+
+BREAKTHROUGH: "238 BST violations" was a CHECKER BUG!
+
+Key findings:
+- Tree is INVERTED Red-Black Tree (right=less, left>=parent)
+- [0x08] is PARENT pointer (new discovery)
+- [0x18] is COLOR flag (0=RED, 1=BLACK)
+- 0 violations with correct inverted BST invariant
+- strcmp native intrinsic IS applied (INTRINSIC-CHECK confirmed)
+- HLE strcmp NOT called (0 STRCMP-TRACE lines)
+- L1-TRACE had wrong strcmp argument order
+- Resolver simulation finds all 5 test symbols
+- Direct-bridged resolver STILL returns 0 — cause unknown
+
+Previous errors (3 total in this session):
+1. BST walker only followed RIGHT children (missed LEFT subtree)
+2. BST invariant check used STANDARD instead of INVERTED BST
+3. L1-TRACE computed strcmp(QUERY, NODE) instead of strcmp(NODE, QUERY)
+
+Lesson: Each "critical finding" must be verified by 2 independent methods.
