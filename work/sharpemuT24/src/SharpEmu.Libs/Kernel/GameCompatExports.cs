@@ -32,10 +32,27 @@ public static class GameCompatExports
     public static int Setenv(CpuContext ctx) => ctx.SetReturn(0);
 
     [SysAbiExport(Nid = "-pnj3-7a6QA", ExportName = "unity_mono_set_user_malloc_mutex", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libunity")]
-    public static int UnityMonoSetUserMallocMutex(CpuContext ctx) => ctx.SetReturn(0);
+    public static int UnityMonoSetUserMallocMutex(CpuContext ctx)
+    {
+        ResolverTraceInstrumentation.ComparePostWrapper(ctx);
+        FlagWatchInstrumentation.DumpResolverNodes(ctx, "post-wrapper (Import#2084)");
+        IndependentBSTWalker.DumpFullBST(ctx, "post-wrapper (Import#2084)");
+        return ctx.SetReturn(0);
+    }
 
+    // REMOVED HLE stub for cJ2Y4E-t258 (il2cpp_api_register_symbols)
+    // The real PRX function at 0x804ED3AE0 will be direct-bridged instead.
+    // This allows the 239 IL2CPP symbol nodes to be registered in the resolver list.
+    // See evidence_v3/report/verified_facts.md for details.
+    /*
     [SysAbiExport(Nid = "cJ2Y4E-t258", ExportName = "il2cpp_api_register_symbols", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libil2cpp")]
-    public static int Il2cppApiRegisterSymbols(CpuContext ctx) => ctx.SetReturn(0);
+    public static int Il2cppApiRegisterSymbols(CpuContext ctx)
+    {
+        FlagWatchInstrumentation.DumpResolverNodes(ctx, "pre-wrapper (Import#2083)");
+        ResolverTraceInstrumentation.TakePreWrapperSnapshot(ctx);
+        return ctx.SetReturn(0);
+    }
+    */
 
     // Arise NIDs — called in tight loop during rendering setup
     [SysAbiExport(Nid = "McaImWKXong", ExportName = "sceKernelMprotectInternal", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libKernel")]
@@ -49,21 +66,6 @@ public static class GameCompatExports
 
     // REMOVED: AcslpN1jHR8, 5TjaJwkLWxE, 3BytPOQgVKc, pztV4AF18iI
     // These were Harvest Days-specific stubs.
-
-    // EXP-024: Re-added AcslpN1jHR8 — Yatzi also calls this NID (2 calls).
-    // Without it, Unity gets NULL execute faults (95+ total).
-    // The function is called with rdi=1, rsi=code_addr, r8=size.
-    // Returning 0 (success) lets Unity continue past the NULL fault.
-    [SysAbiExport(Nid = "AcslpN1jHR8", ExportName = "AcslpN1jHR8_stub", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libKernel")]
-    public static int AcslpN1jHR8_Stub(CpuContext ctx)
-    {
-        Console.Error.WriteLine(
-            $"[EXP-024] AcslpN1jHR8 stub called: " +
-            $"rdi=0x{ctx[CpuRegister.Rdi]:X16} rsi=0x{ctx[CpuRegister.Rsi]:X16} " +
-            $"rdx=0x{ctx[CpuRegister.Rdx]:X16} rcx=0x{ctx[CpuRegister.Rcx]:X16} " +
-            $"r8=0x{ctx[CpuRegister.R8]:X16} r9=0x{ctx[CpuRegister.R9]:X16}");
-        return ctx.SetReturn(0);
-    }
 
     // 1D0H2KNjshE and hsi9drzHR2k — IL2CPP bootstrap investigation.
     // These NIDs are NOT in any HLE export or Aerolib catalog.
