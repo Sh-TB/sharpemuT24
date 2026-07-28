@@ -906,3 +906,29 @@ Previous errors (3 total in this session):
 3. L1-TRACE computed strcmp(QUERY, NODE) instead of strcmp(NODE, QUERY)
 
 Lesson: Each "critical finding" must be verified by 2 independent methods.
+
+---
+Task ID: EXP-026-FINAL-TRACE
+Agent: main (SharpEmu bringup)
+Task: Full resolver investigation with correct inverted BST invariant.
+
+KEY FINDINGS:
+- "238 BST violations" was CHECKER BUG — used standard BST invariant on inverted BST
+- Tree is INVERTED Red-Black Tree: right=less, left>=parent → 0 violations
+- [0x08] is PARENT pointer (new discovery)
+- [0x18] is COLOR flag (0=RED, 1=BLACK)
+- L1-TRACE had wrong strcmp arg order: strcmp(QUERY,NODE) vs strcmp(NODE,QUERY)
+- Python simulation with CORRECT strcmp order FINDS all 5 test symbols
+- Native strcmp intrinsic IS applied (INTRINSIC-CHECK confirmed)
+- HLE strcmp NOT called (0 STRCMP-TRACE lines)
+- Guest memory mapped 1:1 (PhysicalVirtualMemory.Map at exact VA)
+- Direct-bridged resolver (no TryCallGuestFunction) ALSO returns 0
+- ROOT CAUSE: UNKNOWN — all components work individually but combined execution fails
+
+CONTRADICTIONS (3 tool bugs found this session):
+1. BST walker only followed RIGHT children (missed LEFT subtree)
+2. BST invariant check used STANDARD instead of INVERTED BST
+3. L1-TRACE computed strcmp(QUERY, NODE) instead of strcmp(NODE, QUERY)
+
+LESSON: Each "critical finding" must be verified by 2 independent methods.
+3 tool bugs were found in one session — all produced false "root cause" claims.

@@ -1,12 +1,16 @@
-# CONTRADICTIONS.md (Updated 2026-07-28)
+# CONTRADICTIONS.md (Final — 2026-07-28)
 
-## CONTRADICTION-001: "6 nodes" vs "239 nodes" — RESOLVED (walker bug)
-## CONTRADICTION-002: "238 violations" vs "0 violations" — RESOLVED (checker bug)
-- Old: STANDARD BST invariant → 238 violations
-- New: INVERTED BST invariant → 0 violations
-- Resolution: Tree uses inverted BST (right=less, left=greater)
-## CONTRADICTION-003: "HLE strcmp fails" vs "strcmp not using HLE" — RESOLVED
-- Native intrinsic applied, HLE not called
-## CONTRADICTION-004: "L1-TRACE shows RIGHT" vs "resolver goes LEFT" — RESOLVED
-- L1-TRACE had wrong strcmp argument order
-## CONTRADICTION-005: Everything correct but resolver returns 0 — UNRESOLVED
+## RESOLVED:
+1. "6 nodes" vs "239 nodes" → walker bug (missed left subtree)
+2. "238 violations" vs "0 violations" → checker bug (wrong BST invariant)
+3. "HLE strcmp fails" vs "strcmp not using HLE" → native intrinsic used
+4. "L1-TRACE shows RIGHT" vs "resolver goes LEFT" → wrong strcmp arg order
+
+## UNRESOLVED:
+5. Everything correct but resolver returns 0
+   - Tree: 0 violations (verified by Python + C#)
+   - strcmp: native intrinsic, correct code
+   - Logic: simulation finds all symbols
+   - Memory: 1:1 mapped, no faults
+   - But: resolver returns 0 in all execution modes (HLE + direct-bridge)
+   - Cause: UNKNOWN — needs single-step trace of actual native execution

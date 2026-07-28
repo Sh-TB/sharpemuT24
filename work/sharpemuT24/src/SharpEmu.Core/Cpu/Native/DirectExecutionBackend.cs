@@ -1554,7 +1554,7 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
 
         private static bool IsHlePreferredNid(string nid)
         {
-                // r8mvOaWdi28 direct-bridged — resolver runs natively in guest context.
+                // BOTH direct-bridged — run natively in wrapper's context
                 return string.Equals(nid, "QrZZdJ8XsX0", StringComparison.Ordinal);
         }
 
