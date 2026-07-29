@@ -102,7 +102,7 @@ public static class Exp028BranchTracer
             if (ctx.TryReadByte(addr, out original))
             {
                 _originalBytes[i] = new byte[] { original };
-                ctx.TryWriteByte(addr, 0xCC);
+                ctx.Memory.TryWrite(addr, new byte[] { 0xCC });
             }
         }
 
@@ -122,7 +122,7 @@ public static class Exp028BranchTracer
         {
             if (_originalBytes[i] != null)
             {
-                ctx.TryWriteByte(BranchInstructions[i].rip, _originalBytes[i][0]);
+                ctx.Memory.TryWrite(BranchInstructions[i].rip, new byte[] { _originalBytes[i][0] });
                 _originalBytes[i] = null;
             }
         }
@@ -190,7 +190,7 @@ public static class Exp028BranchTracer
         // Restore the original byte so the instruction can execute
         if (_originalBytes[bpIndex] != null)
         {
-            ctx.TryWriteByte(bpAddr, _originalBytes[bpIndex][0]);
+            ctx.Memory.TryWrite(bpAddr, new byte[] { _originalBytes[bpIndex][0] });
         }
 
         // Set TF=1 to get a SIGTRAP after this instruction (so we can re-install BP)
@@ -214,7 +214,7 @@ public static class Exp028BranchTracer
                 if (ctx.TryReadByte(BranchInstructions[i].rip, out current) &&
                     current == _originalBytes[i][0])
                 {
-                    ctx.TryWriteByte(BranchInstructions[i].rip, 0xCC);
+                    ctx.Memory.TryWrite(BranchInstructions[i].rip, new byte[] { 0xCC });
                 }
             }
         }

@@ -55,16 +55,15 @@ public static class GameCompatExports
         return ctx.SetReturn(0);
     }
 
-    // REMOVED HLE stub for cJ2Y4E-t258 (il2cpp_api_register_symbols)
-    // The real PRX function at 0x804ED3AE0 will be direct-bridged instead.
-    // This allows the 239 IL2CPP symbol nodes to be registered in the resolver list.
-    // See evidence_v3/report/verified_facts.md for details.
+    // REMOVED: [SysAbiExport] for cJ2Y4E-t258 — prevents HLE table registration.
+    // Without this attribute, TryGetExport won't find cJ2Y4E-t258 in HLE table.
+    // TryResolveDirectImportTarget will fall through to runtime symbol check
+    // and direct-bridge to the real PRX function at 0x804ED3AE0.
     /*
     [SysAbiExport(Nid = "cJ2Y4E-t258", ExportName = "il2cpp_api_register_symbols", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libil2cpp")]
     public static int Il2cppApiRegisterSymbols(CpuContext ctx)
     {
-        FlagWatchInstrumentation.DumpResolverNodes(ctx, "pre-wrapper (Import#2083)");
-        ResolverTraceInstrumentation.TakePreWrapperSnapshot(ctx);
+        Console.Error.WriteLine("[REGSYM-TRACE] WARNING: HLE stub called instead of direct bridge!");
         return ctx.SetReturn(0);
     }
     */

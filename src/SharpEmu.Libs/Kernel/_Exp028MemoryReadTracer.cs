@@ -116,7 +116,7 @@ public static class Exp028MemoryReadTracer
             if (ctx.TryReadByte(addr, out original))
             {
                 _originalBytes[i] = new byte[] { original };
-                ctx.TryWriteByte(addr, 0xCC);
+                ctx.Memory.TryWrite(addr, new byte[] { 0xCC });
             }
         }
 
@@ -136,7 +136,7 @@ public static class Exp028MemoryReadTracer
         {
             if (_originalBytes[i] != null)
             {
-                ctx.TryWriteByte(MemoryReadInstructions[i].rip, _originalBytes[i][0]);
+                ctx.Memory.TryWrite(MemoryReadInstructions[i].rip, new byte[] { _originalBytes[i][0] });
                 _originalBytes[i] = null;
             }
         }
@@ -232,7 +232,7 @@ public static class Exp028MemoryReadTracer
         // Restore the original byte so the instruction can execute
         if (_originalBytes[bpIndex] != null)
         {
-            ctx.TryWriteByte(bpAddr, _originalBytes[bpIndex][0]);
+            ctx.Memory.TryWrite(bpAddr, new byte[] { _originalBytes[bpIndex][0] });
         }
 
         // Set TF=1 to get a SIGTRAP after this instruction (then re-install BP)
@@ -262,7 +262,7 @@ public static class Exp028MemoryReadTracer
                 if (ctx.TryReadByte(MemoryReadInstructions[i].rip, out current) &&
                     current == _originalBytes[i][0])
                 {
-                    ctx.TryWriteByte(MemoryReadInstructions[i].rip, 0xCC);
+                    ctx.Memory.TryWrite(MemoryReadInstructions[i].rip, new byte[] { 0xCC });
                 }
             }
         }

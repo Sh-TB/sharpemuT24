@@ -2812,8 +2812,11 @@ public sealed partial class DirectExecutionBackend
                 ptr[Il2CppReturnZeroStubOffset + 0] = 0x31; // xor eax, eax
                 ptr[Il2CppReturnZeroStubOffset + 1] = 0xC0;
                 ptr[Il2CppReturnZeroStubOffset + 2] = 0xC3; // ret
+                // EXP-035: Install vtable tracer stub (INT3) and point all vtable slots at it
+                // so virtual method calls on fake objects are traced.
+                var vtableTracerStubAddr = Exp035InstallVtableTracerStub();
                 for (int i = 0; i < 512; i++)
-                        Marshal.WriteInt64((nint)(ptr + Il2CppVtableBase + (ulong)i * 8), (long)returnZeroStubAddr);
+                        Marshal.WriteInt64((nint)(ptr + Il2CppVtableBase + (ulong)i * 8), (long)vtableTracerStubAddr);
                 InstallFakeObject(Il2CppDomainOffset);
                 InstallFakeObject(Il2CppThreadOffset);
                 InstallFakeObject(Il2CppClassOffset);
@@ -2821,7 +2824,9 @@ public sealed partial class DirectExecutionBackend
                 InstallFakeObject(Il2CppAssemblyOffset);
                 InstallFakeObject(Il2CppObjectOffset);
                 InstallFakeObject(Il2CppTypeOffset);
-                Console.Error.WriteLine($"[IL2CPP][INFO] Fake runtime heap at 0x{_il2cppHeap:X16}");
+                // EXP-035: Install INT3-based return-fake-object stub
+                Exp035WriteReturnFakeObjectInt3Stub();
+                Console.Error.WriteLine($"[IL2CPP][INFO] Fake runtime heap at 0x{_il2cppHeap:X16} (EXP-035 tracing enabled)");
                 return true;
         }
 
@@ -2838,16 +2843,17 @@ public sealed partial class DirectExecutionBackend
                 if (stubOffset + Il2CppStubSize > Il2CppStubsBase + Il2CppStubsMax)
                         return _il2cppHeap + Il2CppReturnZeroStubOffset;
                 _il2cppStubCount++;
-                var ptr = (byte*)_il2cppHeap + stubOffset;
-                ptr[0] = 0x48; ptr[1] = 0xB8; // mov rax, imm64
-                Marshal.WriteInt64((nint)(ptr + 2), (long)returnValue);
-                ptr[10] = 0xC3; // ret
+                var stubAddr = _il2cppHeap + stubOffset;
+                // EXP-035: Emit INT3-only stub. The SIGTRAP handler in
+                // Exp035TryHandleIl2CppInt3 will log the call, set RAX=returnValue,
+                // pop the return address, and resume at the caller.
+                Exp035WriteInt3Stub(stubAddr, name, returnValue);
 
                 // Log IL2CPP stubs that return NULL (potential crash source)
                 if (returnValue == 0 && Environment.GetEnvironmentVariable("SHARPEMU_LOG_IL2CPP_NULL") == "1")
                 {
                         Console.Error.WriteLine(
-                                $"[IL2CPP_NULL] name='{name}' stub=0x{_il2cppHeap + stubOffset:X16} returns=NULL");
+                                $"[IL2CPP_NULL] name='{name}' stub=0x{stubAddr:X16} returns=NULL");
                 }
                 else if (returnValue != 0 && returnValue != _il2cppHeap + Il2CppReturnZeroStubOffset && Environment.GetEnvironmentVariable("SHARPEMU_LOG_IL2CPP_STUBS") == "1")
                 {
@@ -2855,7 +2861,7 @@ public sealed partial class DirectExecutionBackend
                                 $"[IL2CPP_STUB] name='{name}' returns=0x{returnValue:X16}");
                 }
 
-                return _il2cppHeap + stubOffset;
+                return stubAddr;
         }
 
         private ulong DecideIl2CppReturnValue(string name)
@@ -3088,18 +3094,12 @@ public sealed partial class DirectExecutionBackend
 
         // Generic "return fake object" stub — returns Il2CppObject address
         // Used by il2cpp_resolve_icall so resolved icalls don't return NULL
+        // EXP-035: Now uses INT3 stub (installed in InitIl2CppHeap via Exp035WriteReturnFakeObjectInt3Stub).
         private unsafe ulong GetReturnFakeObjectStub()
         {
                 const ulong ReturnFakeObjectStubOffset = 0x1800;
-                var ptr = (byte*)_il2cppHeap;
-                // Check if already installed
-                if (ptr[ReturnFakeObjectStubOffset] == 0x48 && ptr[ReturnFakeObjectStubOffset + 1] == 0xB8)
-                        return _il2cppHeap + ReturnFakeObjectStubOffset;
-                // Install: mov rax, <Il2CppObjectOffset>; ret
-                ptr[ReturnFakeObjectStubOffset] = 0x48;
-                ptr[ReturnFakeObjectStubOffset + 1] = 0xB8;
-                Marshal.WriteInt64((nint)(ptr + ReturnFakeObjectStubOffset + 2), (long)(_il2cppHeap + Il2CppObjectOffset));
-                ptr[ReturnFakeObjectStubOffset + 10] = 0xC3;
+                if (_il2cppHeap == 0) return 0;
+                // INT3 stub is already installed by InitIl2CppHeap
                 return _il2cppHeap + ReturnFakeObjectStubOffset;
         }
 }

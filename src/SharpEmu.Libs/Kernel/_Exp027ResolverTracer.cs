@@ -1,5 +1,8 @@
 // EXP-027 T2/T3/T6/T12/T13: Per-Instruction Resolver Tracer for SharpEmu
 //
+// DIAGNOSTIC ONLY — No functional changes to SharpEmu. No fix. Only
+// temporary instrumentation. Debug patch ≠ Code fix.
+//
 // This file adds per-instruction tracing for the resolver execution at
 // 0x804ED9B90. It works by patching software breakpoints (INT 3 = 0xCC)
 // at every instruction in the resolver's critical path.
@@ -122,7 +125,7 @@ public static class Exp027ResolverTracer
             {
                 _originalBytes[i] = new byte[] { original };
                 // Write 0xCC (INT 3)
-                if (!ctx.TryWriteByte(addr, 0xCC))
+                if (!ctx.Memory.TryWrite(addr, new byte[] { 0xCC }))
                 {
                     Console.Error.WriteLine($"[EXP027]   Failed to install BP at 0x{addr:x}");
                 }
@@ -148,7 +151,7 @@ public static class Exp027ResolverTracer
         {
             if (_originalBytes[i] != null)
             {
-                ctx.TryWriteByte(BreakpointAddresses[i], _originalBytes[i][0]);
+                ctx.Memory.TryWrite(BreakpointAddresses[i], new byte[] { _originalBytes[i][0] });
                 _originalBytes[i] = null;
             }
         }
@@ -254,7 +257,7 @@ public static class Exp027ResolverTracer
         // Restore the original byte so we can re-execute the instruction
         if (_originalBytes[bpIndex] != null)
         {
-            ctx.TryWriteByte(bpAddr, _originalBytes[bpIndex][0]);
+            ctx.Memory.TryWrite(bpAddr, new byte[] { _originalBytes[bpIndex][0] });
         }
 
         // Set the Trap Flag (TF=1) so we get a SIGTRAP after the next instruction,

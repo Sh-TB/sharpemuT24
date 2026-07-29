@@ -110,6 +110,13 @@ public sealed partial class DirectExecutionBackend
 
                         ulong rip = ReadCtxU64(contextRecord, 248);
                         ulong rsp = ReadCtxU64(contextRecord, 152);
+                        // EXP-035: Handle INT3 from IL2CPP fake heap stubs first.
+                        // These are SIGTRAP (exceptionCode 2147483651) but on POSIX the
+                        // signal bridge maps SIGTRAP -> 2147483651.
+                        if (exceptionCode == 2147483651u && Exp035TryHandleIl2CppInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         if (TryRecoverGuestInt41(exceptionCode, contextRecord, rip))
                         {
                                 return -1;
@@ -451,6 +458,9 @@ public sealed partial class DirectExecutionBackend
                 WriteCtxU64(contextRecord, 120, 0);
                 if (_nullExecuteRecoveries <= 5 || _nullExecuteRecoveries % 100 == 0)
                         Console.Error.WriteLine($"[LOADER][WARN] NULL execute fault recovered #{_nullExecuteRecoveries}");
+                // EXP-035: Enhanced logging — caller RIP, last IL2CPP call, thread
+                if (_nullExecuteRecoveries <= 20 || _nullExecuteRecoveries % 1000 == 0)
+                        Exp035LogNullExecuteFault(contextRecord, _nullExecuteRecoveries);
                 return true;
         }
 
