@@ -110,6 +110,12 @@ public sealed partial class DirectExecutionBackend
 
                         ulong rip = ReadCtxU64(contextRecord, 248);
                         ulong rsp = ReadCtxU64(contextRecord, 152);
+                        // EXP-036: Handle INT3 from il2cpp_init (traces ENTER).
+                        // Must be checked before EXP-035 since both use SIGTRAP.
+                        if (exceptionCode == 2147483651u && Exp036TryHandleIl2cppInitInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-035: Handle INT3 from IL2CPP fake heap stubs first.
                         // These are SIGTRAP (exceptionCode 2147483651) but on POSIX the
                         // signal bridge maps SIGTRAP -> 2147483651.

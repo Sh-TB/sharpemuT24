@@ -107,6 +107,16 @@ public static class KernelSemaphoreCompatExports
         // where worker threads are stuck in IL2CPP fake-stub loops.
         if (string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_SEMA_FAST_PATH"), "1", StringComparison.Ordinal))
         {
+            // EXP-036: Trace sceKernelWaitSema calls (even in fast-path mode)
+            try
+            {
+                int tid = System.Environment.CurrentManagedThreadId;
+                ulong callerRip = 0;
+                try { callerRip = ctx.TryReadUInt64(ctx[CpuRegister.Rsp], out var r) ? r : 0; } catch { }
+                _Exp036SyncTrace.Record("sceKernelWaitSema", callerRip, tid,
+                    handle, (ulong)needCount, timeoutAddress, 0);
+            }
+            catch { }
             return SetReturn(ctx, OrbisGen2Result.ORBIS_GEN2_OK);
         }
 

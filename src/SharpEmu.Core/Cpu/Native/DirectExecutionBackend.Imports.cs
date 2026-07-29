@@ -2704,6 +2704,10 @@ public sealed partial class DirectExecutionBackend
                                         cpuContext.TryReadUInt64(globalAddrs[gi], out gval);
                                         Console.Error.WriteLine($"[EXP034-GLOBAL] global[{gi}] @0x{globalAddrs[gi]:X16} = 0x{gval:X16}");
                                     }
+
+                                    // EXP-036: Patch il2cpp_init with INT3 to trace when it's called.
+                                    // il2cpp_init = global[0] = 0x804ED85D0
+                                    Exp036PatchIl2cppInit();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;
