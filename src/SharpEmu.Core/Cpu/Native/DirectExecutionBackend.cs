@@ -1157,7 +1157,9 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
         private bool SetupImportStubs(IReadOnlyDictionary<ulong, string> importStubs)
         {
                 Console.Error.WriteLine($"[LOADER][INFO] Setting up {importStubs.Count} import stubs...");
-                ClearImportHandlerTrampolines();
+                // EXP-030 FIX: Do NOT clear trampolines here — previous module's GOT slots
+                // still point to them. Only clear on backend dispose.
+                // ClearImportHandlerTrampolines();
                 _importEntries = new ImportStubEntry[importStubs.Count];
                 HashSet<ulong> hashSet = new HashSet<ulong>(importStubs.Keys);
                 int num = 0;
@@ -1209,6 +1211,8 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         }
                         if (TryCreateNativeImportIntrinsic(text2, out var intrinsicAddress))
                         {
+                                if (text2 == "Ovb2dSJOAuE")
+                                        Console.Error.WriteLine($"[INTRINSIC-CHECK] strcmp stub at 0x{num4:X16} -> intrinsic 0x{intrinsicAddress:X16}");
                                 if (!PatchImportStub((nint)(long)num4, intrinsicAddress))
                                 {
                                         LastError = $"Failed to patch native intrinsic import stub at 0x{num4:X16}";
@@ -1242,6 +1246,15 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
 
         private unsafe bool TryCreateNativeImportIntrinsic(string nid, out nint address)
         {
+                // EXP-030 Option C: Skip strcmp intrinsic — route through HLE instead.
+                // The intrinsic stub's memory lifetime is unreliable across module reloads.
+                // The HLE strcmp path (KernelMemoryCompatExports.Strcmp) is confirmed working.
+                if (nid == "Ovb2dSJOAuE")
+                {
+                        address = 0;
+                        return false;
+                }
+
                 if (nid == "1jfXLRVzisc" &&
                         string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_LOG_USLEEP"), "1", StringComparison.Ordinal))
                 {
@@ -1552,7 +1565,7 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
 
         private static bool IsHlePreferredNid(string nid)
         {
-                // Temporarily re-adding r8mvOaWdi28 to HLE preferred for L1-TRACE logging.
+                // EXP-028: r8mvOaWdi28 forced through HLE dispatch so T12/T13 boundary trace fires.
                 // The HLE handler calls the REAL resolver via TryCallGuestFunction.
                 return string.Equals(nid, "QrZZdJ8XsX0", StringComparison.Ordinal) ||
                        string.Equals(nid, "r8mvOaWdi28", StringComparison.Ordinal);

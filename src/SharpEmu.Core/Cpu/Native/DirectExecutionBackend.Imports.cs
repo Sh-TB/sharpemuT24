@@ -2381,6 +2381,96 @@ public sealed partial class DirectExecutionBackend
                 {
                         try
                         {
+                                // === EXP-028 T12/T13: pre-call boundary trace (DIAGNOSTIC ONLY) ===
+                                SharpEmu.Libs.Kernel.Exp028T12T13BoundaryTrace.LogPreCall(
+                                    cpuContext, callNum, symbolName, RealResolverAddress, symbolNameAddress);
+
+                                // === EXP-028 T5: Inline memory-read trace (DIAGNOSTIC ONLY) ===
+                                // Log the BST tree state the resolver will traverse, for comparison with synthetic CPU.
+                                // No INT3 breakpoints needed — just read the same memory the resolver will read.
+                                if (callNum <= 5)
+                                {
+                                    try
+                                    {
+                                        const ulong t5_listHeadPtr = 0x808B53708;
+                                        if (cpuContext.TryReadUInt64(t5_listHeadPtr, out var t5_sentinel))
+                                        {
+                                            Console.Error.WriteLine($"[EXP028-T5] call={callNum} query='{symbolName}' list_head_ptr=0x{t5_sentinel:X16}");
+                                            if (cpuContext.TryReadUInt64(t5_sentinel + 8, out var t5_root))
+                                            {
+                                                Console.Error.WriteLine($"[EXP028-T5]   sentinel+8 (root)=0x{t5_root:X16}");
+                                                ulong t5_node = t5_root;
+                                                for (int t5_lvl = 0; t5_lvl < 20 && t5_node != 0; t5_lvl++)
+                                                {
+                                                    byte t5_flag = 0; cpuContext.TryReadByte(t5_node + 0x19, out t5_flag);
+                                                    if (t5_flag != 0) { Console.Error.WriteLine($"[EXP028-T5]   L{t5_lvl}: 0x{t5_node:X16} = SENTINEL"); break; }
+                                                    ulong t5_symPtr = 0; cpuContext.TryReadUInt64(t5_node + 0x20, out t5_symPtr);
+                                                    string t5_name = "<null>";
+                                                    if (t5_symPtr != 0) { try { cpuContext.TryReadNullTerminatedUtf8(t5_symPtr, 128, out t5_name); } catch {} }
+                                                    ulong t5_right = 0, t5_left = 0;
+                                                    cpuContext.TryReadUInt64(t5_node, out t5_right);
+                                                    cpuContext.TryReadUInt64(t5_node + 0x10, out t5_left);
+                                                    int t5_cmp = string.CompareOrdinal(t5_name, symbolName);
+                                                    ulong t5_next = t5_cmp >= 0 ? t5_right : t5_left;
+                                                    string t5_dir = t5_cmp >= 0 ? "RIGHT" : "LEFT";
+                                                    Console.Error.WriteLine($"[EXP028-T5]   L{t5_lvl}: 0x{t5_node:X16} sym='{t5_name}' strcmp(NODE,QUERY)={t5_cmp} -> {t5_dir} next=0x{t5_next:X16}");
+                                                    t5_node = t5_next;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception t5_ex) { Console.Error.WriteLine($"[EXP028-T5] error: {t5_ex.Message}"); }
+                                }
+
+                                // === EXP-028 T6: Inline branch/candidate trace (DIAGNOSTIC ONLY) ===
+                                // After T5 tree walk, check what the resolver's candidate would be
+                                // and what [candidate+0x28] (func_impl) contains
+                                if (callNum <= 5)
+                                {
+                                    try
+                                    {
+                                        const ulong t6_listHeadPtr = 0x808B53708;
+                                        if (cpuContext.TryReadUInt64(t6_listHeadPtr, out var t6_sentinel))
+                                        {
+                                            if (cpuContext.TryReadUInt64(t6_sentinel + 8, out var t6_root))
+                                            {
+                                                ulong t6_node = t6_root;
+                                                ulong t6_candidate = t6_sentinel; // r12 starts as r15 (sentinel = no candidate)
+                                                for (int t6_lvl = 0; t6_lvl < 20 && t6_node != 0; t6_lvl++)
+                                                {
+                                                    byte t6_flag = 0; cpuContext.TryReadByte(t6_node + 0x19, out t6_flag);
+                                                    if (t6_flag != 0) break; // sentinel
+                                                    ulong t6_symPtr = 0; cpuContext.TryReadUInt64(t6_node + 0x20, out t6_symPtr);
+                                                    string t6_name = "<null>";
+                                                    if (t6_symPtr != 0) { try { cpuContext.TryReadNullTerminatedUtf8(t6_symPtr, 128, out t6_name); } catch {} }
+                                                    int t6_cmp = string.CompareOrdinal(t6_name, symbolName);
+                                                    if (t6_cmp >= 0) { t6_candidate = t6_node; } // cmovns: update candidate
+                                                    ulong t6_next = t6_cmp >= 0 ? (cpuContext.TryReadUInt64(t6_node, out var r) ? r : 0) : (cpuContext.TryReadUInt64(t6_node + 0x10, out var l) ? l : 0);
+                                                    t6_node = t6_next;
+                                                }
+                                                // After loop: check candidate
+                                                if (t6_candidate != t6_sentinel)
+                                                {
+                                                    ulong t6_funcImpl = 0; cpuContext.TryReadUInt64(t6_candidate + 0x28, out t6_funcImpl);
+                                                    ulong t6_candSymPtr = 0; cpuContext.TryReadUInt64(t6_candidate + 0x20, out t6_candSymPtr);
+                                                    string t6_candName = "<null>";
+                                                    if (t6_candSymPtr != 0) { try { cpuContext.TryReadNullTerminatedUtf8(t6_candSymPtr, 128, out t6_candName); } catch {} }
+                                                    int t6_finalCmp = string.CompareOrdinal(symbolName, t6_candName);
+                                                    Console.Error.WriteLine($"[EXP028-T6] call={callNum} query='{symbolName}' candidate=0x{t6_candidate:X16} cand_name='{t6_candName}' func_impl=0x{t6_funcImpl:X16} final_strcmp(QUERY,CAND)={t6_finalCmp}");
+                                                    Console.Error.WriteLine($"[EXP028-T6]   → if final_strcmp < 0: js TAKEN → return 0 (BUG!)");
+                                                    Console.Error.WriteLine($"[EXP028-T6]   → if final_strcmp >= 0: js NOT taken → return func_impl (CORRECT)");
+                                                    Console.Error.WriteLine($"[EXP028-T6]   → expected resolver return: 0x{t6_funcImpl:X16}");
+                                                }
+                                                else
+                                                {
+                                                    Console.Error.WriteLine($"[EXP028-T6] call={callNum} query='{symbolName}' NO CANDIDATE (r12 == r15) → return 0");
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception t6_ex) { Console.Error.WriteLine($"[EXP028-T6] error: {t6_ex.Message}"); }
+                                }
+
                                 scheduler.TryCallGuestFunction(
                                         cpuContext,
                                         RealResolverAddress,
@@ -2392,6 +2482,81 @@ public sealed partial class DirectExecutionBackend
                                         "r8mvOaWdi28_resolver",
                                         out var returnValue,
                                         out var error);
+
+                                // === EXP-028 T12/T13: post-call boundary trace + return-corruption check ===
+                                SharpEmu.Libs.Kernel.Exp028T12T13BoundaryTrace.LogPostCall(
+                                    cpuContext, callNum, symbolName, returnValue, error);
+
+                                // === EXP-029: Native strcmp investigation (DIAGNOSTIC ONLY) ===
+                                if (callNum <= 5)
+                                {
+                                    try
+                                    {
+                                        var e29_bytes = new byte[16];
+                                        for (int bi = 0; bi < 16; bi++)
+                                        {
+                                            byte b; cpuContext.TryReadByte(0x804fc2d40UL + (ulong)bi, out b);
+                                            e29_bytes[bi] = b;
+                                        }
+                                        Console.Error.WriteLine($"[EXP029-PLT] bytes at 0x804fc2d40: {BitConverter.ToString(e29_bytes).Replace("-", " ")}");
+                                        if (e29_bytes[0] == 0xff && e29_bytes[1] == 0x25)
+                                            Console.Error.WriteLine("[EXP029-PLT] PLT entry (jmp [rip+offset])");
+                                        else if (e29_bytes[0] == 0xe9)
+                                            Console.Error.WriteLine("[EXP029-PLT] Direct jump (jmp rel32)");
+                                        else
+                                            Console.Error.WriteLine("[EXP029-PLT] Actual function code (not PLT)");
+                                    }
+                                    catch {}
+                                    try
+                                    {
+                                        // Read strcmp GOT slot (0x808924090) to see what it points to
+                                        const ulong e29_strcmpGotSlot = 0x808924090;
+                                        ulong e29_gotValue = 0;
+                                        bool e29_gotOk = cpuContext.TryReadUInt64(e29_strcmpGotSlot, out e29_gotValue);
+
+                                        // Read the inner context that TryCallGuestFunction used
+                                        // The returnValue comes from context[CpuRegister.Rax] (line 3502)
+                                        // We can't access the inner context directly, but returnValue IS the RAX
+                                        // For the flags, we need a different approach
+
+                                        Console.Error.WriteLine(
+                                            $"[EXP029] call={callNum} query='{symbolName}' " +
+                                            $"returnValue=0x{returnValue:X16} " +
+                                            $"strcmp_GOT_slot=0x{e29_strcmpGotSlot:X16} " +
+                                            $"GOT_value=0x{(e29_gotOk ? e29_gotValue : 0):X16} " +
+                                            $"GOT_read_ok={e29_gotOk}");
+
+                                        // Also read the candidate's func_impl for comparison
+                                        const ulong e29_listHeadPtr = 0x808B53708;
+                                        if (cpuContext.TryReadUInt64(e29_listHeadPtr, out var e29_sentinel) &&
+                                            cpuContext.TryReadUInt64(e29_sentinel + 8, out var e29_root))
+                                        {
+                                            ulong e29_node = e29_root;
+                                            ulong e29_candidate = e29_sentinel;
+                                            for (int e29_i = 0; e29_i < 20 && e29_node != 0; e29_i++)
+                                            {
+                                                byte e29_flag = 0; cpuContext.TryReadByte(e29_node + 0x19, out e29_flag);
+                                                if (e29_flag != 0) break;
+                                                ulong e29_symPtr = 0; cpuContext.TryReadUInt64(e29_node + 0x20, out e29_symPtr);
+                                                string e29_name = "<null>";
+                                                if (e29_symPtr != 0) { try { cpuContext.TryReadNullTerminatedUtf8(e29_symPtr, 128, out e29_name); } catch {} }
+                                                int e29_cmp = string.CompareOrdinal(e29_name, symbolName);
+                                                if (e29_cmp >= 0) e29_candidate = e29_node;
+                                                ulong e29_next = e29_cmp >= 0 ? (cpuContext.TryReadUInt64(e29_node, out var r) ? r : 0) : (cpuContext.TryReadUInt64(e29_node + 0x10, out var l) ? l : 0);
+                                                e29_node = e29_next;
+                                            }
+                                            if (e29_candidate != e29_sentinel)
+                                            {
+                                                ulong e29_funcImpl = 0; cpuContext.TryReadUInt64(e29_candidate + 0x28, out e29_funcImpl);
+                                                Console.Error.WriteLine(
+                                                    $"[EXP029]   candidate=0x{e29_candidate:X16} func_impl=0x{e29_funcImpl:X16} " +
+                                                    $"returnValue=0x{returnValue:X16} expected=0x{e29_funcImpl:X16} " +
+                                                    $"match={(returnValue == e29_funcImpl ? "YES" : "NO — BUG")}");
+                                            }
+                                        }
+                                    }
+                                    catch (Exception e29_ex) { Console.Error.WriteLine($"[EXP029] error: {e29_ex.Message}"); }
+                                }
 
                                 // Log exit
                                 if (returnValue == 0)
