@@ -3486,6 +3486,29 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                 try
                 {
                         LastError = null;
+                        // EXP032: Trace inner CpuContext BEFORE execution
+                        if (reason is "r8mvOaWdi28_resolver")
+                        {
+                                Console.Error.WriteLine(
+                                    $"[EXP032-BEFORE] rip=0x{context.Rip:X16} rdi=0x{context[CpuRegister.Rdi]:X16} " +
+                                    $"rsi=0x{context[CpuRegister.Rsi]:X16} rax=0x{context[CpuRegister.Rax]:X16} " +
+                                    $"rflags=0x{context.Rflags:X16} rsp=0x{context[CpuRegister.Rsp]:X16}");
+                                // Read bytes at entry point to verify it's valid code
+                                var e032_bytes = new byte[16];
+                                for (int bi = 0; bi < 16; bi++)
+                                {
+                                    byte b; context.TryReadByte(entryPoint + (ulong)bi, out b);
+                                    e032_bytes[bi] = b;
+                                }
+                                Console.Error.WriteLine(
+                                    $"[EXP032-ENTRY] bytes at 0x{entryPoint:X16}: {BitConverter.ToString(e032_bytes).Replace("-", " ")}");
+                                // push rbp = 55, mov rbp,rsp = 48 89 E5
+                                if (e032_bytes[0] == 0x55 && e032_bytes[1] == 0x48 && e032_bytes[2] == 0x89 && e032_bytes[3] == 0xE5)
+                                    Console.Error.WriteLine("[EXP032-ENTRY] Valid resolver prologue (push rbp; mov rbp, rsp)");
+                                else
+                                    Console.Error.WriteLine("[EXP032-ENTRY] UNEXPECTED bytes — not a valid resolver prologue!");
+                        }
+
                         var exitReason = ExecuteGuestThreadEntry(context, entryPoint, reason, out var callbackReason);
                         if (exitReason == GuestNativeCallExitReason.Blocked &&
                                 !ResumeBlockedNestedGuestCallback(context, reason, ref exitReason, ref callbackReason))
@@ -3495,11 +3518,40 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         }
                         if (exitReason is GuestNativeCallExitReason.Exception or GuestNativeCallExitReason.ForcedExit)
                         {
+                                // EXP032: Log exception/forced exit
+                                if (reason is "r8mvOaWdi28_resolver")
+                                {
+                                        Console.Error.WriteLine(
+                                            $"[EXP032-EXIT] reason={reason} exitReason={exitReason} " +
+                                            $"callbackReason='{callbackReason}' LastError='{LastError}' " +
+                                            $"rip=0x{context.Rip:X16} rax=0x{context[CpuRegister.Rax]:X16}");
+                                }
                                 error = callbackReason ?? LastError ?? "guest callback failed";
                                 return false;
                         }
 
+                        // EXP032: Trace inner CpuContext AFTER execution
+                        if (reason is "r8mvOaWdi28_resolver")
+                        {
+                                Console.Error.WriteLine(
+                                    $"[EXP032-AFTER] exitReason={exitReason} " +
+                                    $"rip=0x{context.Rip:X16} rdi=0x{context[CpuRegister.Rdi]:X16} " +
+                                    $"rsi=0x{context[CpuRegister.Rsi]:X16} rax=0x{context[CpuRegister.Rax]:X16} " +
+                                    $"rflags=0x{context.Rflags:X16} rsp=0x{context[CpuRegister.Rsp]:X16} " +
+                                    $"rbx=0x{context[CpuRegister.Rbx]:X16} r12=0x{context[CpuRegister.R12]:X16} " +
+                                    $"r14=0x{context[CpuRegister.R14]:X16} r15=0x{context[CpuRegister.R15]:X16}");
+                        }
+
                         returnValue = context[CpuRegister.Rax];
+
+                        // EXP032: Compare inner RAX with returnValue
+                        if (reason is "r8mvOaWdi28_resolver")
+                        {
+                                Console.Error.WriteLine(
+                                    $"[EXP032-RETURN] innerRax=0x{context[CpuRegister.Rax]:X16} " +
+                                    $"returnValue=0x{returnValue:X16} match={(context[CpuRegister.Rax] == returnValue)}");
+                        }
+
                         return true;
                 }
                 finally
@@ -5043,6 +5095,15 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                                         return GuestNativeCallExitReason.ForcedExit;
                                 }
                                 reason = $"returned 0x{nativeReturn:X8}";
+                                // EXP032: Log nativeReturn to see if resolver actually executed
+                                if (_activeCpuContext is { } e032_ctx && e032_ctx.Rip >= 0x804CD5000UL && e032_ctx.Rip < 0x810000000UL)
+                                {
+                                    Console.Error.WriteLine(
+                                        $"[EXP032-NATIVE] nativeReturn=0x{nativeReturn:X8} " +
+                                        $"contextRax=0x{e032_ctx[CpuRegister.Rax]:X16} " +
+                                        $"contextRip=0x{e032_ctx.Rip:X16} " +
+                                        $"contextR15=0x{e032_ctx[CpuRegister.R15]:X16}");
+                                }
                                 return GuestNativeCallExitReason.Returned;
                         }
                         catch (AccessViolationException ex)
