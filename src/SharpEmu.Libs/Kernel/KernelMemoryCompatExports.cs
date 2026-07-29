@@ -544,6 +544,22 @@ public static partial class KernelMemoryCompatExports
                 $"[STRCMP-TRACE] #{callNum} OK: left=0x{left:X16} right=0x{right:X16} cmp={compare}");
         }
 
+        // EXP031: Log resolver-specific strcmp calls (BST addresses 0x200... or PRX 0x804...)
+        if ((left >= 0x200000000UL && left < 0x300000000UL) ||
+            (right >= 0x200000000UL && right < 0x300000000UL) ||
+            (left >= 0x804CD5000UL && left < 0x810000000UL) ||
+            (right >= 0x804CD5000UL && right < 0x810000000UL))
+        {
+            string e031_leftStr = "<unreadable>";
+            string e031_rightStr = "<unreadable>";
+            try { ctx.TryReadNullTerminatedUtf8(left, 128, out e031_leftStr); } catch {}
+            try { ctx.TryReadNullTerminatedUtf8(right, 128, out e031_rightStr); } catch {}
+            Console.Error.WriteLine(
+                $"[EXP031-RESOLVER-STRCMP] left=0x{left:X16} right=0x{right:X16} " +
+                $"leftStr='{e031_leftStr}' rightStr='{e031_rightStr}' " +
+                $"cmp={compare} resultRax=0x{unchecked((ulong)compare):X16}");
+        }
+
         ctx[CpuRegister.Rax] = unchecked((ulong)compare);
         return (int)OrbisGen2Result.ORBIS_GEN2_OK;
     }

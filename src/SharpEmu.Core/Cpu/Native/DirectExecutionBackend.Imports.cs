@@ -616,6 +616,39 @@ public sealed partial class DirectExecutionBackend
                                 {
                                         orbisGen2Result = DispatchIl2CppApiLookupSymbol();
                                 }
+                                else if (string.Equals(importStubEntry.Nid, "Ovb2dSJOAuE", StringComparison.Ordinal))
+                                {
+                                        // EXP031: Log strcmp dispatch with full context
+                                        var e031_rdi = cpuContext[CpuRegister.Rdi];
+                                        var e031_rsi = cpuContext[CpuRegister.Rsi];
+                                        var e031_rip = cpuContext.Rip;
+                                        var e031_rsp = cpuContext[CpuRegister.Rsp];
+                                        var e031_isInner = _nestedGuestCallbackDepth > 0;
+                                        ulong e031_gotVal = 0;
+                                        cpuContext.TryReadUInt64(0x808924090UL, out e031_gotVal);
+                                        Console.Error.WriteLine(
+                                            $"[EXP031-STRCMP-DISPATCH] rip=0x{e031_rip:X16} rdi=0x{e031_rdi:X16} rsi=0x{e031_rsi:X16} " +
+                                            $"rsp=0x{e031_rsp:X16} context={(e031_isInner ? "INNER" : "OUTER")} " +
+                                            $"depth={_nestedGuestCallbackDepth} GOT=0x{e031_gotVal:X16}");
+                                        // Now fall through to normal dispatch
+                                        if (importStubEntry.Export is { } e031_export &&
+                                                (e031_export.Target & cpuContext.TargetGeneration) != 0)
+                                        {
+                                                cpuContext.ClearRaxWriteFlag();
+                                                var e031_ret = e031_export.Function(cpuContext);
+                                                if (!cpuContext.WasRaxWritten)
+                                                {
+                                                        cpuContext[CpuRegister.Rax] = unchecked((ulong)e031_ret);
+                                                }
+                                                orbisGen2Result = (OrbisGen2Result)e031_ret;
+                                        }
+                                        else
+                                        {
+                                                dispatchResolved = false;
+                                                orbisGen2Result = OrbisGen2Result.ORBIS_GEN2_ERROR_NOT_FOUND;
+                                                cpuContext[CpuRegister.Rax] = unchecked((ulong)(int)orbisGen2Result);
+                                        }
+                                }
                                 else if (importStubEntry.Export is { } cachedExport &&
                                         (cachedExport.Target & cpuContext.TargetGeneration) != 0)
                                 {
@@ -2486,6 +2519,47 @@ public sealed partial class DirectExecutionBackend
                                 // === EXP-028 T12/T13: post-call boundary trace + return-corruption check ===
                                 SharpEmu.Libs.Kernel.Exp028T12T13BoundaryTrace.LogPostCall(
                                     cpuContext, callNum, symbolName, returnValue, error);
+
+                                // === EXP-031: Import stub + intrinsic investigation (DIAGNOSTIC ONLY) ===
+                                if (callNum <= 5)
+                                {
+                                    try
+                                    {
+                                        // Read the import stub at the GOT target address
+                                        ulong e031_gotVal = 0;
+                                        cpuContext.TryReadUInt64(0x808924090UL, out e031_gotVal);
+                                        Console.Error.WriteLine($"[EXP031-GOT] call={callNum} GOT_value=0x{e031_gotVal:X16}");
+
+                                        // Read the import stub bytes (16 bytes at GOT target)
+                                        // The stub should be: 48 B8 <8-byte addr> FF E0 (mov rax, addr; jmp rax)
+                                        if (e031_gotVal != 0)
+                                        {
+                                            var e031_stubBytes = new byte[16];
+                                            for (int si = 0; si < 16; si++)
+                                            {
+                                                byte sb; cpuContext.TryReadByte(e031_gotVal + (ulong)si, out sb);
+                                                e031_stubBytes[si] = sb;
+                                            }
+                                            Console.Error.WriteLine(
+                                                $"[EXP031-STUB] bytes at 0x{e031_gotVal:X16}: {BitConverter.ToString(e031_stubBytes).Replace("-", " ")}");
+
+                                            // If it starts with 48 B8, extract the target address (bytes 2-9)
+                                            if (e031_stubBytes[0] == 0x48 && e031_stubBytes[1] == 0xB8)
+                                            {
+                                                ulong e031_target = 0;
+                                                for (int ti = 0; ti < 8; ti++)
+                                                    e031_target |= ((ulong)e031_stubBytes[2 + ti]) << (ti * 8);
+                                                Console.Error.WriteLine($"[EXP031-STUB] target (intrinsic addr): 0x{e031_target:X16}");
+                                            }
+                                            else
+                                            {
+                                                Console.Error.WriteLine($"[EXP031-STUB] UNEXPECTED format — not mov rax, addr; jmp rax");
+                                                Console.Error.WriteLine($"[EXP031-STUB] first 2 bytes: 0x{e031_stubBytes[0]:X2} 0x{e031_stubBytes[1]:X2}");
+                                            }
+                                        }
+                                    }
+                                    catch (Exception e031_ex) { Console.Error.WriteLine($"[EXP031] stub read error: {e031_ex.Message}"); }
+                                }
 
                                 // === EXP-029: Native strcmp investigation (DIAGNOSTIC ONLY) ===
                                 if (callNum <= 5)
