@@ -2281,6 +2281,9 @@ public sealed partial class DirectExecutionBackend
         private static long _resolverReturnZero;
         private static long _resolverReturnNonZero;
         private const ulong RealResolverAddress = 0x804ED9B90;
+        // EXP-034: Store resolver results for patching import stubs
+        private static readonly Dictionary<string, ulong> _resolverResults = new();
+        private static bool _resolverStubsPatched;
 
         private OrbisGen2Result DispatchIl2CppApiLookupSymbol()
         {
@@ -2647,6 +2650,62 @@ public sealed partial class DirectExecutionBackend
                                 }
 
                                 cpuContext[CpuRegister.Rax] = (ulong)returnValue;
+                                // EXP-034: Store resolver result for import stub patching
+                                if (returnValue != 0)
+                                {
+                                    lock (_resolverResults)
+                                    {
+                                        _resolverResults[symbolName] = returnValue;
+                                    }
+                                    if (callNum <= 5)
+                                        Console.Error.WriteLine($"[EXP034-STORE] #{callNum} name='{symbolName}' func_impl=0x{returnValue:X16} total={_resolverResults.Count}");
+                                }
+
+                                // EXP-034: After ALL resolver calls complete, re-patch import stubs
+                                // with real func_impl addresses (replacing fake heap stubs)
+                                if (callNum == 232 && !_resolverStubsPatched)
+                                {
+                                    _resolverStubsPatched = true;
+                                    int patched = 0;
+                                    foreach (var entry in _importEntries)
+                                    {
+                                        // Look up NID → function name via Aerolib
+                                        string funcName = null;
+                                        if (SharpEmu.HLE.Aerolib.Instance.TryGetByNid(entry.Nid, out var sym))
+                                        {
+                                            funcName = sym.ExportName;
+                                        }
+                                        if (funcName != null && funcName.StartsWith("il2cpp_", StringComparison.Ordinal))
+                                        {
+                                            lock (_resolverResults)
+                                            {
+                                                if (_resolverResults.TryGetValue(funcName, out var realFuncImpl))
+                                                {
+                                                    // Re-patch the import stub with the real func_impl
+                                                    unsafe
+                                                    {
+                                                        PatchImportStub((nint)entry.Address, (nint)realFuncImpl);
+                                                    }
+                                                    patched++;
+                                                    if (patched <= 10)
+                                                        Console.Error.WriteLine($"[EXP034-PATCH] '{funcName}' stub at 0x{entry.Address:X16} → real func_impl 0x{realFuncImpl:X16}");
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Console.Error.WriteLine($"[EXP034-PATCH] Total import stubs re-patched: {patched}/{_resolverResults.Count}");
+
+                                    // EXP-034: Read the first 10 global variables to verify they're populated
+                                    ulong[] globalAddrs = { 0x801ed6320, 0x801ed6328, 0x801ed6330, 0x801ed6338, 0x801ed6340,
+                                                             0x801ed6348, 0x801ed6350, 0x801ed6358, 0x801ed6360, 0x801ed6368 };
+                                    for (int gi = 0; gi < globalAddrs.Length; gi++)
+                                    {
+                                        ulong gval = 0;
+                                        cpuContext.TryReadUInt64(globalAddrs[gi], out gval);
+                                        Console.Error.WriteLine($"[EXP034-GLOBAL] global[{gi}] @0x{globalAddrs[gi]:X16} = 0x{gval:X16}");
+                                    }
+                                }
+
                                 return OrbisGen2Result.ORBIS_GEN2_OK;
                         }
                         catch (Exception ex)
@@ -2677,13 +2736,19 @@ public sealed partial class DirectExecutionBackend
                         return true;
                 }
 
-                // IL2CPP API functions get per-function stubs from a fake runtime heap.
-                // The fake heap has a default vtable (512 slots, all → return-zero stub) so any
-                // virtual call on a fake object safely returns 0. Per-function stubs return the
-                // appropriate non-NULL pointer (domain/thread/class/image/assembly) so games
-                // don't crash on NULL dispatch.
+                // EXP-034: If the resolver has already provided a real func_impl for this
+                // il2cpp_* function, use it instead of the fake heap stub.
                 if (!string.IsNullOrEmpty(symbolName) && symbolName.StartsWith("il2cpp_", StringComparison.Ordinal))
                 {
+                        lock (_resolverResults)
+                        {
+                                if (_resolverResults.TryGetValue(symbolName, out var realFuncImpl))
+                                {
+                                        address = realFuncImpl;
+                                        return true;
+                                }
+                        }
+                        // Fallback: use fake heap stub (resolver hasn't run yet)
                         var stub = GetIl2CppStubForFunction(symbolName);
                         if (stub == 0) return false;
                         address = stub;
