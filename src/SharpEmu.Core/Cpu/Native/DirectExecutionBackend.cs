@@ -871,9 +871,9 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                 return *(ulong*)((byte*)contextRecord + offset);
         }
 
-        private unsafe static int CallNativeEntry(void* entry)
+        private unsafe static long CallNativeEntry(void* entry)
         {
-                var nativeEntry = (delegate* unmanaged[Cdecl]<int>)entry;
+                var nativeEntry = (delegate* unmanaged[Cdecl]<long>)entry;
                 return nativeEntry();
         }
 
@@ -5083,7 +5083,23 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         ActiveGuestThreadYieldReason = null;
                         try
                         {
+                                // EXP-032 ABI: Log before native transition
+                                Console.Error.WriteLine(
+                                    $"[EXP032-ABI-BEFORE] rip=0x{context.Rip:X16} rdi=0x{context[CpuRegister.Rdi]:X16} " +
+                                    $"rsi=0x{context[CpuRegister.Rsi]:X16} rdx=0x{context[CpuRegister.Rdx]:X16} " +
+                                    $"rax=0x{context[CpuRegister.Rax]:X16} entry=0x{entryPoint:X16}");
+
                                 var nativeReturn = CallNativeEntry(ptr);
+
+                                // EXP-032 FIX: Write nativeReturn to CpuContext.Rax
+                                // CallNativeEntry now returns long (64-bit) to preserve full RAX.
+                                context[CpuRegister.Rax] = (ulong)nativeReturn;
+
+                                // EXP-032 ABI: Log after native return
+                                Console.Error.WriteLine(
+                                    $"[EXP032-ABI-AFTER] nativeReturn=0x{nativeReturn:X16} " +
+                                    $"contextRax=0x{context[CpuRegister.Rax]:X16} " +
+                                    $"contextRip=0x{context.Rip:X16}");
                                 if (ActiveGuestThreadYieldRequested)
                                 {
                                         reason = ActiveGuestThreadYieldReason ?? "guest thread blocked";
@@ -5094,7 +5110,7 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                                         reason = LastError ?? "guest thread forced exit";
                                         return GuestNativeCallExitReason.ForcedExit;
                                 }
-                                reason = $"returned 0x{nativeReturn:X8}";
+                                reason = $"returned 0x{nativeReturn:X16}";
                                 // EXP032: Log nativeReturn to see if resolver actually executed
                                 if (_activeCpuContext is { } e032_ctx && e032_ctx.Rip >= 0x804CD5000UL && e032_ctx.Rip < 0x810000000UL)
                                 {
@@ -5548,7 +5564,7 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         Console.Error.WriteLine("[LOADER][INFO] Calling guest entry...");
                         StartStallWatchdog();
                         StartReadyThreadDispatcher();
-                        int num6 = -1;
+                        long num6 = -1;
                         try
                         {
                                 num6 = CallNativeEntry(ptr);
