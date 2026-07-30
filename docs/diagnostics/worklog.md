@@ -1169,3 +1169,93 @@ Next Step (EXP-056):
   wrapper for each type's name string
 
 Commit: pending
+Commit: pending
+
+---
+Task ID: EXP-056
+Agent: main (SharpEmu bringup)
+Task: EXP-056 — IL2CPP Registration Chain Investigation (Groups 1,3,4,5).
+Hypothesis-group test: no isolated NULL patching, full owning-structure analysis.
+
+Work Log:
+- Read worklog and EXP-055 findings (CodeReg+MetaReg found, PRX DT_INIT invalid)
+- Wrote comprehensive_analysis.py covering Groups 1,3,4,5 of master plan
+- G1-T9: Verified 0x80885C580 address translation:
+  * MetaReg file_vaddr = 0x3B87580
+  * PRX_BASE + file_vaddr = 0x80885C580 ✓
+  * Located in segment 2 (data1), file_off=0x3B8B580
+- G1-T6: Full field-by-field dump of CodeReg + MetaReg:
+  * CodeReg @ 0x8086E9000: 11 reloc-populated pointer fields, 6 count fields
+  * MetaReg @ 0x80885C580: 11 reloc-populated pointer fields, 7 count fields
+  * NEW: MetaReg has 3 CODE pointers at +0x00,+0x08,+0x10 (0x805380680, 0x8053806F0, 0x805380770)
+    These are likely reverse P/Invoke wrappers or icall registration functions
+- G1-T10/G3-T27: Searched for codeGenModules[] array:
+  * 305 relocs point INTO CodeReg struct
+  * 7 relocs point INTO MetaReg struct
+  * 0 adjacent CodeReg+MetaReg pointer pairs found
+  * The 305 CodeReg refs are metadataUsages entries, NOT codeGenModules
+- G3-T23: Confirmed CodeReg is really Il2CppCodeRegistration:
+  * (count, pointer) pair pattern matches Unity struct
+  * 103561 count at +0x20 matches 103816 methodPointers entries
+- G4-T34/35: Confirmed wrapper 0x800805AE0 handles BOTH P/Invoke and metadata:
+  * "#dllimport:" prefix is a special case for P/Invoke
+  * Generic path (no prefix) does metadata insertion
+  * Wrapper IS the metadata inserter (not P/Invoke-only)
+- G5-T38: CRITICAL — Both CodeReg and MetaReg are FULLY POPULATED via relocations:
+  * ALL pointer fields have R_X86_64_RELATIVE relocations
+  * Structs contain valid pointers at load time
+  * They do NOT need a registration function to fill them
+- G5-T39: MAJOR PIVOT — Root cause is NOT "structs unfilled":
+  * Structs are already populated
+  * Root cause is "CONSUMER function never invoked"
+  * The consumer reads CodeReg/MetaReg and populates the hash table
+  * The consumer is the missing walker function
+- G5-T41: Re-examined crash function 0x80135DDD0:
+  * Reads [0x801E51240] as pointer to struct
+  * Accesses +0x90 (array ptr), +0x98 (count), +0xA0 (stride)
+  * Neither CodeReg nor MetaReg has this layout
+  * 0x801E51240 points to a RUNTIME METADATA OBJECT (not CodeReg/MetaReg)
+  * The hash table lookup is supposed to RETURN pointers to these runtime objects
+- G5-T42: Hash-table investigation is NOT a red herring:
+  * Hash table IS the correct mechanism for runtime metadata lookup
+  * Issue is hash table never filled because consumer never called
+- G2-T11/12: PRX DT_INIT execution is MASKED:
+  * SharpEmu calls 0x804CD5010 (ELF header bytes)
+  * CPU executes garbage, exception handler recovers with RAX=0
+  * Runtime treats it as "module init succeeded"
+  * This MASKS the missing real init
+  * Log shows: "Guest returned: 0" + "Execute END (LastError: null)"
+
+Stage Summary:
+- MAJOR PIVOT: Both CodeReg and MetaReg are ALREADY FULLY POPULATED via
+  relocations. The root cause is NOT "structs unfilled" but "CONSUMER
+  function never invoked."
+- The consumer function reads CodeReg/MetaReg, iterates types[] array,
+  and calls wrapper 0x800805AE0 for each type name to populate the hash table.
+- The consumer is never called because:
+  1. PRX DT_INIT is invalid (ELF header) — silently recovered
+  2. PRX has no init_array or fini_array
+  3. The consumer is called indirectly (can't find statically)
+- The crash function reads [0x801E51240] which should point to a RUNTIME
+  METADATA OBJECT (not CodeReg/MetaReg). The hash table lookup is supposed
+  to return these objects.
+- NEW FINDING: MetaReg has 3 code pointers at +0x00,+0x08,+0x10 — these
+  may be the consumer function or its dispatchers.
+- Wrapper 0x800805AE0 confirmed as the metadata inserter (not P/Invoke-only).
+- Hash-table investigation is VALID (not a red herring).
+- NO FIX APPLIED — investigation-only per user policy.
+
+Key Files Produced:
+- docs/diagnostics/EXP-056.md (new diagnostic report)
+- /home/z/my-project/scripts/exp056/comprehensive_analysis.py
+
+Next Step (EXP-057):
+- Find the CONSUMER function that reads CodeReg/MetaReg:
+  1. Disassemble the 3 code pointers in MetaReg (+0x00,+0x08,+0x10)
+  2. Runtime trace il2cpp_init's early code (single-step first 200 insns)
+  3. Search for functions that LEA both CodeReg AND MetaReg addresses
+  4. Check PS5Util.prx for IL2CPP bootstrap code
+- Once found, manually call the consumer from SharpEmu after PRX load
+- Expected: hash table populated, lookups return non-NULL, BOOT_STAGE_5 reached
+
+Commit: pending
