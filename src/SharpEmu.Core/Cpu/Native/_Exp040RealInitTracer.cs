@@ -102,66 +102,28 @@ public sealed unsafe partial class DirectExecutionBackend
         catch { }
         Console.Error.Flush();
 
-        // EXP-047 FIX: Set metadata flag = 1 AND 0x801E51240 = 1 (temp).
-        // Flag=1 forces metadata lookup to return 0 (matching real PS5).
-        // 0x801E51240=1 prevents SIGSEGV in 0x801352760 which reads [rax+0x90].
-        // The value 1 is not a valid pointer, but SIGSEGV recovery will handle
-        // any invalid reads. The hash lookup at 0x8013EEFE7 will overwrite
-        // 0x801E51240 with the correct value later.
+        // EXP-048 FIX: Patch callback 0x80134FA00 to return immediately with al=1.
+        // The callback is called from call #8 during il2cpp_init.
+        // On real PS5, the callback is not called (metadata list empty).
+        // On SharpEmu, the callback runs and crashes because metadata is not set.
+        // Fix: replace push rbp (55) with mov al,1; ret; nop (B0 01 C3 90).
+        // Call #8 checks al after return - al=1 means success, real_init continues.
         try
         {
-            // Set metadata flag = 1
-            ulong lazyInitPtr = *(ulong*)0x801EA4E80;
-            if (lazyInitPtr != 0)
+            var cbPtr = (byte*)0x80134FA00;
+            uint flNP048 = 0;
+            if (VirtualProtect((void*)0x80134FA00, 8u, 64u, &flNP048))
             {
-                ulong rcx = *(ulong*)(lazyInitPtr + 8);
-                if (rcx != 0)
+                if (cbPtr[0] == 0x55) // push rbp
                 {
-                    ulong rdx = *(ulong*)(rcx + 8);
-                    if (rdx != 0)
-                    {
-                        byte flag = *((byte*)(rdx + 0x19));
-                        if (flag == 0)
-                        {
-                            *((byte*)(rdx + 0x19)) = 1;
-                            Console.Error.WriteLine(
-                                "[EXP047-FIX] Set metadata flag = 1 (force lookup to return 0)");
-                        }
-                    }
-                }
-            }
-
-            // Set 0x801E51240 = 0x801E50E40 (metadata struct base, readable)
-            // This allows reads at [0x801E51240+0x90/0x98/0xa0] to succeed
-            // (returning 0 from the zeroed struct). The hash lookup at
-            // 0x8013EEFE7 will overwrite this with the correct value.
-            ulong currentGlobal = *(ulong*)0x801E51240;
-            if (currentGlobal == 0)
-            {
-                *(ulong*)0x801E51240 = 0x801E50E40;
-                Console.Error.WriteLine(
-                    "[EXP047-FIX] Set 0x801E51240 = 0x801E50E40 (metadata struct base)");
-            }
-        }
-        catch { }
-
-        // EXP-047 FIX: NOP call [rax] at 0x80134FA7D (2 bytes: FF D0 → 90 90)
-        // This prevents the NULL function call after the metadata lookup returns 0.
-        // The callback continues without calling the crash function.
-        try
-        {
-            var callRaxPtr = (byte*)0x80134FA7D;
-            uint flNP047b = 0;
-            if (VirtualProtect((void*)0x80134FA7D, 8u, 64u, &flNP047b))
-            {
-                if (callRaxPtr[0] == 0xFF && (callRaxPtr[1] == 0xD0 || callRaxPtr[1] == 0x10))
-                {
-                    callRaxPtr[0] = 0x90; // NOP
-                    callRaxPtr[1] = 0x90; // NOP
-                    VirtualProtect((void*)0x80134FA7D, 8u, flNP047b, &flNP047b);
-                    FlushInstructionCache(GetCurrentProcess(), (void*)0x80134FA7D, 8u);
+                    cbPtr[0] = 0xB0; // mov al, 1
+                    cbPtr[1] = 0x01;
+                    cbPtr[2] = 0xC3; // ret
+                    cbPtr[3] = 0x90; // nop
+                    VirtualProtect((void*)0x80134FA00, 8u, flNP048, &flNP048);
+                    FlushInstructionCache(GetCurrentProcess(), (void*)0x80134FA00, 8u);
                     Console.Error.WriteLine(
-                        "[EXP047-FIX] NOPped call [rax] at 0x80134FA7D (FF D0 -> 90 90)");
+                        "[EXP048-FIX] Patched callback 0x80134FA00: push rbp -> mov al,1; ret");
                 }
             }
         }
