@@ -1334,3 +1334,83 @@ Next Step (EXP-058):
 - If it runs after crash, circular dependency confirmed at new level
 
 Commit: pending
+  * 0x804F2B4D0 (array processor) — logs array ptr, count, entry size
+  * Dumps context global [0x808923D88] and hash table state before call #7
+- Wired tracer into DirectExecutionBackend.Imports.cs and Exceptions.cs
+- Built successfully (0 errors, 47 warnings)
+- Ran baseline Yatzi (no EXP-048 stub) with EXP-058 tracers:
+  * Captured 10309-line log at /tmp/exp058_logs/run1.log
+  * Call #7 hit: YES (hit#1, caller=0x804F04C63)
+  * Loop body hit: NO (0 hits)
+  * Array processor hit: NO (0 hits)
+  * RDI at call #7 entry = 0x8086E9010 (CodeReg + 0x10!)
+  * Context global [0x808923D88] = 0x7F82F4E53840 (HOST address, not guest)
+  * Hash table populated BEFORE call #7: 0 entries
+  * No SIGSEGV during call #7 (all signals were SIGTRAP/INT3)
+  * Call #7 returned early BEFORE reaching loops
+- Analyzed call #7 disassembly for early-return path:
+  * 0x804F23358: call 0x804F713A0 (guard function)
+  * 0x804F2335D: test al, al
+  * 0x804F2335F: je 0x804F237CC (if al==0, skip all loops)
+  * Guard returns 0 -> call #7 jumps to end without executing loops
+- Disassembled guard function 0x804F713A0:
+  * Calls 0x804F04750 (metadata loader)
+  * test rax, rax; je 0x804F71509 (if NULL, return 0)
+  * Returns 0 when metadata loader fails
+- Disassembled metadata loader 0x804F04750:
+  * Reads context global [0x808923D88] (mov r15, [rip+0x3a1f624])
+  * Uses string "Metadata" at 0x80824FFBE (lea rax, [rip+0x334b840])
+  * Calls 0x804F86250 (likely path resolution)
+  * Calls 0x804ECC2F0 (likely file open/read)
+  * Returns NULL when metadata can't be loaded
+- Searched for global-metadata.dat in game directory:
+  * NOT FOUND — no .dat files, no global-metadata.dat
+  * Game files: eboot.bin, sce_module/*.prx, Media/Modules/*.prx
+  * The metadata is likely embedded or loaded from a path SharpEmu doesn't serve
+- Searched for "Metadata" string in eboot and PRX:
+  * Eboot: 10 occurrences (including "Metadata_Unsafe", "Metadata%255s")
+  * PRX: 5 occurrences (including "MetadataToken - This icall is not supported")
+
+Stage Summary:
+- ROOT CAUSE IDENTIFIED: Call #7 (0x804F23320) IS entered during real_init
+  but returns early because its guard function (0x804F713A0) returns 0.
+  The guard fails because the metadata loader (0x804F04750) returns NULL.
+  The metadata loader fails because it can't find/load the IL2CPP metadata
+  (likely global-metadata.dat, which doesn't exist in the game directory).
+- Call #7 receives RDI = CodeReg+0x10 as its first argument (confirmed).
+- The loop body (0x804F238F0) and array processor (0x804F2B4D0) were NEVER
+  reached — call #7 skips them entirely when the guard returns 0.
+- The hash table at [0x801EF7610] remains empty (0 populated entries) because
+  call #7 never populates it.
+- Context global [0x808923D88] is a HOST address (0x7F82F4E53840), not a
+  guest struct — it's SharpEmu's internal thread/context state.
+- The circular dependency is now FULLY UNDERSTOOD:
+  1. Metadata loader fails -> guard returns 0 -> call #7 skips loops
+  2. Hash table stays empty -> lookup returns NULL -> [0x801E51240] = NULL
+  3. Crash function reads NULL -> SIGSEGV
+- NO FIX APPLIED — investigation-only per user policy.
+
+Key Files Produced:
+- src/SharpEmu.Core/Cpu/Native/_Exp058Call7Tracer.cs (new, 280 lines)
+- src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.Imports.cs (modified)
+- src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.Exceptions.cs (modified)
+- docs/diagnostics/EXP-058.md (new diagnostic report)
+- /tmp/exp058_logs/run1.log (10309-line runtime trace)
+
+Next Step (EXP-059):
+- Trace the metadata loader (0x804F04750):
+  * INT3 at entry: log arguments, file paths probed
+  * INT3 at 0x804F86250 (path resolution)
+  * INT3 at 0x804ECC2F0 (file open/read)
+  * Log all file I/O HLE calls during metadata loader execution
+- Search for IL2CPP metadata magic bytes in eboot.bin and PRX:
+  * Standard magic: 0xFAB11BAF
+  * If found, ensure SharpEmu maps/serves it correctly
+- If metadata file is missing, determine:
+  * Is it embedded in eboot.bin or PRX?
+  * Does SharpEmu's filesystem HLE return failure for the expected path?
+  * Can we provide the metadata via HLE?
+- Once metadata loading works, call #7 should execute its loops,
+  populate the hash table, and il2cpp_init should progress past the crash.
+
+Commit: pending

@@ -126,6 +126,21 @@ public sealed partial class DirectExecutionBackend
                         {
                                 return -1;
                         }
+                        // EXP-058: Handle INT3 from call#7 (consumer candidate) tracer.
+                        if (exceptionCode == 2147483651u && Exp058TryHandleCall7Int3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        // EXP-058: Handle INT3 from loop body tracer.
+                        if (exceptionCode == 2147483651u && Exp058TryHandleLoopBodyInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        // EXP-058: Handle INT3 from array processor tracer.
+                        if (exceptionCode == 2147483651u && Exp058TryHandleArrayProcInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-042: Handle INT3 from metadata_lookup tracer.
                         if (exceptionCode == 2147483651u && Exp042TryHandleMetadataLookupInt3(contextRecord, rip))
                         {

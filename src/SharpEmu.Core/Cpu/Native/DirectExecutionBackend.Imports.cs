@@ -2739,6 +2739,11 @@ public sealed partial class DirectExecutionBackend
                                     // EXP-053: Install INT3 at wrapper 0x800805AE0 and insert 0x800806940
                                     // to determine if/when il2cpp_codegen_register is called.
                                     Exp053PatchWrapperAndInsert();
+
+                                    // EXP-058: Install INT3 at call#7 (0x804F23320), loop body
+                                    // (0x804F238F0), and array processor (0x804F2B4D0) to trace
+                                    // the consumer candidate and confirm hash table population.
+                                    Exp058PatchCall7Tracers();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;
