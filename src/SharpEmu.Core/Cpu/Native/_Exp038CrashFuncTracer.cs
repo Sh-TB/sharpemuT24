@@ -63,10 +63,10 @@ public sealed unsafe partial class DirectExecutionBackend
         // Read and log current global values
         try
         {
-            ulong hashTablePtr = *(ulong*)0x801EE7610;
+            ulong hashTablePtr = *(ulong*)0x801EF7610;
             ulong globalPtr = *(ulong*)0x801E51240;
             Console.Error.WriteLine(
-                $"[EXP038-STATE] hash_table_ptr at 0x801EE7610 = 0x{hashTablePtr:X16} " +
+                $"[EXP038-STATE] hash_table_ptr at 0x801EF7610 = 0x{hashTablePtr:X16} " +
                 $"global_ptr at 0x801E51240 = 0x{globalPtr:X16}");
         }
         catch { }
@@ -92,7 +92,7 @@ public sealed unsafe partial class DirectExecutionBackend
 
             // Read global values at this point
             ulong hashTablePtr = 0, globalPtr = 0;
-            try { hashTablePtr = *(ulong*)0x801EE7610; } catch { }
+            try { hashTablePtr = *(ulong*)0x801EF7610; } catch { }
             try { globalPtr = *(ulong*)0x801E51240; } catch { }
 
             Console.Error.WriteLine(
@@ -101,6 +101,41 @@ public sealed unsafe partial class DirectExecutionBackend
             Console.Error.WriteLine(
                 $"[EXP038-CRASH_FUNC-STATE] hash_table=0x{hashTablePtr:X16} " +
                 $"global=0x{globalPtr:X16}");
+
+            // EXP-039: Dump hash table structure
+            if (hashTablePtr != 0 && hashTablePtr > 0x1000)
+            {
+                try
+                {
+                    Console.Error.WriteLine($"[EXP039-HASH_TABLE] Dump at 0x{hashTablePtr:X16}:");
+                    for (int off = 0; off < 0x40; off += 8)
+                    {
+                        ulong val = *(ulong*)(hashTablePtr + (ulong)off);
+                        Console.Error.WriteLine($"  +0x{off:X2}: 0x{val:X16}");
+                    }
+
+                    // Dump first 16 entries from the entries array
+                    ulong entriesPtr = *(ulong*)(hashTablePtr);
+                    ulong mask = *(ulong*)(hashTablePtr + 8);
+                    Console.Error.WriteLine($"[EXP039-HASH_ENTRIES] entries=0x{entriesPtr:X16} mask=0x{mask:X16}");
+                    if (entriesPtr != 0 && entriesPtr > 0x1000)
+                    {
+                        for (int e = 0; e < 16; e++)
+                        {
+                            try
+                            {
+                                ulong entryVal = *(ulong*)(entriesPtr + (ulong)e * 8);
+                                if (entryVal != 0)
+                                {
+                                    Console.Error.WriteLine($"  entry[{e}] = 0x{entryVal:X16}");
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                }
+                catch { }
+            }
 
             // Dump stack to find call chain
             Console.Error.WriteLine("[EXP038-CRASH_FUNC-STACK] Return addresses on stack:");

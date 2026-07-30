@@ -2714,6 +2714,12 @@ public sealed partial class DirectExecutionBackend
 
                                     // EXP-038: Install INT3 at crash function 0x80135DDD0 to trace caller.
                                     Exp038InstallTracers();
+
+                                    // EXP-039: Install INT3 at hash table writer 0x8007F90A0 to trace if called.
+                                    Exp039PatchHashTableWriter();
+
+                                    // EXP-039: Install INT3 at hash lookup 0x8004BD620 to trace inputs.
+                                    Exp039PatchHashLookup();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;
