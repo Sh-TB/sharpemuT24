@@ -1259,3 +1259,78 @@ Next Step (EXP-057):
 - Expected: hash table populated, lookups return non-NULL, BOOT_STAGE_5 reached
 
 Commit: pending
+  * PRX refs to CodeReg (0x8086E9000): 7780
+  * PRX refs to MetaReg (0x80885C580): 0 (!!!)
+  * PRX refs to types[] (0x80893E950): 0
+  * Functions with co-occurring CodeReg+MetaReg: NONE
+- G1-T1/2/3: Disassembled MetaReg's 3 code pointers:
+  * 0x805380680 (MetaReg+0x00): reverse P/Invoke wrapper
+  * 0x8053806F0 (MetaReg+0x08): reverse P/Invoke wrapper
+  * 0x805380770 (MetaReg+0x10): reverse P/Invoke wrapper
+  * All 3 marshal args, call 0x807180CC0 (common dispatcher)
+  * G1 DISPROVEN: these are NOT the consumer function
+- MetaReg access mechanism SOLVED:
+  * 7 relocs point to MetaReg FIELDS (not base):
+    0x8088AD3F8 -> MetaReg+0x98
+    0x8088AED98 -> MetaReg+0xA8
+    0x8088AEDA0 -> MetaReg+0xB8
+    etc.
+  * These are entries in the metadataUsages indirection table
+  * Code reads metadataUsages[index] -> pointer to MetaReg field -> dereference
+  * Two-level indirection explains why no direct LEA to MetaReg base
+- G4-T25/26: No codeGenModules[] array found:
+  * 0 adjacent CodeReg+MetaReg pointer pairs
+  * 0 Il2CppCodeGenModule pattern (rodata, CodeReg, MetaReg triplet)
+  * The 304 CodeReg refs are metadataUsages entries, not modules array
+- il2cpp_init analysis:
+  * 0x804ED85D0 is only 44 bytes (tiny thunk)
+  * Just calls real_init (0x804F04BA0)
+  * All init logic is in real_init
+- real_init call #7 (0x804F23320) RE-EVALUATED:
+  * NOT a simple epilogue (contrary to EXP-041's claim)
+  * Large function (0x500+ bytes) with loops
+  * Reads context global at [rip+0x3a00a49] -> 0x808923D88
+  * Loads 2 rodata strings (lea rdi, lea rsi)
+  * Has loop: iterates with counter, calls 0x804F238F0 each iteration
+  * Uses 0x38-byte stride (imul rsi, r14, 0x38) — MATCHES hash table entry size!
+  * Calls 0x804F2B4D0 with array pointer, count, end pointer
+  * STRONG CONSUMER CANDIDATE
+- CodeReg+0x08 string analysis:
+  * Points to 0x80828A7B1: "22Il2CppExceptionWrapper"
+  * "22" is LENGTH prefix (22 chars), "Il2CppExceptionWrapper" is the type name
+  * This is a standard IL2CPP string literal format
+  * CodeReg+0x08 is a TYPE NAME pointer, not a version field
+  * Struct at 0x8086E9000 may need re-evaluation (could be Il2CppCodeGenModule)
+
+Stage Summary:
+- MetaReg access mechanism SOLVED: via metadataUsages[] indirection table.
+  7 relocs point to MetaReg fields from 0x8088AD3F8 onwards. Code reads
+  metadataUsages[index] -> pointer to MetaReg field -> dereference.
+- MetaReg+0x00/08/10 DISPROVEN as consumer: all 3 are reverse P/Invoke wrappers.
+- No co-occurring CodeReg+MetaReg refs: no function LEAs both directly.
+  This is because MetaReg is accessed via indirection, not direct LEA.
+- No codeGenModules[] array: single CodeReg/MetaReg pair.
+- il2cpp_init is a 44-byte thunk calling real_init.
+- Call #7 (0x804F23320) is a STRONG CONSUMER CANDIDATE:
+  * Has loops with 0x38-byte stride (matching hash table entry size)
+  * Reads context global at 0x808923D88 (likely holds CodeReg/MetaReg pointers)
+  * Calls 0x804F238F0 in loop, 0x804F2B4D0 with array
+  * Previously mis-classified as "epilogue" by EXP-041
+- CodeReg+0x08 is a type name string literal ("22Il2CppExceptionWrapper")
+- NO FIX APPLIED — investigation-only per user policy.
+
+Key Files Produced:
+- docs/diagnostics/EXP-057.md (new diagnostic report)
+- scripts/exp057/find_co_occurring_refs.py (reusable tool)
+
+Next Step (EXP-058):
+- Runtime trace call #7 (0x804F23320):
+  * INT3 at entry: log caller, args, context global [0x808923D88]
+  * INT3 at 0x804F238F0 (loop body): log entry pointer and processing
+  * INT3 at 0x804F2B4D0: log array, count, end pointer
+- Dump context global at real_init entry
+- If call #7 IS the consumer, verify it populates hash table
+- If it runs before crash but fails, find guard/early-return condition
+- If it runs after crash, circular dependency confirmed at new level
+
+Commit: pending
