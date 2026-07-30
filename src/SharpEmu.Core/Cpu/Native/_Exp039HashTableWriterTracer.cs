@@ -65,6 +65,15 @@ public sealed unsafe partial class DirectExecutionBackend
         }
         catch { }
 
+        // EXP-045: Check [0x801E9DF28] (registration list head)
+        try
+        {
+            ulong listHead = *(ulong*)0x801E9DF28;
+            Console.Error.WriteLine(
+                $"[EXP045-LIST_HEAD] [0x801E9DF28]=0x{listHead:X16} at hash_writer entry");
+        }
+        catch { }
+
         // Dump stack
         Console.Error.WriteLine("[EXP039-HASH_WRITER-STACK] Return addresses:");
         try
