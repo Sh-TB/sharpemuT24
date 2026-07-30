@@ -102,28 +102,66 @@ public sealed unsafe partial class DirectExecutionBackend
         catch { }
         Console.Error.Flush();
 
-        // EXP-048 FIX: Patch callback 0x80134FA00 to return immediately with al=1.
-        // The callback is called from call #8 during il2cpp_init.
-        // On real PS5, the callback is not called (metadata list empty).
-        // On SharpEmu, the callback runs and crashes because metadata is not set.
-        // Fix: replace push rbp (55) with mov al,1; ret; nop (B0 01 C3 90).
-        // Call #8 checks al after return - al=1 means success, real_init continues.
+        // EXP-050 FIX: NOP the conditional jump at 0x8013EE0CE that skips the hash lookup.
+        // The jump is: jle 0x8013EF25E (6 bytes: 0F 8E EA 01 00 00)
+        // NOP it (6 bytes: 90 90 90 90 90 90) so the hash lookup ALWAYS runs.
+        // This ensures metadata fields are set before they're read.
+        // ALSO: keep the callback stub from EXP-048 to prevent the callback crash.
         try
         {
+            // Keep callback stub
             var cbPtr = (byte*)0x80134FA00;
             uint flNP048 = 0;
             if (VirtualProtect((void*)0x80134FA00, 8u, 64u, &flNP048))
             {
-                if (cbPtr[0] == 0x55) // push rbp
+                if (cbPtr[0] == 0x55)
                 {
-                    cbPtr[0] = 0xB0; // mov al, 1
-                    cbPtr[1] = 0x01;
-                    cbPtr[2] = 0xC3; // ret
-                    cbPtr[3] = 0x90; // nop
+                    cbPtr[0] = 0xB0; cbPtr[1] = 0x01; cbPtr[2] = 0xC3; cbPtr[3] = 0x90;
                     VirtualProtect((void*)0x80134FA00, 8u, flNP048, &flNP048);
                     FlushInstructionCache(GetCurrentProcess(), (void*)0x80134FA00, 8u);
+                    Console.Error.WriteLine("[EXP050-FIX] Callback stub applied");
+                }
+            }
+
+            // NOP the jump at 0x8013EE0CE
+            var jmpPtr = (byte*)0x8013EE0CE;
+            uint flNP050 = 0;
+            if (VirtualProtect((void*)0x8013EE0CE, 8u, 64u, &flNP050))
+            {
+                // Verify it's a Jcc (0F 8E)
+                if (jmpPtr[0] == 0x0F && jmpPtr[1] == 0x8E)
+                {
+                    jmpPtr[0] = 0x90; jmpPtr[1] = 0x90; jmpPtr[2] = 0x90;
+                    jmpPtr[3] = 0x90; jmpPtr[4] = 0x90; jmpPtr[5] = 0x90;
+                    VirtualProtect((void*)0x8013EE0CE, 8u, flNP050, &flNP050);
+                    FlushInstructionCache(GetCurrentProcess(), (void*)0x8013EE0CE, 8u);
+                    Console.Error.WriteLine("[EXP050-FIX] NOPped jump at 0x8013EE0CE (force hash lookup)");
+                }
+                else
+                {
                     Console.Error.WriteLine(
-                        "[EXP048-FIX] Patched callback 0x80134FA00: push rbp -> mov al,1; ret");
+                        $"[EXP050-FIX] WARNING: expected 0F 8E at 0x8013EE0CE, got 0x{jmpPtr[0]:X2} 0x{jmpPtr[1]:X2}");
+                }
+            }
+        }
+        catch { }
+
+        // EXP-050 FIX: Stub 0x800C195C0 (metadata accessor) to return immediately.
+        // This function is called from the init function after il2cpp_init returns.
+        // It reads NULL metadata fields → SIGSEGV cascade.
+        // Stubbing it prevents the cascade. The init function continues.
+        try
+        {
+            var metaPtr = (byte*)0x800C195C0;
+            uint flNP050b = 0;
+            if (VirtualProtect((void*)0x800C195C0, 8u, 64u, &flNP050b))
+            {
+                if (metaPtr[0] == 0x55) // push rbp
+                {
+                    metaPtr[0] = 0xC3; // ret
+                    VirtualProtect((void*)0x800C195C0, 8u, flNP050b, &flNP050b);
+                    FlushInstructionCache(GetCurrentProcess(), (void*)0x800C195C0, 8u);
+                    Console.Error.WriteLine("[EXP050-FIX] Stubbed 0x800C195C0 (ret)");
                 }
             }
         }
