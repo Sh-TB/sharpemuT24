@@ -1094,3 +1094,78 @@ Next Step (EXP-055):
   after PRX loads, before il2cpp_init
 
 Commit: pending
+Work Log:
+- Read worklog and EXP-054 findings (CodeRegistration at 0x8086E9000, types[] at 0x80893E950)
+- Wrote find_codereg_refs.py to search PRX RELA for pointers to CodeReg/MetaReg
+- BREAKTHROUGH: Il2CppMetadataRegistration struct found at 0x80885C580 (PRX data2)
+  * types[] pointer at struct+0x80 -> 0x80893E950 (13082 entries)
+  * metadataUsages[] at struct+0x50 -> 0x8088944F0 (40310 entries)
+  * 7 (count, pointer) pairs matching Unity's Il2CppMetadataRegistration layout
+- Wrote fast_lea_scan.py for byte-level RIP-relative ref scanning:
+  * CodeRegistration (0x8086E9000): 7780 RIP-relative refs in PRX code
+  * MetadataRegistration (0x80885C580): 0 RIP-relative refs (!)
+  * types[] (0x80893E950): 0 RIP-relative refs
+  * methodPointers[] (0x808791958): 0 RIP-relative refs
+- Checked first 10 CodeReg refs: ALL load into rsi (arg1), none into rdi (arg0)
+  * First ref at 0x804F65288: lea rsi, [rip+0x3783d71] -> 0x8086E9000
+  * Inside small error-handling function (calls allocator+thrower, ends with ud2)
+  * NOT the registration function
+- Searched for relocs with addend = MetadataReg (0x80885C580): 0 matches
+  * MetadataReg is NOT accessed via RIP-relative LEA or static global pointer
+  * Must be accessed via register-loaded pointer from runtime-populated global
+- PRX constructor audit:
+  * DT_INIT_ARRAY: NOT FOUND in PRX dynamic section
+  * DT_FINI_ARRAY: NOT FOUND in PRX dynamic section
+  * DT_INIT = imageBase + 0x10 = 0x804CD5010 (ELF header bytes, NOT code!)
+  * EXP-044's "11 fini_array entries" was WRONG — PRX has no fini_array
+- Verified PRX DT_INIT is invalid:
+  * File offset 0x10 contains ELF header: 18 fe 3e 00 01 00 00 00
+  * SharpEmu calls DispatchModuleInitializer(0x804CD5010) which executes garbage
+- Upstream SharpEmu check (sharpemu/sharpemu):
+  * Cloned repo, searched for IL2CPP registration code
+  * 0 matches for il2cpp_init, Il2CppCodeRegistration, codegen_register, etc.
+  * SharpEmuRuntime.cs line 442-444 comment confirms same issue:
+    "On current PS5 dumps DT_INIT commonly resolves to imageBase+0x10,
+     which is inside the mapped ELF header rather than a callable guest
+     routine. Startup must remain guest-driven until the PS5 init/module
+     ABI is identified precisely."
+  * Upstream developers are AWARE of the issue but have NOT solved it
+  * No issue tracker solutions found
+
+Stage Summary:
+- Il2CppMetadataRegistration struct FOUND at 0x80885C580 (PRX data2 segment).
+  Contains 7 (count, pointer) pairs matching Unity's struct layout.
+  types[] at +0x80, metadataUsages[] at +0x50 (40310 entries).
+- CodeRegistration has 7780 RIP-relative refs but ALL load into rsi (arg1).
+  The registration function takes CodeReg as SECOND argument, not first.
+- MetadataRegistration has 0 RIP-relative refs and 0 reloc refs.
+  Access mechanism unknown — possibly via runtime-populated global pointer.
+- PRX DT_INIT is INVALID: points to ELF header (imageBase+0x10), not code.
+  PRX has NO init_array or fini_array.
+  EXP-044's "11 fini_array entries" was a misidentification.
+- Upstream SharpEmu has the SAME issue — acknowledged in source comment,
+  but no fix exists. The IL2CPP registration problem is unsolved upstream.
+- ROOT CAUSE CONFIRMED: The PRX has no valid initialization mechanism.
+  The registration function is never called because:
+  1. DT_INIT points to ELF header garbage (not code)
+  2. No init_array exists
+  3. No fini_array exists
+  4. The registration function is called indirectly (can't find statically)
+- NO FIX APPLIED — investigation-only per user policy.
+
+Key Files Produced:
+- docs/diagnostics/EXP-055.md (new diagnostic report)
+- /home/z/my-project/scripts/exp055/ (3 analysis scripts)
+- /tmp/sharpemu_upstream/ (cloned upstream repo for comparison)
+
+Next Step (EXP-056):
+- Implement manual registration call:
+  * After PRX load, before il2cpp_init
+  * Load CodeReg (0x8086E9000) and MetaReg (0x80885C580) addresses
+  * Call wrapper 0x800805AE0 in a loop for each type name from types[] array
+- Alternative: Hook il2cpp_init entry, single-step first 100 instructions
+  to find the registration call site
+- Alternative: Manually populate hash table by iterating types[] and calling
+  wrapper for each type's name string
+
+Commit: pending
