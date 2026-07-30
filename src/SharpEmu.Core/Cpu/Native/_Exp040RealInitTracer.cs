@@ -105,24 +105,36 @@ public sealed unsafe partial class DirectExecutionBackend
         // EXP-051: Keep callback stub from EXP-048 (only working fix)
         // Buffer fix and NOP jumps reverted — they cause new NULL reads
         // by changing control flow to paths that read other uninitialized data.
-
-        // --- Keep callback stub from EXP-048 ---
-        try
+        //
+        // EXP-054: Make stub conditional on SHARPEMU_EXP048_STUB env var.
+        // Default: DISABLED (set to "0" or unset) for baseline investigation.
+        // Set SHARPEMU_EXP048_STUB=1 to re-enable the stub.
+        var exp048StubEnv = Environment.GetEnvironmentVariable("SHARPEMU_EXP048_STUB");
+        var exp048StubEnabled = string.Equals(exp048StubEnv, "1", StringComparison.Ordinal);
+        if (exp048StubEnabled)
         {
-            var cbPtr = (byte*)0x80134FA00;
-            uint flNPcb = 0;
-            if (VirtualProtect((void*)0x80134FA00, 8u, 64u, &flNPcb))
+            // --- Keep callback stub from EXP-048 ---
+            try
             {
-                if (cbPtr[0] == 0x55)
+                var cbPtr = (byte*)0x80134FA00;
+                uint flNPcb = 0;
+                if (VirtualProtect((void*)0x80134FA00, 8u, 64u, &flNPcb))
                 {
-                    cbPtr[0] = 0xB0; cbPtr[1] = 0x01; cbPtr[2] = 0xC3; cbPtr[3] = 0x90;
-                    VirtualProtect((void*)0x80134FA00, 8u, flNPcb, &flNPcb);
-                    FlushInstructionCache(GetCurrentProcess(), (void*)0x80134FA00, 8u);
-                    Console.Error.WriteLine("[EXP051-FIX] Callback stub applied");
+                    if (cbPtr[0] == 0x55)
+                    {
+                        cbPtr[0] = 0xB0; cbPtr[1] = 0x01; cbPtr[2] = 0xC3; cbPtr[3] = 0x90;
+                        VirtualProtect((void*)0x80134FA00, 8u, flNPcb, &flNPcb);
+                        FlushInstructionCache(GetCurrentProcess(), (void*)0x80134FA00, 8u);
+                        Console.Error.WriteLine("[EXP051-FIX] Callback stub applied (SHARPEMU_EXP048_STUB=1)");
+                    }
                 }
             }
+            catch { }
         }
-        catch { }
+        else
+        {
+            Console.Error.WriteLine("[EXP054-BASELINE] Callback stub DISABLED (set SHARPEMU_EXP048_STUB=1 to enable)");
+        }
 
         // EXP-044: Dump PRX fini_array entries to verify relocations applied
         Exp044DumpFiniArray();

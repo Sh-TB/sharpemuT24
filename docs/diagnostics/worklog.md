@@ -1004,3 +1004,93 @@ Next Step (EXP-054):
   * Hash table gets populated, lookups return non-NULL
 
 Commit: pending
+Task ID: EXP-054
+Agent: main (SharpEmu bringup)
+Task: EXP-054 — BOOT_STAGE_5 Master Investigation (Tier 1).
+Baseline run + full PRX scan for Il2CppCodeRegistration/MetadataRegistration.
+
+Work Log:
+- Read worklog and EXP-053 findings (wrapper never called, static table disproved)
+- Made EXP-048 callback stub conditional on SHARPEMU_EXP048_STUB env var
+  (default: disabled for baseline investigation)
+- Built SharpEmu with conditional stub (0 errors)
+- Ran baseline Yatzi (no stub, SHARPEMU_SEMA_FAST_PATH=0):
+  * Captured 10238-line log at /tmp/exp054_logs/baseline_run1.log
+  * Wrapper 0x800805AE0: 0 hits (NEVER called, even without stub)
+  * Insert 0x800806940: 0 hits
+  * Writer 0x8007F90A0: 1 hit (allocates empty hash table)
+  * real_init: 1 hit
+  * Call #7: returns 0x804D9C620 (methodPointers[0], epilogue)
+  * Call #8: invokes callback 0x80134FA00 (NOT stubbed)
+  * Callback calls metadata lookup -> returns 0x801EC0C78 (BSS)
+  * [0x801EC0C78] = 0x80135DDD0 (crash function address, written at runtime)
+  * call [rax] -> jumps to 0x80135DDD0
+  * Crash function reads [0x801E51240]=0x0 (NULL metadata global)
+  * mov ecx,[rax+0x98] where rax=0 -> SIGSEGV cascade (5 faults)
+  * UnityGfxDeviceWorker starts, calls lookup, gets NULL, SIGABRT
+- Verified 0x801EC0C78 is in BSS (no relocations target it)
+  * Value 0x80135DDD0 is written there at runtime by unknown code
+- Wrote scan_prx_metadata.py to scan PRX for contiguous pointer arrays:
+  * Found 1485 arrays (8+ entries)
+  * Largest: 103816 code ptrs at 0x808791958 (methodPointers)
+  * Found 13082-entry rodata array at 0x80893E950 (types[] array)
+  * Read Il2CppType structs: 16 bytes each, klassIndex + sentinel pattern
+- Searched for pointer to types[] array:
+  * No RELATIVE reloc has addend = 0x80893E950 (accessed via RIP-relative LEA)
+- Searched for pointer to mixed array at 0x808724730:
+  * FOUND: reloc at runtime 0x8086E9030 writes 0x808724730
+  * Expanded search around 0x8086E9030 -> found structured (count,ptr) pairs
+- BREAKTHROUGH: Il2CppCodeRegistration struct found at 0x8086E9000:
+  * +0x08: rodata ptr -> "22Il2CppExceptionWrapper" (type name)
+  * +0x10: count=17, +0x18: array ptr
+  * +0x20: count=103561, +0x28: methodPointers[] (103816 code ptrs)
+  * +0x30: mixed array ptr (31818 entries)
+  * +0x38: count=18708, +0x40: secondary method ptrs
+  * +0x48: count=3787, +0x50: array ptr
+  * +0x68: count=889, +0x70: array ptr
+  * +0x88: count=104, +0x90: array ptr
+  * +0xA0 onwards: inline methodPointers (code ptrs starting 0x804D9C640)
+- Verified Call #7 target 0x804D9C620 = methodPointers[0] at struct+0xA0
+  * This is the IL2CPP runtime verify call (returns immediately)
+- Searched for relocs with addend = 0x8086E9000 (pointer to CodeRegistration):
+  * Found HUNDREDS of refs at 0x808925010-0x8089253B8 (data segment 2)
+  * These are likely metadata usage entries referencing the registration
+- Il2CppMetadataRegistration struct: NOT YET LOCATED
+  * types[] array at 0x80893E950 is part of it
+  * Accessed via RIP-relative LEA (no reloc pointer)
+  * Likely near 0x8086E9000 or in 0x80870xxxx range
+
+Stage Summary:
+- BREAKTHROUGH: Il2CppCodeRegistration struct found at 0x8086E9000 in PRX.
+  Contains all method pointer arrays and counts. This is the structure
+  that il2cpp_codegen_register takes as an argument.
+- types[] array found at 0x80893E950 (13082 Il2CppType* entries).
+  Il2CppType struct = 16 bytes (klassIndex + sentinel + type enum).
+- Baseline crash chain fully documented (no stub):
+  callback -> metadata lookup -> BSS fake object -> crash function -> SIGSEGV
+- Wrapper 0x800805AE0 NEVER called in baseline too (confirms stub doesn't
+  affect whether wrapper runs).
+- The missing walker function must:
+  1. Take Il2CppCodeRegistration* (at 0x8086E9000) as argument
+  2. Iterate types[] array (at 0x80893E950)
+  3. For each type, call wrapper 0x800805AE0 with type name string
+  4. Wrapper inserts name->type mapping into hash table
+- NO FIX APPLIED — investigation-only per user policy.
+- EXP-048 stub now conditional (SHARPEMU_EXP048_STUB=1 to enable).
+
+Key Files Produced:
+- src/SharpEmu.Core/Cpu/Native/_Exp040RealInitTracer.cs (modified, conditional stub)
+- docs/diagnostics/EXP-054.md (new diagnostic report)
+- /home/z/my-project/scripts/exp054/ (analysis scripts + report)
+- /tmp/exp054_logs/baseline_run1.log (10238-line baseline trace)
+- /tmp/exp054_prx_scan.log (PRX array scan results)
+
+Next Step (EXP-055):
+- Search PRX code for LEA instructions loading 0x8086E9000 (CodeRegistration)
+  -> This finds the registration function that takes the struct as argument
+- Find Il2CppMetadataRegistration struct (likely near CodeRegistration)
+- Trace real_init call #8 in detail (what args, what metadata accessed)
+- Implement manual walker: call registration function directly from SharpEmu
+  after PRX loads, before il2cpp_init
+
+Commit: pending
