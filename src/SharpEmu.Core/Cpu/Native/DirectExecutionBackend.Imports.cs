@@ -2732,6 +2732,9 @@ public sealed partial class DirectExecutionBackend
 
                                     // EXP-042: Install INT3 at metadata_lookup 0x800C66B40 to trace flag.
                                     Exp042PatchMetadataLookup();
+
+                                    // EXP-046: Install INT3 at crash_path_after_lookup 0x80134FA6F.
+                                    Exp046PatchCrashPathLookup();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;

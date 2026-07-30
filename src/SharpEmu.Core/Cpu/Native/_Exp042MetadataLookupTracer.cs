@@ -92,10 +92,71 @@ public sealed unsafe partial class DirectExecutionBackend
                         byte flag = *((byte*)(rdx + 0x19));
                         Console.Error.WriteLine(
                             $"  [rdx+0x19] = 0x{flag:X2} (initialized flag)");
+
+                        // EXP-046: Dump the metadata list entries
+                        // The list is at [rdx] through [rdx+...]
+                        // Each entry: +0x20 key, +0x28 key2, +0x30 function pointer
+                        Console.Error.WriteLine("[EXP046-META_ENTRIES] Dumping metadata list entries:");
+                        // rdx is the first entry in a linked list
+                        // Walk from rdx
+                        ulong entry = rdx;
+                        int ecount = 0;
+                        while (entry != 0 && ecount < 30)
+                        {
+                            try
+                            {
+                                ulong key1 = *(ulong*)(entry + 0x20);
+                                ulong key2 = *(ulong*)(entry + 0x28);
+                                ulong fnPtr = *(ulong*)(entry + 0x30);
+                                byte eflag = *((byte*)(entry + 0x19));
+                                Console.Error.WriteLine(
+                                    $"  [{ecount:2d}] node=0x{entry:X16} flag=0x{eflag:X2} " +
+                                    $"key1=0x{key1:X16} key2=0x{key2:X16} fn=0x{fnPtr:X16}");
+
+                                // Follow next pointer
+                                // From the disassembly, the list is traversed via [entry+0x20] comparison
+                                // The 'next' is at a different offset
+                                // Let me try +0x18 (from the code: mov rdx, [rdx+8] and add rdx, 0x10)
+                                // Actually, the iteration in 0x800C66B40 is:
+                                // 0x800C66B70: add rdx, 0x10
+                                // 0x800C66B74: mov rdx, [rdx]
+                                // So: next = [[rdx+0x10]] = [rdx+0x10] then [that]
+                                // This is a linked list where each node has a pointer at +0x10
+                                // Let me try different offsets
+                                break; // Don't walk, just dump the first entry
+                            }
+                            catch { break; }
+                        }
+
+                        // EXP-046: Also dump the function arguments
+                        // The caller at 0x80134FA00 sets up arguments:
+                        // rdi = [rbp-0x388] = None string
+                        // But at 0x800C66B40, the arguments are different
+                        // 0x800C66B40 takes no explicit args — it reads from globals
+                        // The search uses rdi (from the caller) as the search key
+                        ulong rdi = ReadCtxU64(contextRecord, 176);
+                        ulong rsi = ReadCtxU64(contextRecord, 168);
                         Console.Error.WriteLine(
-                            $"  If flag=0: search path (returns object)");
-                        Console.Error.WriteLine(
-                            $"  If flag!=0: return 0 (causes crash)");
+                            $"  args: rdi=0x{rdi:X16} rsi=0x{rsi:X16}");
+
+                        // Try to read the string at rdi
+                        if (rdi != 0 && rdi > 0x1000)
+                        {
+                            try
+                            {
+                                byte* strPtr = (byte*)rdi;
+                                byte[] strBytes = new byte[32];
+                                for (int i = 0; i < 32; i++)
+                                {
+                                    strBytes[i] = strPtr[i];
+                                    if (strBytes[i] == 0) { strBytes = strBytes[..i]; break; }
+                                }
+                                string str = System.Text.Encoding.ASCII.GetString(strBytes);
+                                Console.Error.WriteLine(
+                                    $"  rdi string: '{str}'");
+                            }
+                            catch { }
+                        }
                     }
                 }
             }

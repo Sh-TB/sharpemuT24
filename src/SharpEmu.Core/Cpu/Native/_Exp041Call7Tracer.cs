@@ -55,8 +55,22 @@ public sealed unsafe partial class DirectExecutionBackend
         ulong funcPtr = 0;
         try { funcPtr = *(ulong*)rax; } catch { }
 
+        ulong rdi = ReadCtxU64(contextRecord, 176); // CTX_RDI
+        ulong rsi = ReadCtxU64(contextRecord, 168); // CTX_RSI
         Console.Error.WriteLine(
-            $"[EXP041-CALL7] rax=0x{rax:X16} [rax]=0x{funcPtr:X16} tid={tid}");
+            $"[EXP041-CALL7] rax=0x{rax:X16} [rax]=0x{funcPtr:X16} tid={tid} rdi=0x{rdi:X16} rsi=0x{rsi:X16}");
+
+        // EXP-046: Check [rdi+0x10] — the condition checked by 0x804D9C500
+        if (rdi != 0 && rdi > 0x1000)
+        {
+            try
+            {
+                uint rdi_10 = *(uint*)(rdi + 0x10);
+                Console.Error.WriteLine(
+                    $"  [rdi+0x10]=0x{rdi_10:X8} (if 1 or 0xFFFFFFFD: continues, else: returns)");
+            }
+            catch { }
+        }
 
         // Log hash table and global state
         try
