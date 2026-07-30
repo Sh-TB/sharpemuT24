@@ -2729,6 +2729,9 @@ public sealed partial class DirectExecutionBackend
 
                                     // EXP-041: Install INT3 at hash_call 0x8013EEFE0 to trace string + state.
                                     Exp041PatchHashCall();
+
+                                    // EXP-042: Install INT3 at metadata_lookup 0x800C66B40 to trace flag.
+                                    Exp042PatchMetadataLookup();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;

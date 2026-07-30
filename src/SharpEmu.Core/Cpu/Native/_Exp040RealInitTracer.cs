@@ -39,15 +39,15 @@ public sealed unsafe partial class DirectExecutionBackend
         try
         {
             var ptr = (byte*)Exp040_RealInitAddr;
-            uint flNewProtect = 0;
-            if (VirtualProtect((void*)Exp040_RealInitAddr, 16u, 64u, &flNewProtect))
+            uint flNP042 = 0;
+            if (VirtualProtect((void*)Exp040_RealInitAddr, 16u, 64u, &flNP042))
             {
                 _exp040RealInitOriginalByte = ptr[0];
                 ptr[0] = 0xCC;
                 _exp040RealInitPatched = true;
                 Console.Error.WriteLine(
                     $"[EXP040-PATCH] real_init at 0x{Exp040_RealInitAddr:X16} patched with INT3");
-                VirtualProtect((void*)Exp040_RealInitAddr, 16u, flNewProtect, &flNewProtect);
+                VirtualProtect((void*)Exp040_RealInitAddr, 16u, flNP042, &flNP042);
                 FlushInstructionCache(GetCurrentProcess(), (void*)Exp040_RealInitAddr, 16u);
             }
         }
@@ -102,14 +102,13 @@ public sealed unsafe partial class DirectExecutionBackend
         catch { }
         Console.Error.Flush();
 
-        // EXP-041: Workaround removed — need to find real fill mechanism
         // Restore and let it execute
         var ptr = (byte*)Exp040_RealInitAddr;
-        uint flNewProtect = 0;
-        if (VirtualProtect((void*)Exp040_RealInitAddr, 16u, 64u, &flNewProtect))
+        uint flNP042 = 0;
+        if (VirtualProtect((void*)Exp040_RealInitAddr, 16u, 64u, &flNP042))
         {
             ptr[0] = _exp040RealInitOriginalByte;
-            VirtualProtect((void*)Exp040_RealInitAddr, 16u, flNewProtect, &flNewProtect);
+            VirtualProtect((void*)Exp040_RealInitAddr, 16u, flNP042, &flNP042);
             FlushInstructionCache(GetCurrentProcess(), (void*)Exp040_RealInitAddr, 16u);
         }
         _exp040RealInitPatched = false;
