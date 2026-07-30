@@ -2735,6 +2735,10 @@ public sealed partial class DirectExecutionBackend
 
                                     // EXP-046: Install INT3 at crash_path_after_lookup 0x80134FA6F.
                                     Exp046PatchCrashPathLookup();
+
+                                    // EXP-053: Install INT3 at wrapper 0x800805AE0 and insert 0x800806940
+                                    // to determine if/when il2cpp_codegen_register is called.
+                                    Exp053PatchWrapperAndInsert();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;

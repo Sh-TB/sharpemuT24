@@ -115,6 +115,17 @@ public sealed partial class DirectExecutionBackend
                         {
                                 return -1;
                         }
+                        // EXP-053: Handle INT3 from wrapper (il2cpp_codegen_register) tracer.
+                        // Must be checked BEFORE other handlers — wrapper's INT3 fires early.
+                        if (exceptionCode == 2147483651u && Exp053TryHandleWrapperInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        // EXP-053: Handle INT3 from insert (hash_insert) tracer.
+                        if (exceptionCode == 2147483651u && Exp053TryHandleInsertInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-042: Handle INT3 from metadata_lookup tracer.
                         if (exceptionCode == 2147483651u && Exp042TryHandleMetadataLookupInt3(contextRecord, rip))
                         {

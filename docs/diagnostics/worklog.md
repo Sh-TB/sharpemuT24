@@ -904,3 +904,103 @@ Next Step (EXP-053):
   wrapper with each name to populate hash table
 
 Commit: pending
+Commit: pending
+
+---
+Task ID: EXP-053
+Agent: main (SharpEmu bringup)
+Task: EXP-053 — Runtime Tracer for IL2CPP Metadata Registration Walker.
+Find the missing walker that calls il2cpp_codegen_register (wrapper 0x800805AE0).
+
+Work Log:
+- Read worklog and EXP-052 findings (wrapper identified, static table analyzed)
+- Created _Exp053WrapperTracer.cs with INT3 at:
+  * Wrapper 0x800805AE0 (il2cpp_codegen_register candidate)
+  * Insert 0x800806940 (hash_insert, called by wrapper)
+  * Logs: caller RIP, rdi (string ptr), string contents, hash table state,
+    once-init flag, stack trace (24 deep), populated entry count
+  * Also dumps static table at 0x1CC0080 (first 0x100 bytes) on install
+- Wired tracer into DirectExecutionBackend.Imports.cs (after resolver completes)
+  and DirectExecutionBackend.Exceptions.cs (INT3 dispatch)
+- Built successfully (0 errors, 45 pre-existing warnings)
+- Ran Yatzi with SHARPEMU_SEMA_FAST_PATH=0 + callback stub from EXP-048
+- Captured 982KB log at /tmp/exp053_logs/yatzi_run5.log
+
+Runtime trace results:
+- EXP053-WRAPPER-ENTER: 0 hits (wrapper NEVER called)
+- EXP053-INSERT-ENTER: 0 hits (insert NEVER called)
+- EXP039-HASH_WRITER-ENTER: 1 hit (writer called, allocates hash table)
+- EXP039-HASH_LOOKUP-ENTER: 1 hit (from UnityGfxDeviceWorker, NOT init func)
+- EXP040-REAL_INIT-ENTER: 1 hit (real_init entered)
+- EXP041-CALL7: 1 hit (call #7 returns epilogue)
+- EXP041-HASH_CALL-ENTER: 0 hits (init func lookup NEVER reached)
+
+Static table analysis (verify_static_table.py):
+- 13,920 R_X86_64_RELATIVE relocations in 0x1CC0080-0x1CE0080 range
+- Entry size: 0x218 bytes, 244 total entries
+- First entries: pairs of CODE pointers (0x8003C68F0, 0x8003C6970, etc.)
+- String pointers at +0x4510: point to SUBSTRINGS of Unity error messages
+  (e.g., "es (got start=%i count=%i, mesh has %zu indices)")
+- CONCLUSION: 0x1CC0080 is NOT Il2CppMetadataRegistration — it's a
+  string fragment pool for Unity's localization/error system
+- EXP-052 hypothesis DISPROVED
+
+EXP-039 bug found:
+- Exp039_HashTablePtrAddr = 0x801EE7610 (WRONG, double-E)
+- Correct address: 0x801EF7610 (verified via lookup 0x8004BD620 disasm)
+- EXP-053 tracer uses correct address
+
+real_init disassembly (in PRX at 0x804CD5000 base):
+- real_init at 0x804F04BA0
+- Calls 0x804F21D70 many times (60+ calls)
+- 0x804F21D70 is a JMP to 0x804EEE8D0
+- 0x804EEE8D0 is a complex function with lock cmpxchg/xadd patterns
+  (looks like a thread pool / job dispatcher, NOT a simple metadata register)
+- This is the function EXP-040 called "calls #16-85=0x804EEE8D0"
+
+Boot sequence timeline:
+1. Writer called (allocates empty hash table, entries all 0xFFFFFFFF)
+2. il2cpp_init called from init_func 0x8013EB6B0
+3. real_init called from il2cpp_init
+4. Call #7 returns epilogue (returns immediately)
+5. Callback stub from EXP-048 makes call #8 return 1
+6. After stub returns, control falls through to crash
+7. UnityGfxDeviceWorker thread starts, calls lookup, gets NULL, crashes
+8. SIGABRT
+
+Stage Summary:
+- ROOT CAUSE CONFIRMED: The wrapper 0x800805AE0 (il2cpp_codegen_register)
+  is NEVER called on SharpEmu. The walker function that should call it
+  is missing or never invoked. The hash table stays empty, all lookups
+  return NULL, and il2cpp_init crashes.
+- EXP-052 hypothesis DISPROVED: Static table at 0x1CC0080 is NOT
+  Il2CppMetadataRegistration — it's a string fragment pool. The real
+  metadata registration table location is still unknown.
+- EXP-039 bug found: Hash table pointer address was wrong (0x801EE7610
+  vs correct 0x801EF7610). Old tracer was reading garbage.
+- The init function's lookup at 0x8013EEFE7 was NEVER reached because
+  il2cpp_init crashes before that point (callback stub masks the crash
+  but doesn't fix the root cause).
+- NO FIX APPLIED — investigation-only per user policy.
+- Callback stub from EXP-048 remains the only active fix.
+
+Key Files Produced:
+- src/SharpEmu.Core/Cpu/Native/_Exp053WrapperTracer.cs (new, 287 lines)
+- src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.Imports.cs (modified)
+- src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.Exceptions.cs (modified)
+- docs/diagnostics/EXP-053.md (new diagnostic report)
+- /home/z/my-project/scripts/exp053/ (analysis scripts + report)
+- /tmp/exp053_logs/yatzi_run5.log (982KB runtime trace)
+
+Next Step (EXP-054):
+- Find the REAL Il2CppMetadataRegistration table:
+  * Search PRX (Il2cppUserAssemblies.prx, 74MB, 383614 relocs) for
+    (type_info_ptr, type_name_ptr) pair patterns
+  * Trace real_init call #8 in detail — what arguments does it pass?
+  * Check if PRX's real_init contains a walker loop
+- If real metadata table found, implement manual fill:
+  * Walk the real typeNames[] array
+  * Call wrapper 0x800805AE0 for each name
+  * Hash table gets populated, lookups return non-NULL
+
+Commit: pending
