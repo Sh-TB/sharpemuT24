@@ -102,6 +102,9 @@ public sealed unsafe partial class DirectExecutionBackend
         catch { }
         Console.Error.Flush();
 
+        // EXP-044: Dump PRX fini_array entries to verify relocations applied
+        Exp044DumpFiniArray();
+
         // Restore and let it execute
         var ptr = (byte*)Exp040_RealInitAddr;
         uint flNP042 = 0;
