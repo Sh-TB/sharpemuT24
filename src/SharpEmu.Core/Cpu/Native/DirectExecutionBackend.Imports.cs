@@ -2710,10 +2710,10 @@ public sealed partial class DirectExecutionBackend
                                     Exp036PatchIl2cppInit();
 
                                     // EXP-037: Install watchpoints for the NULL global pointer at 0x801E51240.
-                                    // The crash is at 0x80135DE83: mov ecx, [rax+0x98] where rax comes from
-                                    // the global at 0x801E51240. We patch the WRITE site (0x8013EF019)
-                                    // with INT3 to trace when the global is initialized.
                                     Exp037InstallWatchpoints();
+
+                                    // EXP-038: Install INT3 at crash function 0x80135DDD0 to trace caller.
+                                    Exp038InstallTracers();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;

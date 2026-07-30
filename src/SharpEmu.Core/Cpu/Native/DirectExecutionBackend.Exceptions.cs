@@ -110,6 +110,11 @@ public sealed partial class DirectExecutionBackend
 
                         ulong rip = ReadCtxU64(contextRecord, 248);
                         ulong rsp = ReadCtxU64(contextRecord, 152);
+                        // EXP-038: Handle INT3 from crash function tracer.
+                        if (exceptionCode == 2147483651u && Exp038TryHandleCrashFuncInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-037: Handle INT3 from global pointer watchpoints.
                         if (exceptionCode == 2147483651u && Exp037TryHandleWatchpointInt3(contextRecord, rip))
                         {
