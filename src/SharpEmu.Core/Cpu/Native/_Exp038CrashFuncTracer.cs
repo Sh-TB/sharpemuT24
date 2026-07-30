@@ -167,6 +167,39 @@ public sealed unsafe partial class DirectExecutionBackend
 
             // Set RIP to re-execute the restored instruction
             WriteCtxU64(contextRecord, 248, Exp038_CrashFuncAddr);
+
+            // EXP-040: Check what [0x801EA49D8] points to (the indirect call target)
+            try
+            {
+                ulong indirectGlobal = *(ulong*)0x801EA49D8;
+                Console.Error.WriteLine(
+                    $"[EXP040-INDIRECT] [0x801EA49D8]=0x{indirectGlobal:X16}");
+            }
+            catch { }
+
+            // EXP-040: Check hash table entries at crash time
+            try
+            {
+                ulong htPtr040 = *(ulong*)0x801EF7610;
+                if (htPtr040 != 0)
+                {
+                    ulong entriesPtr040 = *(ulong*)htPtr040;
+                    if (entriesPtr040 != 0)
+                    {
+                        int populated = 0;
+                        for (int i = 0; i < 100; i++)
+                        {
+                            ulong entry = *(ulong*)(entriesPtr040 + (ulong)i * 8);
+                            if (entry != 0xFFFFFFFF && entry != 0)
+                                populated++;
+                        }
+                        Console.Error.WriteLine(
+                            $"[EXP040-CRASH-ENTRIES] populated={populated}/100 global=0x{*(ulong*)0x801E51240:X16}");
+                    }
+                }
+            }
+            catch { }
+
             return true;
         }
 

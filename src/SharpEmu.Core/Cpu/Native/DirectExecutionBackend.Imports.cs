@@ -2720,6 +2720,9 @@ public sealed partial class DirectExecutionBackend
 
                                     // EXP-039: Install INT3 at hash lookup 0x8004BD620 to trace inputs.
                                     Exp039PatchHashLookup();
+
+                                    // EXP-040: Install INT3 at real_init 0x804F04BA0 to trace entry.
+                                    Exp040PatchRealInit();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;
