@@ -102,25 +102,7 @@ public sealed unsafe partial class DirectExecutionBackend
         catch { }
         Console.Error.Flush();
 
-        // EXP-040 WORKAROUND: Set global 0x801E51240 to dummy non-zero value
-        // to test if the crash is caused solely by the NULL global.
-        try
-        {
-            ulong currentVal = *(ulong*)0x801E51240;
-            if (currentVal == 0)
-            {
-                // Set to a dummy value (the hash table struct itself)
-                ulong hashTablePtr = *(ulong*)0x801EF7610;
-                if (hashTablePtr != 0)
-                {
-                    *(ulong*)0x801E51240 = hashTablePtr;
-                    Console.Error.WriteLine(
-                        $"[EXP040-WORKAROUND] Set 0x801E51240 = 0x{hashTablePtr:X16} (was 0)");
-                }
-            }
-        }
-        catch { }
-
+        // EXP-041: Workaround removed — need to find real fill mechanism
         // Restore and let it execute
         var ptr = (byte*)Exp040_RealInitAddr;
         uint flNewProtect = 0;

@@ -56,6 +56,15 @@ public sealed unsafe partial class DirectExecutionBackend
             $"[EXP039-HASH_WRITER-ENTER] #{callNum} caller=0x{callerRip:X16} " +
             $"tid={tid} hash_table_before=0x{hashTablePtr:X16}");
 
+        // EXP-041: Check [0x801EA49D8] (metadata callback global)
+        try
+        {
+            ulong callbackPtr = *(ulong*)0x801EA49D8;
+            Console.Error.WriteLine(
+                $"[EXP041-CALLBACK-GLOBAL] [0x801EA49D8]=0x{callbackPtr:X16} at hash_writer entry");
+        }
+        catch { }
+
         // Dump stack
         Console.Error.WriteLine("[EXP039-HASH_WRITER-STACK] Return addresses:");
         try

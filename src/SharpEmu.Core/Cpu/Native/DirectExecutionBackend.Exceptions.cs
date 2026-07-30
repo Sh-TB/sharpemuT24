@@ -110,6 +110,16 @@ public sealed partial class DirectExecutionBackend
 
                         ulong rip = ReadCtxU64(contextRecord, 248);
                         ulong rsp = ReadCtxU64(contextRecord, 152);
+                        // EXP-041: Handle INT3 from hash_call tracer.
+                        if (exceptionCode == 2147483651u && Exp041TryHandleHashCallInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        // EXP-041: Handle INT3 from call#7 tracer.
+                        if (exceptionCode == 2147483651u && Exp041TryHandleCall7Int3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-040: Handle INT3 from real_init tracer.
                         if (exceptionCode == 2147483651u && Exp040TryHandleRealInitInt3(contextRecord, rip))
                         {

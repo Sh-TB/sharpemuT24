@@ -2723,6 +2723,12 @@ public sealed partial class DirectExecutionBackend
 
                                     // EXP-040: Install INT3 at real_init 0x804F04BA0 to trace entry.
                                     Exp040PatchRealInit();
+
+                                    // EXP-041: Install INT3 at call#7 0x804F04C5C to trace target.
+                                    Exp041PatchCall7();
+
+                                    // EXP-041: Install INT3 at hash_call 0x8013EEFE0 to trace string + state.
+                                    Exp041PatchHashCall();
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;
