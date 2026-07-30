@@ -782,3 +782,125 @@ Key Files Produced:
 - /tmp/exp028_logs/branch_trace.log (T6: candidate + func_impl for 5 calls)
 - /tmp/exp028_logs/yatzi_t6_run.log (full Yatzi run with T5+T6, 632KB)
 - /tmp/exp028_logs/golden_test.log (Dreaming Sarah PASS, 3.4MB)
+
+---
+Task ID: EXP-052
+Agent: main (SharpEmu bringup)
+Task: EXP-052 — Real IL2CPP/PS5 Metadata Initialization Investigation.
+Find and implement the missing initialization phase that prepares IL2CPP
+metadata before il2cpp_init. Tasks A1-C6 from user spec.
+
+Work Log:
+- Read worklog and prior EXP-035..EXP-051 findings
+- Read EXP-051.md to understand current state (callback stub only)
+- Wrote /home/z/my-project/scripts/exp052/analyze_hash_table_writes.py:
+  * Manual ELF parser (PS5 ELFs have stripped sections)
+  * Parsed eboot and PRX program headers
+  * Disassembled hash table writer 0x8007F90A0
+  * Disassembled hash probe loop 0x800806800
+  * Confirmed writer stores entries array ptr at [0x801EF7610] via
+    write at 0x8007F928C: mov [rip+0x16fe37d], rbx
+  * Eff addr calc: 0x8007F928C + 7 + 0x16FE37D = 0x801EF7610 ✓
+- Wrote find_insert_function.py:
+  * Found insert function at 0x800806940 (right after probe loop's ret)
+  * Disassembled insert function — confirmed: hashes key, probes, inserts
+  * Found 0 direct callers of insert via E8/E9 scan
+  * Found 1 direct caller of insert at 0x80080602D (inside wrapper)
+- Wrote find_insert_wrapper.py:
+  * Found wrapper function start at 0x800805AE0
+  * Wrapper checks for "#dllimport:" prefix in input string
+  * Wrapper calls hash_insert at 0x80080602D
+  * Found 0 direct callers of the wrapper
+- Wrote disasm_lookup_and_callback.py:
+  * Disassembled init function around 0x8013EEFE0
+  * Confirmed: init calls 0x800ce3aa0 (hash gen) then 0x8004bd620 (lookup)
+  * Multiple lookup calls store results at 0x801E51220, 0x801E51240, etc.
+  * Disassembled callback 0x80134FA00 — pushes 0x6e0 stack, calls [rax]
+  * Disassembled crash function 0x80135DDD0 — reads [0x801E51240] at +0x98
+- Wrote disasm_lookup_func.py:
+  * Confirmed lookup 0x8004BD620 reads hash table from [0x801EF7610]
+  * Eff addr of [rip+0x1a39fda] at 0x8004BD62F = 0x801EF7610 ✓
+  * Lookup treats [0x801EF7610] as struct: [0]=entries_ptr, [8]=mask
+- Wrote find_callers.py:
+  * hash_table_writer 0x8007F90A0: NO direct callers
+  * wrapper 0x800805AE0: NO direct callers
+  * hash_insert 0x800806940: 1 caller (the wrapper)
+  * hash_resize 0x800806600: 20 callers
+  * metadata_lookup 0x8004BD620: 286 callers
+  * hash_key_gen 0x800CE3AA0: 294 callers
+  * callback_func 0x80134FA00: NO direct callers
+  * crash_func 0x80135DDD0: NO direct callers
+  * init_func 0x8013EB6B0: 1 caller at 0x8013FDC39
+- Wrote find_ptr_refs.py:
+  * Searched all 8-byte LE references to function addresses
+  * Found 0 references in eboot or PRX (function ptrs are reloc-init'd)
+- Wrote find_rela_refs.py + inline analysis:
+  * Parsed eboot RELA: 49850 entries, 48644 R_X86_64_RELATIVE
+  * 32373 RELATIVE relocs with addend in .text range
+  * 0 RELATIVE relocs with addend matching our function file offsets
+    (0x7F90A0, 0x805AE0, 0x806940, 0x4BD620, etc.)
+  * Conclusion: writer and wrapper are NOT called via static function ptrs
+- Wrote find_writer_writes_fast.py:
+  * Listed all RIP-relative writes in writer 0x8007F90A0
+  * Writer writes to: 0x801E51618 (struct1), 0x801E98AA8 (entries array),
+    0x801EF7610 (hash table struct ptr), 0x801E51610, 0x801DF02A8 (config),
+    0x801E516F0 (once-init flag), 0x801E51658/0x801E51668 (locks)
+  * Writer has reset paths that zero out these pointers
+- Wrote disasm_entries_init.py:
+  * Disassembled 0x8007F9690 (entries_init, called by writer)
+  * Confirmed: allocates entries array, fills with 0xFFFFFFFF sentinel,
+    sets struct[0]=entries_ptr, struct[8]=mask, struct[0x10]=count
+  * This is the function that populates the hash table struct's fields
+- Inspected static metadata table at 0x1CC0080:
+  * 13920 R_X86_64_RELATIVE relocations in 0x1CC0080-0x1CE0080 range
+  * First entries: pointers to .text (0x8003C68F0, 0x8003C6970, etc.)
+  * Later entries: pointers to .rodata (0x801B9A697, 0x801BC8AF0, etc.)
+  * Pattern: pairs of function ptrs (8+8 bytes) + 0x208 bytes of metadata
+  * Entry size approximately 0x218 bytes (13920 relocs / 128KB ≈ 109/slot)
+  * 0 relocations have addends INTO the static table — table is accessed
+    via RIP-relative LEA, not via global pointer
+- Searched for RIP-relative refs to static table — 0 found via capstone
+  linear disasm (capstone desyncs on data, so this isn't conclusive)
+- Searched for E8/E9 to wrapper 0x800805AE0 — 0 found
+- Wrote EXP-052.md with full analysis and next-step plan
+
+Stage Summary:
+- ROOT CAUSE IDENTIFIED: The hash table at [0x801EF7610] is the IL2CPP
+  name→metadata lookup table. It is allocated by writer 0x8007F90A0
+  (lazy-init, no direct callers) and filled by wrapper 0x800805AE0
+  → insert 0x800806940 (wrapper has no direct callers — called via
+  runtime-computed function pointer).
+- The wrapper at 0x800805AE0 IS il2cpp_codegen_register (Unity's metadata
+  registration API). It takes a string, hashes it, and inserts into the
+  table. It handles "#dllimport:" prefix for P/Invoke but also handles
+  generic metadata names.
+- The static metadata table at 0x1CC0080 (13,920 RELATIVE relocs) is
+  Il2CppMetadataRegistration — pairs of (type_info, method_info) function
+  pointers and (type_name, method_name) string pointers.
+- The MISSING MECHANISM is the function that walks Il2CppMetadataRegistration
+  and calls the wrapper for each entry's name. This function exists in the
+  binary (table IS populated on real PS5) but cannot be found via static
+  analysis alone — it's called indirectly.
+- EXP-039's claim that "0x801EF7610 is the metadata hash table" was
+  CORRECT (verified: lookup 0x8004BD620 reads from it, used by 286 callers).
+- EXP-039's claim that the writer is "called by iterator 0x800B8D625" was
+  PARTIALLY correct — but the writer's iterator is itself called indirectly.
+- NO FIX APPLIED — analysis-only investigation per user policy.
+- Callback stub from EXP-048 remains the only active fix.
+
+Key Files Produced:
+- /home/z/my-project/scripts/exp052/ (11 analysis scripts)
+- /home/z/my-project/scripts/exp052/EXP-052.md (this report)
+- docs/diagnostics/EXP-052.md (in repo)
+
+Next Step (EXP-053):
+- Implement runtime tracer:
+  * INT3 at 0x8007F90A0 (writer) — log hash table allocation
+  * INT3 at 0x800805AE0 (wrapper) — log every call (input string, caller)
+  * INT3 at 0x8013EEFE7 (init lookup) — log every lookup (hash, result)
+  * Dump static table's first 0x100 bytes after writer completes
+- If wrapper is NEVER called on SharpEmu, confirm missing mechanism
+- Implement manual fill: walk static table's typeNames[] array, invoke
+  wrapper with each name to populate hash table
+
+Commit: pending
