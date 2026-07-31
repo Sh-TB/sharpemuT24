@@ -525,3 +525,23 @@ The main thread was NOT listed as a "Stall guest-thread" because the stall detec
 - Main thread waits on it from PRX `0x804F6E9EB` (vaddr 0x2999EB)
 - Created AFTER workers and BEFORE GC thread
 
+
+---
+
+## EXP-088: Semaphore 0x81 Owner Identified (2026-07-31)
+
+### Semaphore Ownership
+
+Handle 0x81 is the **IL2CPP ThreadPool work-available semaphore**.
+
+- **Subsystem:** Unity IL2CPP ThreadPool (Baselib_SystemSemaphore)
+- **WaitSema caller:** `0x804F6E510` (PRX) — thread pool dispatch function
+- **SignalSema caller:** `0x804F6ECF9` (PRX) — same function, called when work is dispatched via atomic CAS
+- **Why never signaled:** No work is submitted to the thread pool
+
+### Updated Current Blocker
+
+The deadlock is caused by **no work being submitted to the IL2CPP thread pool**. The main thread enters the pool as a worker and waits for work. SignalSema exists in the same function but is only called when work is dispatched — and no work is ever dispatched.
+
+The root cause is likely an HLE function returning an error (sceKernelVirtualQuery NOT_FOUND, sceKernelDirectMemoryQuery NOT_FOUND, fopen NOT_FOUND, or PERMISSION_DENIED for unknown NID) that prevents the IL2CPP runtime from reaching the work submission stage.
+

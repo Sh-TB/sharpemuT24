@@ -2639,3 +2639,37 @@ Stage Summary:
 - Next (EXP-088): disassemble PRX at 0x804F6E9EB to understand the wait context
 
 Commit: pending
+
+---
+Task ID: EXP-088
+Agent: main (SharpEmu bringup)
+Task: EXP-088 — Find the owner of semaphore 0x81 and what should signal it.
+
+Work Log:
+- Disassembled PRX around 0x804F6E9EB (WaitSema return address)
+- Found function at 0x804F6E510 — thread pool dispatch function
+- Confirmed by strings: "IL2CPP Threadpool worker", "ThreadPool"
+- Handle loaded from [r14+0x88] where r14 = thread pool context
+- Found 0x804F88F30 returns thread pool context (reads [thread_local+8])
+- Searched for SignalSema in PRX:
+  * PRX imports sceKernelSignalSema (NID 4czppHBiriw, GOT 0x808924640)
+  * PLT thunk at 0x804FC38A0
+  * 181 callers of the SignalSema wrapper at 0x804FC1CE0
+  * Only 1 caller uses [reg+0x88] offset: 0x804F6ECF9
+- SignalSema at 0x804F6ECF9 is in the SAME function as WaitSema (0x804F6E510)
+- SignalSema called when: atomic CAS on [entry+0x90] succeeds AND work delta < 0
+- Thread pool entry structure: +0x88=sema handle, +0x90=work count, +0x94=processed count
+- Root cause: NO WORK IS SUBMITTED to the thread pool
+  * Main thread enters pool as worker → WaitSema(0x81) → blocks
+  * No code path queues work items
+  * SignalSema never called because CAS never succeeds
+- Subsystem: Unity IL2CPP ThreadPool (Baselib_SystemSemaphore)
+- Fix direction: find what should submit work to the thread pool
+
+Stage Summary:
+- ROOT CAUSE: No work submitted to IL2CPP thread pool
+- Semaphore 0x81 = thread pool work-available semaphore
+- SignalSema exists but is conditional on work being dispatched
+- Next: trace what prevents work submission after AllocateDirectMemory
+
+Commit: pending
