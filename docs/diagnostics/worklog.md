@@ -1824,3 +1824,33 @@ Stage Summary:
 - Real fix: proper semaphore scheduling, not FAST_PATH toggle
 
 Commit: pending
+  * Found NID 4czppHBiriw in eboot PLT relocations at GOT slot 0x801D1AE50
+  * SignalSema IS imported by the eboot (PLT entry exists)
+  * SignalSema IS implemented by SharpEmu (HLE export in KernelSemaphoreCompatExports.cs)
+  * But SignalSema is NEVER called at runtime (0 occurrences in 11181-line log)
+  * NID suffix #k#N IS stripped during import resolution (0 occurrences in log)
+- Semaphore statistics:
+  * CreateSema: 26 calls ✓
+  * WaitSema: 159 calls ✓ (workers spinning)
+  * SignalSema: 0 calls ✗ (NEVER called)
+- Semaphore handle map:
+  * 0x5D: main thread waits (caller 0x800A9FC25)
+  * 0x5F: main thread waits (caller 0x800A9FC25)
+  * 0x4E: worker tid=26 waits (caller 0x8007F06E7)
+  * 0x5E: worker tid=27 waits (caller 0x800AA0207, spinning)
+- PRX also has SignalSema NID at offset 0x3E76B01
+- Root cause: game code that calls SignalSema is NEVER REACHED
+  * NOT a missing HLE issue (function exists and is imported)
+  * Code path issue: signaling code is gated behind unmet prerequisite
+  * FAST_PATH=0: main thread blocks before reaching signaling code → deadlock
+  * FAST_PATH=1: main thread skips wait but also skips signaling code → spin
+
+Stage Summary:
+- SignalSema IS imported by eboot AND implemented by SharpEmu
+- But the game NEVER calls it — code path never reached
+- This is a CODE PATH issue, not a missing HLE issue
+- Need to find what prerequisite must complete before SignalSema is called
+- Next: trace main thread from WaitSema (0x800A9FC25) forward to find
+  what condition gates the SignalSema call
+
+Commit: pending
