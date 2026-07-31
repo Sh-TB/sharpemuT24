@@ -1574,3 +1574,53 @@ Next Step (EXP-061):
   any IL2CPP-related findings or patches from EXP-035..058.
 
 Commit: pending
+- Extracted game identity strings from all executables
+- CRITICAL FINDING: Old eboot (7.7MB) is from DREAMING SARAH, not Yatzi!
+  * Build path: D:/Repositories/dsarah/build_ps5_na/Prospero_Release/DSarah.
+  * SHA256 matches dreaming-sarah eboot exactly: c2712ac3...cf59eb3
+  * Not an IL2CPP game (no IL2CPP strings, no Unity references)
+  * Custom game engine
+- New eboot (32.7MB) is the correct YATZI game:
+  * Contains Il2cppUserAssemblies.prx reference
+  * Contains PS5Player_IL2CPP strings
+  * Unity PS5 7.00 runtime
+- Il2cppUserAssemblies.prx confirmed as Yatzi:
+  * Build path: C:/code/SSS-Kniffel/Library/Bee/artifacts/
+  * "Kniffel" = German for Yahtzee/Yatzi
+  * References global-metadata.dat
+- global-metadata.dat confirmed as Yatzi:
+  * Contains game strings: "Yatzi", "YatziFiveOfAKindBonus", "KniffelCameraSettings"
+  * Contains "Assembly-CSharp" (main game assembly)
+  * IL2CPP metadata version 29
+- Cross-reference verification:
+  * eboot.bin references Il2cppUserAssemblies.prx ✓
+  * PRX references global-metadata.dat ✓
+  * Metadata contains Yatzi game strings ✓
+  * All three files belong to the same game (Yatzi)
+- SHA256 comparison:
+  * Old eboot: c2712ac3...cf59eb3 (Dreaming Sarah)
+  * New eboot: d17fba4a...6d80b6c (Yatzi)
+  * Match: NO (different games)
+  * Old libc: 612ecc04... (different version)
+  * New libc: 0848522a... (different version)
+
+Stage Summary:
+- MIXED DUMP DETECTED: Old test runs (EXP-035..058) used Dreaming Sarah's
+  eboot.bin (7.7MB) mixed with Yatzi's Il2cppUserAssemblies.prx. This is why:
+  * il2cpp_init was called (PRX was present)
+  * But metadata was missing (global-metadata.dat was absent)
+  * Crash chain involved eboot addresses (Dreaming Sarah) + PRX addresses (Yatzi)
+- ALL EXP-035..058 address-based findings are INVALID for the current Yatzi dump:
+  * Eboot addresses (0x80135DDD0, 0x80134FA00, 0x801E51240) = Dreaming Sarah
+  * PRX addresses (0x804F04BA0, 0x804F23320) = Yatzi PRX but mixed context
+  * Struct identifications may be partially correct but analyzed in wrong context
+- The current dump (EXP-060) is the FIRST test with correct Yatzi eboot + PRX + metadata
+- EXP-060 results are VALID: IL2CPP init works, new blocker is semaphore stall
+- Next investigation (EXP-062) must use the CORRECT eboot and cannot rely on
+  any EXP-035..058 addresses without re-verification
+
+Key Files Produced:
+- scripts/identity_audit.py (reusable identity audit tool)
+- docs/diagnostics/EXP-061.md (identity audit report)
+
+Commit: pending
