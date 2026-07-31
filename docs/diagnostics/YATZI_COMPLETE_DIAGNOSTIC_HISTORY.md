@@ -1,8 +1,8 @@
 # Yatzi Complete Diagnostic History
 
 **Single source of truth for all Yatzi (PPSA17697) debugging experiments.**
-**Coverage: EXP-026 through EXP-093 (64 experiments)**
-**Last updated: 2026-07-31 (EXP-093)**
+**Coverage: EXP-026 through EXP-094 (65 experiments)**
+**Last updated: 2026-07-31 (EXP-094)**
 
 This file consolidates ALL diagnostic knowledge from every EXP report, git commit, and worklog entry. Future debugging MUST start from this file.
 
@@ -10,10 +10,10 @@ This file consolidates ALL diagnostic knowledge from every EXP report, git commi
 
 ## Table of Contents
 
-1. [EXP Timeline (EXP-026 through EXP-093)](#exp-timeline)
+1. [EXP Timeline (EXP-026 through EXP-094)](#exp-timeline)
 2. [Phase Summary](#phase-summary)
 3. [Key Corrections and Superseded Theories](#key-corrections)
-4. [Current State (after EXP-093)](#current-state)
+4. [Current State (after EXP-094)](#current-state)
 5. [Knowledge Rules Learned](#knowledge-rules)
 6. [All Links](#all-links)
 
@@ -1211,3 +1211,42 @@ The IL2CPP runtime looks up function pointers (like `_ThreadPoolWaitCallback`) v
 **Solved:** `il2cpp_codegen_register` located and disassembled. Call chain fully mapped. Confirmed it's a stub that only saves 3 pointers to globals.
 **Still blocked:** Hash table at `0x801EF7610` is empty — but the PRX never writes to it by design. The actual metadata lookup mechanism is not yet identified. ThreadPool deadlock persists.
 **Next debugging target:** Disassemble `il2cpp_class_get_method_from_name` (`0x804F21D70`) to find what structure it ACTUALLY searches. (EXP-094)
+
+
+---
+
+## EXP-094 (added 2026-07-31)
+
+### EXP-094 — Hash Table at 0x801EF7610 Confirmed RED HERRING — Lookup Uses [0x808923D88]
+- **Date:** 2026-07-31
+- **Commit:** [see git log for EXP-094.md]
+- **Configuration:** `SHARPEMU_SEMA_FAST_PATH=0`, metadata at `Media/Metadata/`, EXP-085 flag patch active, DT_INIT_ARRAY fix (EXP-092) applied
+- **Path:** B (real metadata path)
+- **Question:** What data structure does `il2cpp_class_get_method_from_name` (`0x804F21D70`) actually search, and is THAT structure populated?
+- **Hypothesis (from EXP-093):** The function reads `[0x808923D88]`, not `0x801EF7610`.
+- **Tools/Logs:** Static disassembly (capstone) of `0x804F21D70` and `0x804EEE8D0`. Fast byte-pattern scan of PRX and EBOOT executable segments for RIP-relative accesses to `0x808923D88`. Runtime evidence from EXP-092 log (EXP-058 context dump).
+- **Finding:** `il2cpp_class_get_method_from_name` (`0x804F21D70`) is a **1-instruction trampoline** (`jmp 0x804EEE8D0`). The actual implementation at `0x804EEE8D0` reads `[0x808923D88]` as its context pointer (**5 reads**) and **NEVER reads `0x801EF7610`** (0 reads). The wrapper at `0x804F21DC0` also reads `0x808923D88` (6 times). This **definitively confirms** EXP-093's hypothesis: the hash table at `0x801EF7610` was a RED HERRING across EXP-040..092. The actual lookup structure at `[0x808923D88]` IS populated at runtime (value = `0x7F113CED77E0`, host-side pointer to a SharpEmu-managed context structure containing stack canary guards `0xC0DEC0DECAFEBA00`). The method table pointer at `[context+0x30]` is non-NULL (`0x55FBF4A4E3A0`), but `_ThreadPoolWaitCallback` lookup still returns NULL — the method table is either incomplete or contains wrong data.
+- **Root Cause:** NOT "hash table empty" — the hash table at `0x801EF7610` is irrelevant. The method table at `[context+0x30]` (where context = `[0x808923D88]`) does not contain `_ThreadPoolWaitCallback`.
+- **Status:** CONFIRMED — confirms EXP-093 hypothesis, corrects EXP-040..092 direction
+- **Related:** EXP-040, EXP-053, EXP-083, EXP-090, EXP-091, EXP-092, EXP-093, EXP-095
+- **Impact:** Major pivot — the entire EXP-040..092 hash table investigation was chasing the wrong structure. The actual lookup uses `[0x808923D88]` which IS populated. The new blocker is understanding why the method table at `[context+0x30]` doesn't contain `_ThreadPoolWaitCallback`.
+
+### PRX-wide Writer Scan
+- 50 PRX functions READ `0x808923D88` (verified first 10 — all reads, classic "load context pointer at function entry" pattern)
+- 0 PRX functions WRITE `0x808923D88` via RIP-relative addressing
+- 0 EBOOT accesses to `0x808923D88`
+- The write happens via indirect pointer (register-computed address, not RIP-relative) — likely during PRX module_start or DT_INIT_ARRAY
+
+### EXP-040..092 Retrospective
+The investigation was NOT wasted:
+- EXP-054/055 correctly identified `Il2CppCodeRegistration` and `Il2CppMetadataRegistration`
+- EXP-092's DT_INIT_ARRAY fix was correct and necessary (module_start now runs)
+- EXP-093 correctly identified `il2cpp_codegen_register` as a stub
+- But the core assumption (hash table at `0x801EF7610` is the lookup target) was wrong
+
+**Lesson:** Always verify by disassembly which structure a function ACTUALLY reads before investigating that structure (Golden Rule 8).
+
+### Updated Current State (after EXP-094)
+**Solved:** Actual lookup structure identified as `[0x808923D88]` (not `0x801EF7610`). Context structure IS populated. Method table pointer at `[context+0x30]` IS non-NULL.
+**Still blocked:** `_ThreadPoolWaitCallback` lookup still returns NULL despite populated context. The method table may be incomplete or contain wrong data.
+**Next debugging target:** Runtime trace the `_ThreadPoolWaitCallback` lookup at `0x804F055D6` to dump args, return value, and method table contents. (EXP-095)

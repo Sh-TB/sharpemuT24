@@ -381,6 +381,38 @@ EXP-036 correctly identified FAST_PATH=1 as the problem (2026-07-29). EXP-063 ov
 
 Before overriding a finding, explicitly disprove it with evidence.
 
+### Golden Rule 8 — Verify the Function Body Before Assuming Its Behavior
+
+EXP-091 assumed `il2cpp_codegen_register` "should insert entries" based on its name and Unity documentation. EXP-093 proved by disassembly that the actual function is a 55-byte stub that only saves 3 pointers to globals. **Never assume a function's behavior from its name alone — always disassemble and verify the body.** The same applies to EXP-052/053, which misidentified `0x800805AE0` as `il2cpp_codegen_register` (it was actually a `#dllimport:` parser, per EXP-083).
+
+### Golden Rule 9 — Fast Hypothesis Validation, Never Trust First Success
+
+A patch that changes behavior is NOT automatically the root cause. Every successful workaround must answer: **"What is the exact mechanism that makes this work?"**
+
+**Workflow:**
+1. Test a concrete hypothesis quickly.
+2. Treat the result as **evidence, not truth**.
+3. Verify with independent methods:
+   - Static disassembly
+   - Runtime tracing
+   - Memory validation
+   - A/B testing
+4. If evidence contradicts the theory:
+   - Correct the theory.
+   - Update documentation.
+   - Preserve the old conclusion as a corrected false lead.
+
+**Canonical example — EXP-085:**
+- Initial observation: Setting metadata flag `[entry+0x19]=1` allowed boot to progress.
+- Wrong conclusion: "Metadata flag fix solved the problem."
+- Later verification (EXP-086+): The progress was caused by a fallback path because metadata was not loaded. The patch changed behavior but did not solve the real metadata initialization problem.
+- Correct conclusion: Diagnostic patch only — mechanism not understood.
+
+**Rule:** If the mechanism is unknown:
+- Classify as **temporary observation**, not root cause.
+- Continue investigation.
+- Do NOT build future fixes on it.
+
 ---
 
 ## 6. Do Not Repeat
@@ -730,8 +762,66 @@ The PRX uses a DIFFERENT structure than `0x801EF7610`:
 
 **Next EXP-094:** Disassemble `il2cpp_class_get_method_from_name` (`0x804F21D70`) to find what structure it ACTUALLY searches. If it doesn't read `0x801EF7610`, then the entire EXP-040..092 hash table investigation was chasing the wrong structure.
 
-### Golden Rule Addendum
+*(Golden Rule 8 added to the main Golden Rules section above.)*
 
-**Golden Rule 8 — Verify the Function Body Before Assuming Its Behavior.**
-EXP-091 assumed `il2cpp_codegen_register` "should insert entries" based on its name and Unity documentation. EXP-093 proved by disassembly that the actual function is a 55-byte stub. **Never assume a function's behavior from its name alone — always disassemble and verify the body.** The same applies to EXP-052/053, which misidentified `0x800805AE0` as `il2cpp_codegen_register` (it was actually a `#dllimport:` parser, per EXP-083).
 
+---
+
+## EXP-094: Hash Table at 0x801EF7610 Confirmed RED HERRING — Lookup Uses [0x808923D88] (2026-07-31)
+
+### Major Confirmation of EXP-093 Hypothesis
+
+EXP-093 hypothesized that `0x801EF7610` was a red herring and the actual lookup uses `[0x808923D88]`. EXP-094 **PROVES** this by disassembling the actual lookup function.
+
+### il2cpp_class_get_method_from_name Is a Trampoline
+
+```
+0x804F21D70  jmp 0x804EEE8D0   ; 1-instruction trampoline
+```
+
+The actual implementation at `0x804EEE8D0` reads `[0x808923D88]` as its context pointer (5 reads), and **NEVER reads `0x801EF7610`** (0 reads).
+
+### Runtime State of [0x808923D88]
+
+From EXP-092 log:
+- `[0x808923D88]` = `0x7F113CED77E0` (host-side pointer — POPULATED)
+- Context structure contains stack canaries (`0xC0DEC0DECAFEBA00`)
+- `[context+0x30]` = `0x55FBF4A4E3A0` (non-NULL host pointer — method table?)
+
+### PRX-wide Writer Scan
+
+- 50 PRX functions READ `0x808923D88` (verified first 10 — all reads)
+- 0 PRX functions WRITE `0x808923D88` via RIP-relative addressing
+- 0 EBOOT accesses to `0x808923D88`
+- The write happens via indirect pointer (register-computed address, not RIP-relative)
+
+### Why _ThreadPoolWaitCallback Lookup Still Returns NULL
+
+The context IS populated, the method table pointer `[context+0x30]` IS non-NULL, but the lookup still returns NULL. This means:
+- The method table exists but may be **incompletely populated**
+- OR the method table contains wrong data (host vs guest pointers)
+- OR the lookup key doesn't match
+
+### Updated Blocker
+
+**The blocker is NO LONGER "hash table empty".** The hash table at `0x801EF7610` is irrelevant — the PRX never reads it.
+
+**The new blocker:** The method table at `[context+0x30]` (where context = `[0x808923D88]`) does not contain `_ThreadPoolWaitCallback`. Need to trace what methods ARE in the table and why `_ThreadPoolWaitCallback` is missing.
+
+### EXP-040..092 Retrospective
+
+The EXP-040..092 investigation of `0x801EF7610` was chasing the **wrong structure**. However, the work was not wasted:
+- EXP-054/055 correctly identified `Il2CppCodeRegistration` and `Il2CppMetadataRegistration`
+- EXP-092's DT_INIT_ARRAY fix was correct and necessary
+- EXP-093 correctly identified `il2cpp_codegen_register` as a stub
+
+**Lesson (Golden Rule 8):** Always verify by disassembly which structure a function ACTUALLY reads before investigating that structure. EXP-040 assumed `0x801EF7610` was the lookup target based on EBOOT read sites — but the PRX lookup function reads a completely different address.
+
+### Next EXP-095
+
+Add a runtime tracer at the `_ThreadPoolWaitCallback` lookup call site (`0x804F055D6` in `real_init`) to dump:
+1. The 3 args (type_ptr, namespace_str, method_name_str)
+2. The return value
+3. The context structure and method table contents
+
+One question: What does the method table at `[context+0x30]` actually contain, and is `_ThreadPoolWaitCallback` in it?
