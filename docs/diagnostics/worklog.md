@@ -1414,3 +1414,73 @@ Next Step (EXP-059):
   populate the hash table, and il2cpp_init should progress past the crash.
 
 Commit: pending
+- Cloned nneonneo/Il2cppVersions (GitHub) — has versioned IL2CPP headers
+- Found exact header for Yatzi's Unity version: 2022.3.5f1.h
+- Extracted real struct definitions:
+  * Il2CppCodeRegistration: 17 fields, 0x88 bytes
+  * Il2CppMetadataRegistration: 16 fields, 0x80 bytes
+  * Il2CodeGenModule: 17 fields, 0x88 bytes (LINKS CodeReg + MetaReg!)
+- Diffed our struct guesses against real definitions:
+  * Our "CodeReg" at 0x8086E9000 is actually Il2CodeGenModule!
+    - +0x08 has "22Il2CppExceptionWrapper" = moduleName field
+    - +0x78 should be metadataRegistration pointer
+    - +0x80 should be codeRegistaration pointer (note: Unity's typo!)
+  * Our MetaReg at 0x80885C580 is a PS5 variant with 3 extra code pointers
+    at +0x00/+0x08/+0x10, then standard Il2CppMetadataRegistration fields
+  * Count fields MATCH PERFECTLY after 0x18 offset adjustment:
+    +0x18: genericClassesCount = 12,270
+    +0x28: genericInstsCount = 8,019
+    +0x38: genericMethodTableCount = 103,581
+    +0x58: methodSpecsCount = 122,482
+    +0x68: fieldOffsetsCount = 12,981
+    +0x78: typeDefinitionsSizesCount = 12,981
+- KEY INSIGHT: Il2CodeGenModule struct at +0x78 has metadataRegistration
+  pointer and at +0x80 has codeRegistaration pointer. This is the
+  CodeReg+MetaReg LINK we couldn't find in EXP-057! The co-occurrence
+  is via struct fields, not direct LEA refs.
+- Searched eboot.bin for IL2CPP metadata magic 0xFAB11BAF:
+  * NOT FOUND in eboot.bin (7.7MB)
+  * NOT FOUND in eboot.bin.esbak (7.8MB backup)
+  * Il2cppUserAssemblies.prx is MISSING from game dump upload
+  * Media/Modules/ directory is completely absent from upload
+- VERDICT: This is a DUMP COMPLETENESS issue, not an emulator bug.
+  The game dump is missing:
+  1. Media/Modules/Il2cppUserAssemblies.prx (the IL2CPP PRX)
+  2. global-metadata.dat (the IL2CPP metadata file)
+  Without these files, no amount of emulator debugging will fix the boot.
+- Drafted upstream GitHub issue for SharpEmu maintainers:
+  * Title: "IL2CPP init fails — DT_INIT resolves to ELF header on PS5 PRXs"
+  * Body: Summarizes EXP-035..058 findings, asks about PS5 module init ABI
+  * Includes key addresses and struct identifications
+
+Stage Summary:
+- GROUND TRUTH OBTAINED: Real Unity 2022.3.5f1 struct definitions diffed
+  against our findings. Our struct identifications were WRONG:
+  * 0x8086E9000 is Il2CodeGenModule (not Il2CppCodeRegistration)
+  * 0x80885C580 is PS5-variant Il2CppMetadataRegistration (with 3 extra
+    code pointers at start)
+  * The CodeReg+MetaReg link is via Il2CodeGenModule struct fields
+    (+0x78 = MetaReg ptr, +0x80 = CodeReg ptr), NOT via direct LEA
+- ROOT CAUSE CONFIRMED: Dump completeness issue. The game dump is missing
+  Il2cppUserAssemblies.prx and global-metadata.dat. The metadata magic
+  0xFAB11BAF is not found in any available game file.
+- NO FIX APPLIED — this is not an emulator bug. The next step is to
+  re-extract the game dump from the original source with all files.
+- If a complete dump is obtained and boot still fails, the struct
+  definitions from this EXP should be used as ground truth to avoid
+  repeating the 20-EXP inference chain.
+
+Key Files Produced:
+- docs/diagnostics/EXP-059.md (new diagnostic report)
+- scripts/exp059/diff_real_structs.py (struct diff script)
+- /tmp/il2cpp-versions/headers/2022.3.5f1.h (reference header)
+
+Next Step:
+- Re-extract Yatzi game dump with ALL files (including Media/Modules/*.prx
+  and any metadata files)
+- Verify global-metadata.dat or equivalent is present
+- If complete dump boots, investigate any remaining issues using the
+  ground-truth struct definitions from this EXP
+- File upstream GitHub issue with findings
+
+Commit: pending
