@@ -1904,3 +1904,33 @@ Stage Summary:
 - Next: examine the dependency object at rbx-0x30, or test manual clear
 
 Commit: pending
+- User feedback: do diagnostic test first (NOP the gate, not INT3)
+- First attempt: INT3 at gate (0x800AA0207) — failed with .NET runtime error
+  "Invalid Program: attempted to call a UnmanagedCallersOnly method from managed code"
+  (INT3 fires on worker thread where managed handler can't be dispatched)
+- Second attempt: Direct NOP patch (9 bytes at 0x800AA0207 → 9x 0x90)
+  * Replaces: cmp byte [rbx+0x108], 0 + jne (9 bytes)
+  * With: 9 NOPs (0x90)
+  * No managed code needed — pure binary patch
+- Build succeeded (0 errors)
+- Run with FAST_PATH=1 + NOP gate:
+  * SignalSema: 1 call (was 0!) — SignalSema FIRED!
+  * NULL executes: 0 (was 1005!) — CASCADE ELIMINATED!
+  * SIGABRT: 0 (was 1!) — NO STACK CORRUPTION!
+  * Log size: 41777 lines (was ~11000) — 4x MORE EXECUTION!
+  * Imports: 32692000+ (was ~100000) — 300x MORE IMPORTS!
+  * Process: running (stalled on WaitSema, expected with FAST_PATH=1)
+  * No crash — process is alive and executing game code
+- The gate at 0x800AA0207 was THE blocker — confirmed by diagnostic test
+- Game progresses to Layer 4 (Unity) with 32M+ imports
+
+Stage Summary:
+- DIAGNOSTIC TEST PASSED: NOP out the gate eliminates all symptoms
+- SignalSema fires (1 call), NULL executes eliminated (0), no crash
+- Game runs 300x further (32M imports vs 100K)
+- The gate IS the single blocker — no nested gates behind it
+- The permanent fix: identify the dependency at [rbx+0x108] and
+  implement the completion event that triggers the CLEAR function
+- The NOP patch is a diagnostic, not a permanent fix
+
+Commit: pending

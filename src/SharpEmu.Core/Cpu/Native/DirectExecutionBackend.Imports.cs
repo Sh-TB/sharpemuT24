@@ -2744,6 +2744,24 @@ public sealed partial class DirectExecutionBackend
                                     // (0x804F238F0), and array processor (0x804F2B4D0) to trace
                                     // the consumer candidate and confirm hash table population.
                                     Exp058PatchCall7Tracers();
+
+                                    // EXP-072: NOP out the gate check at 0x800AA0207
+                                    // to allow SignalSema to be reached.
+                                    // cmp byte [rbx+0x108], 0 + jne = 9 bytes → 9 NOPs
+                                    unsafe
+                                    {
+                                        var gatePtr = (byte*)0x800AA0207;
+                                        uint flGate = 0;
+                                        if (VirtualProtect((void*)0x800AA0207, 16u, 64u, &flGate))
+                                        {
+                                            // NOP out: cmp byte [rbx+0x108], 0 (7 bytes) + jne (2 bytes) = 9 NOPs
+                                            for (int gi = 0; gi < 9; gi++)
+                                                gatePtr[gi] = 0x90; // NOP
+                                            VirtualProtect((void*)0x800AA0207, 16u, flGate, &flGate);
+                                            FlushInstructionCache(GetCurrentProcess(), (void*)0x800AA0207, 16u);
+                                            Console.Error.WriteLine("[EXP072-NOP] Gate at 0x800AA0207 NOPped (9 bytes) — SignalSema should now be reachable");
+                                        }
+                                    }
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;
