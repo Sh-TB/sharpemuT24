@@ -2709,3 +2709,34 @@ Stage Summary:
 - Next (EXP-090): find what event should trigger work submission
 
 Commit: pending
+
+---
+Task ID: EXP-090
+Agent: main (SharpEmu bringup)
+Task: EXP-090 — Find what event should trigger the first IL2CPP ThreadPool work submission.
+
+Work Log:
+- Traced thread pool dispatch function (0x804F6E510) callers
+- Found 5 callers: 2 job execution, 2 dispatch-all, 1 bulk dispatch
+- Found function at 0x804F455A0 (0 direct callers, 0 pointer refs) — called indirectly
+- Searched for "_ThreadPoolWaitCallback" string in PRX → found at 0x80826F33D
+- String referenced by LEA at 0x804F055CF in real_init
+- The LEA is followed by call 0x804F21D70 (il2cpp_class_get_method_from_name)
+- Result stored in global at 0x808B53C48
+- ROOT CAUSE: The lookup returns NULL because:
+  1. The IL2CPP metadata hash table is empty (EXP-040)
+  2. The EXP-085 flag patch makes ALL lookups return NULL
+- Without _ThreadPoolWaitCallback, ThreadPool can't dispatch work → deadlock
+- Classification CORRECTED from D to A: Missing HLE implementation (hash table not populated)
+- The EXP-085 flag patch is a DIAGNOSTIC FIX with a SIDE EFFECT: it prevents ALL
+  metadata lookups, not just the one that caused crash_func
+- Real fix: populate the hash table → lookups succeed → ThreadPool works → EXP-085 removed
+
+Stage Summary:
+- ROOT CAUSE: IL2CPP metadata hash table empty → _ThreadPoolWaitCallback lookup returns NULL
+- The EXP-085 flag patch causes this by making ALL lookups return NULL
+- Even without the flag patch, the hash table is still empty (EXP-040)
+- Fix: populate the hash table (find what should insert entries and why it doesn't)
+- Next (EXP-091): find the PRX function that should populate the hash table
+
+Commit: pending

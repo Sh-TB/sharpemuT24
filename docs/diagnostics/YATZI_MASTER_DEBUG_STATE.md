@@ -581,3 +581,45 @@ The missing trigger is likely:
 - A timer/event that should fire after system init
 - A callback that the IL2CPP runtime registers but SharpEmu never invokes
 
+
+---
+
+## EXP-090: Missing Trigger = _ThreadPoolWaitCallback (2026-07-31)
+
+### Root Cause Chain
+
+```
+EXP-040: Hash table entries never filled
+    ↓
+EXP-085: Flag patch makes ALL lookups return NULL (prevents crash but also prevents valid lookups)
+    ↓
+real_init looks up "_ThreadPoolWaitCallback" via hash table → returns NULL
+    ↓
+ThreadPool has no worker callback → can't dispatch work
+    ↓
+Main thread enters pool → WaitSema(0x81) → deadlock
+```
+
+### Classification Correction
+
+EXP-089 said "D) waiting for event SharpEmu never generates."
+**Corrected: A) Missing HLE implementation** — metadata hash table not populated.
+
+### The Missing Trigger
+
+The missing trigger is NOT a timer, GC callback, or event. It is the **`_ThreadPoolWaitCallback` function pointer**, looked up via the IL2CPP metadata hash table during `real_init`. The hash table is empty → lookup returns NULL → ThreadPool has no callback → no work → deadlock.
+
+### Key Address
+
+- `_ThreadPoolWaitCallback` lookup at: `0x804F055D6` (in real_init, calls `0x804F21D70`)
+- Result stored at: `0x808B53C48` (global function pointer — NULL when hash table is empty)
+- ThreadPool dispatch function: `0x804F6E510`
+
+### Fix Direction
+
+The fix must populate the IL2CPP metadata hash table so lookups return valid results. This addresses BOTH:
+1. The ThreadPool deadlock (lookups return valid callbacks)
+2. The crash_func crash (EXP-085: `0x801E51240` would be set to a valid value)
+
+If the hash table is properly populated, the EXP-085 flag patch can be REMOVED.
+
