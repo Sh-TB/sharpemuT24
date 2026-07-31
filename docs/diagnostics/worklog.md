@@ -1854,3 +1854,28 @@ Stage Summary:
   what condition gates the SignalSema call
 
 Commit: pending
+- Found the WaitSema→SignalSema path:
+  * WaitSema call at 0x800AA0202 (returns to 0x800AA0207)
+  * SignalSema call at 0x800AA021E (only 23 bytes later!)
+  * Between them: cmp byte [rbx+0x108], 0 + jne (THE GATE)
+- THE GATE: cmp byte ptr [rbx+0x108], 0 at 0x800AA0207
+  * If [rbx+0x108] != 0: jne skips SignalSema, loops back to task check
+  * If [rbx+0x108] == 0: falls through to SignalSema call
+- Runtime value: [rbx+0x108] = 0x00000006006D1101 (low byte = 0x01)
+  * Gate is CLOSED → SignalSema is NEVER reached
+- Gate is FAST_PATH-independent:
+  * FAST_PATH=0: blocks on WaitSema, never reaches the gate
+  * FAST_PATH=1: WaitSema returns, reaches gate, [rbx+0x108]!=0, skips SignalSema
+  * Either way, SignalSema is never called
+- [rbx+0x108] is a task-readiness flag that should be cleared when task is assigned
+- Main thread never reaches task assignment code → flag stays 0x01 → gate stays closed
+
+Stage Summary:
+- GATE FOUND: cmp byte [rbx+0x108], 0 + jne at 0x800AA0207-0x800AA020E
+- Runtime value: [rbx+0x108] = 0x01 (non-zero → skips SignalSema)
+- Gate is FAST_PATH-independent (checks task flag, not WaitSema return)
+- Root cause: task-readiness flag [rbx+0x108] stays non-zero because
+  task assignment code is never reached
+- Next: find what clears [rbx+0x108] to 0 and why it's never reached
+
+Commit: pending
