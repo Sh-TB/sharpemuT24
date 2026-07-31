@@ -2009,3 +2009,28 @@ Stage Summary:
 - Next: identify what specific async operation the dependency represents
 
 Commit: pending
+  * 170 writes in the PRX (Il2cppUserAssemblies.prx)
+  * Task function pointer is set by PRX code, NOT eboot code
+  * The eboot only READS [rbx+0xf8] — it never writes it
+- Task 4: Why completion never happens
+  * PRX task dispatch code (170 sites) is never reached
+  * Unity runtime initialization doesn't complete
+  * Game never reaches VideoOut/GPU initialization (0 calls)
+  * Missing subsystem: GPU/graphics (sceVideoOut, sceAgc)
+- Root cause chain (complete):
+  1. SharpEmu doesn't implement GPU/graphics init
+  2. Unity runtime can't complete initialization
+  3. PRX task dispatch code never runs
+  4. [rbx+0xf8] stays NULL (no task assigned)
+  5. Workers call NULL → cascade → crash
+- The dependency at [rbx+0x108] is secondary — even without it,
+  workers can't run because [rbx+0xf8]=NULL
+
+Stage Summary:
+- Dependency is a chain pointer to previous worker (not async object)
+- Task function pointer [rbx+0xf8] is set by PRX (170 sites, never reached)
+- Root cause: GPU/graphics initialization not implemented in SharpEmu
+- Unity can't progress without GPU init → no task dispatch → workers spin
+- Next: investigate why Unity doesn't reach GPU initialization
+
+Commit: pending
