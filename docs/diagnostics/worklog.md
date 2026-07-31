@@ -2034,3 +2034,28 @@ Stage Summary:
 - Next: investigate why Unity doesn't reach GPU initialization
 
 Commit: pending
+  * Main thread stalls at WaitSema/SignalSema spin (30M+ imports)
+  * Same class: PRX waiting on semaphore that nobody signals
+- Main thread timeline (corrected):
+  1. il2cpp_init (line 1994)
+  2. IL2CPP resolver (232 functions)
+  3. Hash table writer (line 8542)
+  4. Workers created (lines 8550-8631)
+  5. il2cpp_init called AGAIN (line ~8600)
+  6. real_init, call #7, array proc (lines ~8600-9345)
+  7. sceKernelAllocateDirectMemory (GPU memory allocated!)
+  8. STALL on WaitSema/SignalSema spin (30M+ imports)
+- GPU calls: 0 sceVideoOut, 0 sceAgc, 0 sceGnm
+  BUT 2 sceKernelAllocateDirectMemory + 6 sceKernelMapDirectMemory
+  The main thread allocates GPU memory but never reaches GPU init functions
+- Root cause (corrected): PRX semaphore spin after GPU memory allocation
+  Same class of bug — not a missing GPU HLE subsystem
+
+Stage Summary:
+- EXP-076 "missing GPU init" conclusion was WRONG
+- Main thread DOES reach GPU memory allocation
+- Stall is same semaphore class: PRX spinning on WaitSema/SignalSema
+- 30M+ imports, all WaitSema/SignalSema — no progress to GPU init
+- Next: identify the specific semaphore and completion event in PRX
+
+Commit: pending
