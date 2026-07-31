@@ -1289,7 +1289,7 @@ The investigation was NOT wasted:
 
 ### EXP-096 — Work Submission Function NEVER Reached — Entire Call Chain Is Dead Code
 - **Date:** 2026-08-01
-- **Commit:** [see git log for EXP-096.md]
+- **Commit:** [8fc4ddc](https://github.com/Sh-TB/sharpemuT24/commit/8fc4ddc)
 - **Configuration:** `SHARPEMU_SEMA_FAST_PATH=0`, metadata at `Media/Metadata/`, EXP-085 flag patch active, DT_INIT_ARRAY fix (EXP-092) applied, EXP-095 + EXP-096 tracers active
 - **Path:** B (real metadata path)
 - **Question:** What code path should submit work to the ThreadPool after the `_ThreadPoolWaitCallback` lookup, and why doesn't it execute?
