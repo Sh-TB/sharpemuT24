@@ -1,0 +1,64 @@
+# Yatzi EXP Index
+
+Quick-reference table of all EXP experiments.
+
+| EXP | Date | Commit | Status | Key Finding | Next Dependency |
+|-----|------|--------|--------|-------------|-----------------|
+| 026 | 2026-07-28 | [08c0735](https://github.com/Sh-TB/sharpemuT24/commit/08c0735) | CONFIRMED | Synthetic x86-64 CPU emulator finds all 239/239 IL2CPP symbols. Algorithm defini... | EXP-028 (continued investigation) |
+| 027 | 2026-07-28 | [08c0735](https://github.com/Sh-TB/sharpemuT24/commit/08c0735) | CONFIRMED | Host CPU, Unicorn engine, and synthetic Python CPU all agree on test/lea/cmovns/... | EXP-028 (Method B continued) |
+| 028 | 2026-07-29 | [f1d0968](https://github.com/Sh-TB/sharpemuT24/commit/f1d0968) | CONFIRMED | strcmp GOT slot points to freed memory — the GOT was being set up correctly but ... | EXP-026, EXP-027 |
+| 029 | 2026-07-29 | [13d7a4c](https://github.com/Sh-TB/sharpemuT24/commit/13d7a4c) | CONFIRMED | strcmp GOT points to freed memory — the trampoline lifetime was too short. | EXP-028, EXP-030 |
+| 030 | 2026-07-29 | [ee1ed98](https://github.com/Sh-TB/sharpemuT24/commit/ee1ed98) | SUPERSEDED | Trampoline lifetime fix attempted, root cause revised — the issue was deeper tha... | EXP-029, EXP-031 |
+| 031 | 2026-07-29 | [a8d5c09](https://github.com/Sh-TB/sharpemuT24/commit/a8d5c09) | SUPERSEDED | Root cause narrowed to TryCallGuestFunction execution context — return value not... | EXP-030, EXP-032 |
+| 032 | 2026-07-29 | [3c186a4](https://github.com/Sh-TB/sharpemuT24/commit/3c186a4) | CONFIRMED | ROOT CAUSE FOUND: CpuContext.Rax never updated from nativeReturn — CallNativeEnt... | EXP-031, EXP-033 |
+| 033 | 2026-07-29 | [af7d8b8](https://github.com/Sh-TB/sharpemuT24/commit/af7d8b8) | CONFIRMED | Post-resolver crash from NULL execute fault limit (100000) — guest code calls NU... | EXP-032, EXP-034 |
+| 034 | 2026-07-29 | [0e13c17](https://github.com/Sh-TB/sharpemuT24/commit/0e13c17) | SUPERSEDED | Globals ARE populated (all 232 real func_impl addresses found). But fake heap st... | EXP-033, EXP-035, EXP-066 |
+| 035 | 2026-07-29 | [56bd06c](https://github.com/Sh-TB/sharpemuT24/commit/56bd06c) | SUPERSEDED | Fake heap disproven — root cause is uninitialized task descriptor. Workers call ... | EXP-034, EXP-064 |
+| 036 | 2026-07-29 | [7986cbe](https://github.com/Sh-TB/sharpemuT24/commit/7986cbe) | CONFIRMED — REPEATED IN EXP-081 | SHARPEMU_SEMA_FAST_PATH=1 was causing il2cpp_init starvation — workers spin and ... | EXP-062, EXP-063, EXP-068, EXP-081 |
+| 037 | 2026-07-29 | [5a5d782](https://github.com/Sh-TB/sharpemuT24/commit/5a5d782) | SUPERSEDED | IL2CPP static initializers not running — empty init_array. No .init_array entrie... | EXP-038, EXP-059, EXP-061 |
+| 038 | 2026-07-30 | [6f7a979](https://github.com/Sh-TB/sharpemuT24/commit/6f7a979) | SUPERSEDED | DT_INIT callback (rdx) not passed — IL2CPP registration never runs. rdx=0 instea... | EXP-037, EXP-039 |
+| 039 | 2026-07-30 | [1e13915](https://github.com/Sh-TB/sharpemuT24/commit/1e13915) | CONFIRMED | DT_INIT rdx hypothesis disproven — circular dependency in il2cpp_init. Passing r... | EXP-038, EXP-040 |
+| 040 | 2026-07-30 | [f41736c](https://github.com/Sh-TB/sharpemuT24/commit/f41736c) | CONFIRMED | Hash table entries never filled — workaround clears original crash but doesn't f... | EXP-039, EXP-041 |
+| 041 | 2026-07-30 | [d76f7bf](https://github.com/Sh-TB/sharpemuT24/commit/d76f7bf) | CONFIRMED | Init order issue — il2cpp_init called BEFORE hash lookup sets 0x801E51240. The g... | EXP-040, EXP-042 |
+| 042 | 2026-07-30 | [813a5d2](https://github.com/Sh-TB/sharpemuT24/commit/813a5d2) | CONFIRMED | Metadata lookup returns valid object — 0x801E51240 needs pre-init. The metadata ... | EXP-041, EXP-043 |
+| 043 | 2026-07-30 | [7a7b4ad](https://github.com/Sh-TB/sharpemuT24/commit/7a7b4ad) | SUPERSEDED | Pre-init mechanism missing — PRX DT_INIT flag forces jump to INT3. The PRX modul... | EXP-042, EXP-044 |
+| 044 | 2026-07-30 | [7465613](https://github.com/Sh-TB/sharpemuT24/commit/7465613) | CONFIRMED | INT3 is ELF padding (not module_start) — fini_array has 11 entries. The INT3 is ... | EXP-043, EXP-045 |
+| 045 | 2026-07-30 | [aedf782](https://github.com/Sh-TB/sharpemuT24/commit/aedf782) | CONFIRMED | eboot fini_array found (20 entries) but not root cause — the entries are destruc... | EXP-044, EXP-046 |
+| 046 | 2026-07-30 | [4721b59](https://github.com/Sh-TB/sharpemuT24/commit/4721b59) | CONFIRMED | Crash is from call #8, not #7 — metadata lookup returns non-zero. The crash happ... | EXP-045, EXP-047 |
+| 047 | 2026-07-30 | [3428a8f](https://github.com/Sh-TB/sharpemuT24/commit/3428a8f) | CONFIRMED | Three fixes prevent callback crash but cascade remains — fixing the immediate cr... | EXP-046, EXP-048 |
+| 048 | 2026-07-30 | [538c4da](https://github.com/Sh-TB/sharpemuT24/commit/538c4da) | CONFIRMED | Callback stub-ret allows il2cpp_init to progress — workers created. The stub ret... | EXP-047, EXP-049 |
+| 049 | 2026-07-30 | [db3d578](https://github.com/Sh-TB/sharpemuT24/commit/db3d578) | CONFIRMED | NULL pointer at 0x801E51220 — same class as 0x801E51240. Systemic pattern of uni... | EXP-048, EXP-050 |
+| 050 | 2026-07-30 | [ea58673](https://github.com/Sh-TB/sharpemuT24/commit/ea58673) | CONFIRMED | Hash lookup skipped by 15+ conditional jumps — stub cleared first cascade. The l... | EXP-049, EXP-051 |
+| 051 | 2026-07-30 | [30e6215](https://github.com/Sh-TB/sharpemuT24/commit/30e6215) | CONFIRMED | Buffer+NOP+loop fix tested — all cause new crashes, reverted. None of the attemp... | EXP-050, EXP-052 |
+| 052 | 2026-07-30 | [0f6db8d](https://github.com/Sh-TB/sharpemuT24/commit/0f6db8d) | CONFIRMED | Missing mechanism identified — wrapper 0x800805AE0 = il2cpp_codegen_register, ca... | EXP-051, EXP-053 |
+| 053 | 2026-07-30 | [6b62771](https://github.com/Sh-TB/sharpemuT24/commit/6b62771) | CONFIRMED | Wrapper 0x800805AE0 NEVER called — missing walker confirmed. Static table 0x1CC0... | EXP-052, EXP-054 |
+| 054 | 2026-07-30 | [a101e62](https://github.com/Sh-TB/sharpemuT24/commit/a101e62) | CONFIRMED | Il2CppCodeRegistration found at 0x8086E9000. Baseline crash chain captured. Stub... | EXP-053, EXP-055 |
+| 055 | 2026-07-30 | [5f89b31](https://github.com/Sh-TB/sharpemuT24/commit/5f89b31) | CONFIRMED | MetadataRegistration found at 0x80885C580. PRX DT_INIT invalid (ELF header). Ups... | EXP-054, EXP-056 |
+| 056 | 2026-07-30 | [d325f54](https://github.com/Sh-TB/sharpemuT24/commit/d325f54) | CONFIRMED | Major pivot — structs already populated. Root cause is missing CONSUMER function... | EXP-055, EXP-057 |
+| 057 | 2026-07-30 | [77bd7dc](https://github.com/Sh-TB/sharpemuT24/commit/77bd7dc) | CONFIRMED | MetaReg access via metadataUsages indirection. Call #7 (0x804F23320) is consumer... | EXP-056, EXP-058 |
+| 058 | 2026-07-30 | [d928189](https://github.com/Sh-TB/sharpemuT24/commit/d928189) | CONFIRMED | Call #7 entered but returns early — metadata loader 0x804F04750 fails (missing m... | EXP-057, EXP-059 |
+| 059 | 2026-07-31 | [efd65f5](https://github.com/Sh-TB/sharpemuT24/commit/efd65f5) | CONFIRMED | Ground-truth diff with Unity 2022.3.5f1 source — struct at 0x8086E9000 is Il2Cod... | EXP-058, EXP-060 |
+| 060 | 2026-07-31 | [a915330](https://github.com/Sh-TB/sharpemuT24/commit/a915330) | CONFIRMED | Complete dump verified — IL2CPP init WORKS, metadata loaded, crash chain resolve... | EXP-059, EXP-061 |
+| 061 | 2026-07-31 | [b28cce2](https://github.com/Sh-TB/sharpemuT24/commit/b28cce2) | CRITICAL CORRECTION | MIXED DUMP DETECTED — old eboot (7.7MB) was Dreaming Sarah, not Yatzi! All EXP-0... | EXP-035..058 ALL INVALID |
+| 062 | 2026-07-31 | [89ad82e](https://github.com/Sh-TB/sharpemuT24/commit/89ad82e) | SUPERSEDED BY EXP-081 | Semaphore deadlock confirmed — SignalSema NEVER called. 14 threads blocked. FAST... | EXP-063, EXP-081 |
+| 063 | 2026-07-31 | [6a1819d](https://github.com/Sh-TB/sharpemuT24/commit/6a1819d) | SUPERSEDED BY EXP-081 | FAST_PATH=1 resolves semaphore deadlock — game reaches Unity game manager loadin... | EXP-062, EXP-064, EXP-081 |
+| 064 | 2026-07-31 | [202e54d](https://github.com/Sh-TB/sharpemuT24/commit/202e54d) | CONFIRMED | NULL execute root cause = IL2CPP stubs return NULL. Host stack corruption after ... | EXP-063, EXP-065 |
+| 065 | 2026-07-31 | [47274be](https://github.com/Sh-TB/sharpemuT24/commit/47274be) | PARTIAL | Heap allocation fix for POSIX signal handler context buffer (stackalloc → Native... | EXP-064, EXP-066 |
+| 066 | 2026-07-31 | [137f3d7](https://github.com/Sh-TB/sharpemuT24/commit/137f3d7) | SUPERSEDED | Root cause = EXP-034 re-patching fails (0/232). Stubs use INT3 not DecideIl2cppR... | EXP-065, EXP-067 |
+| 067 | 2026-07-31 | [45af2a2](https://github.com/Sh-TB/sharpemuT24/commit/45af2a2) | CONFIRMED | Re-patching unnecessary — resolver returns real addresses directly. NULL execute... | EXP-066, EXP-068 |
+| 068 | 2026-07-31 | [936a53c](https://github.com/Sh-TB/sharpemuT24/commit/936a53c) | CONFIRMED | FAST_PATH tension confirmed — SignalSema never called. Same root cause as EXP-03... | EXP-036, EXP-062, EXP-069 |
+| 069 | 2026-07-31 | [3c60edc](https://github.com/Sh-TB/sharpemuT24/commit/3c60edc) | CONFIRMED | SignalSema IS imported and implemented but NEVER called — code path issue, not m... | EXP-068, EXP-070 |
+| 070 | 2026-07-31 | [9304030](https://github.com/Sh-TB/sharpemuT24/commit/9304030) | CONFIRMED | GATE FOUND — cmp byte [rbx+0x108], 0 + jne skips SignalSema. Flag=0x01 at runtim... | EXP-069, EXP-071 |
+| 071 | 2026-07-31 | [a59f6a6](https://github.com/Sh-TB/sharpemuT24/commit/a59f6a6) | SUPERSEDED BY EXP-079 | [rbx+0x108] is tagged pointer to unresolved dependency. CLEAR function never cal... | EXP-070, EXP-072 |
+| 072 | 2026-07-31 | [3511466](https://github.com/Sh-TB/sharpemuT24/commit/3511466) | CONFIRMED — DIAGNOSTIC PATCH | NOP gate patch CONFIRMED — SignalSema fires, 0 NULL executes, 300x more executio... | EXP-071, EXP-073 |
+| 073 | 2026-07-31 | [d1a90df](https://github.com/Sh-TB/sharpemuT24/commit/d1a90df) | CONFIRMED — DIAGNOSTIC PATCH | 11-byte NOP (includes jmp) — SignalSema fires 13141 times, 0 NULL executes, 0 cr... | EXP-072, EXP-074 |
+| 074 | 2026-07-31 | [1204062](https://github.com/Sh-TB/sharpemuT24/commit/1204062) | CONFIRMED | Game does NOT reach rendering — SignalSema fires on wrong handles, workers still... | EXP-073, EXP-075 |
+| 075 | 2026-07-31 | [64b43b0](https://github.com/Sh-TB/sharpemuT24/commit/64b43b0) | SUPERSEDED BY EXP-079 | CLEAR function should signal 0x5C but async dependency never completes. NOP uses... | EXP-074, EXP-076 |
+| 076 | 2026-07-31 | [b0b641d](https://github.com/Sh-TB/sharpemuT24/commit/b0b641d) | CORRECTED BY EXP-077/079 | Dependency is chain ptr to prev worker. [rbx+0xf8] set by PRX (170 sites, never ... | EXP-075, EXP-077 |
+| 077 | 2026-07-31 | [a2982c9](https://github.com/Sh-TB/sharpemuT24/commit/a2982c9) | CONFIRMED | GPU init is NOT the blocker — same semaphore spin class. Main thread reaches GPU... | EXP-076, EXP-078 |
+| 078 | 2026-07-31 | [c839ae3](https://github.com/Sh-TB/sharpemuT24/commit/c839ae3) | CONFIRMED — BUT NOP-CONTAMINATED | CASE 1 CONFIRMED — handle 0x5C NEVER signaled (0/5.7M). Workers signal wrong han... | EXP-077, EXP-079 |
+| 079 | 2026-07-31 | [d13b8c9](https://github.com/Sh-TB/sharpemuT24/commit/d13b8c9) | CONFIRMED | CLEAR is a C++ destructor (not a dependency callback). [rbx+0x108] is a byte fla... | EXP-071, EXP-075, EXP-076, EXP-080 |
+| 080 | 2026-07-31 | [d13b8c9](https://github.com/Sh-TB/sharpemuT24/commit/d13b8c9) | CONFIRMED | Clean run NEVER reaches il2cpp_init. 100,000+ NULL execute faults. FAST_PATH=1 c... | EXP-079, EXP-081 |
+| 081 | 2026-07-31 | [97db9fc](https://github.com/Sh-TB/sharpemuT24/commit/97db9fc) | CONFIRMED — PENDING VALIDATION | SHARPEMU_SEMA_FAST_PATH=1 causes WaitSema to return immediately, making workers ... | EXP-036, EXP-062, EXP-063, EXP-068 |
+
+**Total EXPs:** 56 (EXP-026 through EXP-081)
