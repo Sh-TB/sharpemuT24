@@ -1714,3 +1714,28 @@ Stage Summary:
 - Progress: Layer 1-3 SOLVED, Layer 4 CURRENT, Layer 5 NOT REACHED
 
 Commit: pending
+  * TryHandlePosixFault uses stackalloc byte[Win64ContextSize] (1232 bytes)
+  * No SA_ONSTACK flag (alternate stack too small per comment)
+  * 1000+ signal handler invocations = 1000+ x 1232 bytes on stack
+- Applied fix: stackalloc → NativeMemory.AllocZeroed + try/finally NativeMemory.Free
+  * Moves 1232-byte buffer from stack to heap
+  * Build succeeded (0 errors)
+- Ran with fix + FAST_PATH=1:
+  * 1006 NULL execute recoveries (was 1004)
+  * Stack smashing STILL detected
+  * No improvement from the fix
+- Analysis: The stack corruption has ANOTHER source beyond the stackalloc
+  * Crash RIP 0x7FAE85E8595C is in host address range
+  * May be guest-side __stack_chk_fail triggering abort
+  * Or other stackalloc/stack growth in recovery path
+- The fix is still valid (removes one stack growth source) but doesn't
+  fully solve the problem
+
+Stage Summary:
+- Heap allocation fix applied to TryHandlePosixFault (stackalloc → NativeMemory)
+- Stack smashing persists from another source
+- Root cause remains: IL2CPP stubs return NULL, game calls NULL 1000+ times
+- Knowledge transfer recommends: make IL2CPP stubs return valid non-NULL objects
+- This is the same documented pattern across 3 Unity/IL2CPP games
+
+Commit: pending

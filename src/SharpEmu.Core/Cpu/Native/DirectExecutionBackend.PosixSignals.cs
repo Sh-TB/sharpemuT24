@@ -249,7 +249,9 @@ public sealed unsafe partial class DirectExecutionBackend
                         return false;
                 }
 
-                byte* contextRecord = stackalloc byte[Win64ContextSize];
+                byte* contextRecord = (byte*)NativeMemory.AllocZeroed((nuint)Win64ContextSize);
+                try
+                {
                 new Span<byte>(contextRecord, Win64ContextSize).Clear();
                 int[] offsets = PosixRegisterOffsets;
                 for (int i = 0; i < offsets.Length; i++)
@@ -361,6 +363,11 @@ public sealed unsafe partial class DirectExecutionBackend
                         *(ulong*)(registers + offsets[i]) = ReadCtxU64(contextRecord, CTX_RAX + i * 8);
                 }
                 return true;
+                }
+                finally
+                {
+                        NativeMemory.Free(contextRecord);
+                }
         }
 
         private static byte* GetPosixRegisterBase(nint ucontext)
