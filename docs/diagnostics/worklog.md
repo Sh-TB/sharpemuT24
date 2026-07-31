@@ -2880,3 +2880,41 @@ Stage Summary:
 - Golden Rule 9 added: Fast Hypothesis Validation, Never Trust First Success. A patch that changes behavior is NOT automatically the root cause.
 - Knowledge storage fully compliant: all 4 master files tracked, EXP-094 commit URL (dcccd39) verified HTTP 200, origin/master HEAD = 59fe54d.
 - Next EXP-095: runtime trace the _ThreadPoolWaitCallback lookup at 0x804F055D6 to dump args, return value, and method table contents.
+
+---
+Task ID: EXP-095
+Agent: main (Super Z)
+Task: Add runtime tracing at real_init 0x804F055D6 (_ThreadPoolWaitCallback lookup) to capture args, return value, context, and method table contents. Answer: is _ThreadPoolWaitCallback missing from the table? Is the lookup key wrong? Is the method table incomplete? Is SharpEmu creating context but not populating methods? Is there another init stage after module_start?
+
+Work Log:
+- Verified git state: origin/master HEAD = 0e534fe, all 4 master knowledge files tracked, working tree clean.
+- Read YATZI_MASTER_DEBUG_STATE.md fully (827 lines), YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md fully (1252 lines), YATZI_EXP_INDEX.md fully (77 lines). Reviewed all Golden Rules 0-9, all EXP-086..094 sections, Closed Investigations, Standing Gotchas, Key Addresses.
+- Verified the call site 0x804F055D6 by static disassembly: call 0x804f21d70 (il2cpp_class_get_method_from_name). Args: rdi=[0x808B539F0] (type ptr), rsi=0x80826CCD3 ("System.Threading"), rdx=0x80826F33D ("_ThreadPoolWaitCallback"). Result stored at [0x808B53C48].
+- Found 3 sequential calls to 0x804F21D70 in real_init: 0x804F055B5 (System.Guid), 0x804F055D6 (System.Threading._ThreadPoolWaitCallback), 0x804F055F7 (System.Runtime.Remoting.Messaging.MonoMethodMessage).
+- Checked [0x808B539F0] (type ptr global): in BSS (zero-initialized in file). Must be populated at runtime before real_init reaches 0x804F055D6.
+- Scanned PRX for writes to 0x808B539F0: 20 RIP-relative accesses, all are LEA (load address) instructions, not writes. The address is passed by reference to initialization functions.
+- Wrote _Exp095ThreadPoolLookupTracer.cs: two-stage INT3 tracer. Stage 1 patches 0x804F055D6 (call site), captures rdi/rsi/rdx + strings + context + method table. On hit, restores call site and patches 0x804F055DB (return site). Stage 2 captures rax (return value) + dumps MethodInfo structure.
+- Wired tracer into DirectExecutionBackend.Exceptions.cs (two new handler checks before EXP-035/036) and DirectExecutionBackend.Imports.cs (Exp095PatchThreadPoolLookup() registration after Exp058PatchCall7Tracers()).
+- Built SharpEmu with dotnet publish (dotnet 10.0.302). Build succeeded with only pre-existing warnings. Output: /tmp/my-project/work/sharpemu-build-exp095/SharpEmu (53MB ELF binary).
+- Set up environment: SHARPEMU_SEMA_FAST_PATH=0, SHARPEMU_APP0_DIR=/tmp/games/yatzi, DISPLAY=:99 (Xvfb), metadata at Media/Metadata/global-metadata.dat.
+- Ran emulator with 120s timeout. Exit code 4 (stall). Log: /tmp/exp080_logs/exp095_run.log (9035 lines).
+- Tracer fired successfully: [EXP095-CALLSITE-ENTER] hit#1 at line 8938, [EXP095-RETURNSITE-ENTER] at line 8966.
+- KEY FINDING: rax = 0x6007E64D0 (NON-NULL) — lookup SUCCEEDED! _ThreadPoolWaitCallback WAS found.
+- Method info at 0x6007E64D0: +0x00=0x60070B3A0 (Il2CppClass*, matches rdi arg), +0x10/+0x18/+0x20 = guest heap pointers (method name, signature, invoker). Valid, populated structure.
+- Context [0x808923D88] = 0x7F8D6CEDC9B0 (host pointer, populated). [context+0x30] = 0x55A9CC8C6090 (method table, non-NULL).
+- Deadlock persists: stall on WaitSema(0xA6) at 0x804F6E9EB (ThreadPool dispatch) — same handle, same caller, same thread count as EXP-092.
+- Tracer bug: Exp095ReadCString fails on guest heap addresses (0x60... range, not identity-mapped). method_name read as "??p" instead of "_ThreadPoolWaitCallback". namespace read correctly ("System.Threading") because it's in PRX data segment (identity-mapped). Bug does NOT affect key finding (rax read from register).
+- Wrote EXP-095.md report with full runtime trace, corrections to EXP-090/094, and re-confirmation of EXP-088/089.
+- Updated YATZI_MASTER_DEBUG_STATE.md: added EXP-095 section documenting the successful lookup and persistent deadlock.
+- Appended EXP-095 to YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md (coverage 65 -> 66).
+- Appended EXP-095 row to YATZI_EXP_INDEX.md.
+- Committed as e131ce7 (7 files, 646 insertions), pushed to origin/master.
+- Replaced [see commit] placeholder with real hash e131ce7, committed, pushed.
+
+Stage Summary:
+- EXP-095 MAJOR CORRECTION: _ThreadPoolWaitCallback lookup SUCCEEDS at runtime (rax=0x6007E64D0, non-NULL). The method table at [context+0x30] IS populated and DOES contain the method. EXP-090 and EXP-094 were WRONG.
+- The deadlock is NOT caused by a missing callback. It's caused by no work being submitted to the ThreadPool (re-confirms EXP-088/089). The callback EXISTS but is never INVOKED.
+- The entire EXP-090..094 chain (5 EXPs) was based on the wrong assumption that the lookup returns NULL. EXP-095 corrects this with runtime evidence.
+- Deadlock pattern identical to EXP-092: WaitSema(0xA6) at 0x804F6E9EB, all 15 threads blocked.
+- Knowledge storage fully compliant: all 4 master files tracked, EXP-095 commit URL (e131ce7) verified, origin/master HEAD updated.
+- Next EXP-096: trace what the main thread does between 0x804F055DB (lookup result stored) and 0x804F6E9EB (WaitSema block). Look for QueueUserWorkItem or similar work-submission call that should happen but doesn't.
