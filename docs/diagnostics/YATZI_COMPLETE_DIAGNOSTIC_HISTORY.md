@@ -1188,7 +1188,7 @@ The IL2CPP runtime looks up function pointers (like `_ThreadPoolWaitCallback`) v
 
 ### EXP-093 — il2cpp_codegen_register Is a Stub: Saves 3 Pointers, Does NOT Populate Hash Table
 - **Date:** 2026-07-31
-- **Commit:** [see git log for EXP-093.md]
+- **Commit:** [649740c](https://github.com/Sh-TB/sharpemuT24/commit/649740c)
 - **Configuration:** `SHARPEMU_SEMA_FAST_PATH=0`, metadata at `Media/Metadata/`, EXP-085 flag patch active, DT_INIT_ARRAY fix (EXP-092) applied
 - **Path:** B (real metadata path)
 - **Question:** Why doesn't `il2cpp_codegen_register` insert entries into the hash table during `il2cpp_init`?
