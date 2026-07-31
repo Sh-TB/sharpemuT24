@@ -2673,3 +2673,39 @@ Stage Summary:
 - Next: trace what prevents work submission after AllocateDirectMemory
 
 Commit: pending
+
+---
+Task ID: EXP-089
+Agent: main (SharpEmu bringup)
+Task: EXP-089 — Find what prevents work submission to ThreadPool after AllocateDirectMemory.
+
+Work Log:
+- Analyzed precise timeline from Path B log (exp085_metadata_fixed_run.log)
+- All import errors (NOT_FOUND, PERMISSION_DENIED) occur BEFORE AllocateDirectMemory
+  * They are non-fatal — main thread continues past them
+  * Classification: NOT A/B/C (not missing HLE, not wrong return, not skipped function)
+  * Classification: D — waiting for an event SharpEmu never generates
+- After AllocateDirectMemory (line 8905):
+  * Line 8906-8907: GC semaphores created (Suspend/Resume)
+  * Line 8908-8918: Thread pool semaphores created (0x85-0x90)
+  * Line 8922: GC thread created
+  * Line 8923: Main thread enters pool → WaitSema(0x81) → BLOCKS (only 18 lines later!)
+  * Line 8925: GC thread blocks on SuspendSemaphore (0x83)
+- NO work submitted between GC creation and pool entry
+- NO HLE calls between AllocateDirectMemory and WaitSema(0x81)
+- Corrected EXP-058 tracer bug: count=2.45B was rsi/0x38 misinterpretation
+  * rsi=0x2000002EC0 is a pointer, not count*entry_size
+  * Actual count = rcx = 0x379 = 889 (reasonable)
+- Root cause: IL2CPP runtime doesn't reach work submission stage
+  * Main thread creates infrastructure, enters pool, blocks
+  * GC thread blocks on SuspendSemaphore immediately
+  * Nobody triggers GC → no work → no signals → deadlock
+
+Stage Summary:
+- Classification: D — waiting for event SharpEmu never generates
+- No work submitted to ThreadPool after GC system creation
+- Missing trigger: GC trigger mechanism or timer/event not implemented
+- EXP-058 "corrupted count" was a tracer bug (889, not 2.45B)
+- Next (EXP-090): find what event should trigger work submission
+
+Commit: pending

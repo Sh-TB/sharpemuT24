@@ -545,3 +545,39 @@ The deadlock is caused by **no work being submitted to the IL2CPP thread pool**.
 
 The root cause is likely an HLE function returning an error (sceKernelVirtualQuery NOT_FOUND, sceKernelDirectMemoryQuery NOT_FOUND, fopen NOT_FOUND, or PERMISSION_DENIED for unknown NID) that prevents the IL2CPP runtime from reaching the work submission stage.
 
+
+---
+
+## EXP-089: Missing Work Submission (2026-07-31)
+
+### Classification: D — Waiting for an Event SharpEmu Never Generates
+
+The main thread creates the GC system and thread pool, then **immediately enters the thread pool as a worker** without submitting any work. The IL2CPP runtime doesn't reach the work submission stage.
+
+### Precise Timeline
+
+```
+Line 8905: sceKernelAllocateDirectMemory — GPU memory allocated
+Line 8906: SuspendSemaphore (0x83) created — GC system init
+Line 8907: ResumeSemaphore (0x84) created
+Line 8908-8918: 11 Baselib_SystemSemaphore (0x85-0x90) — thread pool
+Line 8922: GC thread created
+Line 8923: Main thread enters thread pool → WaitSema(0x81) → BLOCKS
+Line 8925: GC thread blocks on WaitSema(0x83)
+```
+
+Only 18 lines between AllocateDirectMemory and deadlock. No work submitted.
+
+### EXP-058 Tracer Bug Correction
+
+The "count=2454267240" from EXP-058/079 was a **tracer bug** — the tracer divided `rsi` (a pointer) by `entry_size`, producing a meaningless large number. The actual count is `rcx=0x379=889`.
+
+### Updated Blocker
+
+The blocker is NOT a missing SignalSema or a semaphore bug. The blocker is that **no work is submitted to the IL2CPP ThreadPool** because the IL2CPP runtime initialization doesn't reach the work submission stage. The runtime creates the GC and thread pool infrastructure, then enters the pool without queuing any work.
+
+The missing trigger is likely:
+- A GC trigger mechanism that SharpEmu doesn't implement
+- A timer/event that should fire after system init
+- A callback that the IL2CPP runtime registers but SharpEmu never invokes
+
