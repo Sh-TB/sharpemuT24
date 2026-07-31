@@ -2314,3 +2314,56 @@ Standing gotcha for all future EXPs:
 This must be checked explicitly in any EXP that touches hash_table globals.
 
 Commit: pending
+
+---
+Task ID: EXP-081
+Agent: main (SharpEmu bringup)
+Task: EXP-081 — Find why worker task function pointers [worker+0xF8] are NULL.
+
+Work Log:
+- Identity verified: Yatzi (SHA256 d17fba4a... PASS)
+- TASK 1: Worker descriptor layout confirmed from EXP035-NULL crash dump
+  * [worker+0xF8] = NULL (set by worker_create at 0x800A9FCAE: mov byte [rbx+0xF8], 0)
+  * [worker+0x108] = 0x01 (work pending flag, set at 0x800A9FAED)
+  * [worker+0x70] = 0 (work count, no actual work items)
+  * [worker+0x68] = 0x5C (wait_sema handle)
+- TASK 2: Found 473 qword writes to [reg+0xF8] in EBOOT
+  * worker_create writes byte 0 (NULL) at creation
+  * Task dispatcher (0x800AC6080) is the ONLY code that writes non-NULL values
+  * Dispatcher has 4 write sites: 0x800AC6DB9, 0x800AC7229, 0x800AC7309, 0x800AC7439
+- TASK 3: Analyzed dispatch loop (0x800AA0170) control flow
+  * Worker checks [0x108]!=0 (work pending) → decrement [0x70] → if ≤0, WaitSema
+  * After WaitSema, re-checks [0x108]!=0 → calls [0xF8] (task function)
+  * With FAST_PATH=1, WaitSema returns immediately → worker calls NULL → crash
+  * On real PS5, WaitSema would BLOCK → dispatcher assigns task → SignalSema → worker wakes
+- TASK 4: A/B test FAST_PATH=0 vs FAST_PATH=1
+  * FAST_PATH=0 run (60s timeout):
+    - il2cpp_init CALLED (line 8810) — was NEVER called with FAST_PATH=1
+    - 0 NULL execute faults — was 100,000+ with FAST_PATH=1
+    - 18 SignalSema calls — workers signal correctly
+    - 36+ threads created: Job.workers, Background Job.workers, GfxFlipThread, UnityGfxDeviceWorker
+    - New crash at 0x80080684D (separate issue — NULL ptr in Unity metadata iteration)
+  * FAST_PATH=0 reaches il2cpp_init 17x faster than NOP run (8,810 lines vs 148,005)
+  * FAST_PATH=0 needs NO bypass patches
+- ROOT CAUSE: SHARPEMU_SEMA_FAST_PATH=1
+  * FAST_PATH=1 makes WaitSema return immediately without blocking
+  * Workers race ahead of dispatcher, call [worker+0xF8]=NULL before task is assigned
+  * FAST_PATH=0 restores proper blocking → workers wait → dispatcher assigns tasks → no crash
+- FIX: Set SHARPEMU_SEMA_FAST_PATH=0 (configuration change, no code changes needed)
+  * FAST_PATH=1 was introduced in EXP-063 as workaround for EXP-062 deadlock
+  * EXP-062's deadlock analysis was incomplete — with current codebase, FAST_PATH=0 works
+  * The EXP-065 heap-allocation fix (NativeMemory.AllocZeroed) likely resolved the
+    original deadlock cause
+- New crash at 0x80080684D: "mov r8d, [r15+rcx]" where r15=NULL
+  * This is a NULL pointer in Unity's IL2CPP metadata hash table iteration
+  * Separate issue from worker NULL [rbx+0xF8] — to be investigated in EXP-082
+
+Stage Summary:
+- ROOT CAUSE FOUND: SHARPEMU_SEMA_FAST_PATH=1
+- FIX: Set SHARPEMU_SEMA_FAST_PATH=0
+- No code changes needed — pure configuration fix
+- NOP bypass (EXP-073) confirmed unnecessary, remains removed
+- Game progresses to Unity job system + graphics thread creation with FAST_PATH=0
+- New blocker: crash at 0x80080684D (NULL ptr in Unity metadata) — EXP-082 scope
+
+Commit: pending
