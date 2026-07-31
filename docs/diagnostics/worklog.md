@@ -1879,3 +1879,28 @@ Stage Summary:
 - Next: find what clears [rbx+0x108] to 0 and why it's never reached
 
 Commit: pending
+  * 0x800A9FAED: mov byte [rbx+0x108], 0x01 (SETS the flag) — in function 0x800A9F9A0
+- All three functions (CLEAR, SET, WORKER) have 0 direct callers
+  * Called via indirect dispatch (function pointers in task descriptor)
+- CLEAR function (0x800A9F750) has 0 occurrences in runtime log — NEVER called
+- SET function (0x800A9F9A0) has 0 occurrences in runtime log — also never directly logged
+- CRITICAL DISCOVERY: [rbx+0x108] = 0x6006D1101 is a TAGGED POINTER, not a boolean!
+  * Remove tag bit: 0x6006D1100 = rbx - 0x30 (48 bytes before task descriptor)
+  * Points to a dependency object
+  * Low byte = 0x01 (tagged pointer present)
+  * cmp byte [rbx+0x108], 0 checks if low byte is 0
+  * For a tagged pointer, low byte is always 0x01 (non-zero)
+  * Gate is CLOSED because dependency is unresolved
+- Root cause: dependency at [rbx+0x108] (tagged pointer to rbx-0x30) is never resolved
+  * CLEAR function (writes 0) is never called
+  * CLEAR would be called when dependency (asset load, prereq task) completes
+  * No dependencies complete because main thread doesn't progress far enough
+
+Stage Summary:
+- [rbx+0x108] is a TAGGED POINTER to an unresolved dependency object
+- The CLEAR function (0x800A9F750) that writes 0 is NEVER called
+- The dependency is never resolved (no assets loaded, no prereq tasks completed)
+- Gate stays closed → SignalSema never reached → workers spin on NULL
+- Next: examine the dependency object at rbx-0x30, or test manual clear
+
+Commit: pending
