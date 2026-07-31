@@ -816,3 +816,59 @@ If Case B: The semaphore deadlock from EXP-062 still exists. The SignalSema sour
 **Current crash location:** 0x80080684D (per-image hash table NULL, AFTER VideoOut attempt)
 **Next debugging target:** Fix X11 display, then check if per-image hash table crash persists (EXP-086)
 
+
+---
+
+## Metadata File Validation (2026-07-31, post-EXP-085)
+
+### External Claim Validation
+
+An external observation claimed global-metadata.dat has:
+- Magic: 0xFAB11BAF
+- Version: 29
+- Types: 468,472
+- Strings: 1,613,544
+- Methods: 80,736
+
+### Verification Results
+
+**CHECK 1 — File identity:**
+- Path: `/tmp/games/yatzi/global-metadata.dat` (root) + `/tmp/games/yatzi/Media/Metadata/global-metadata.dat` (copy)
+- SHA256: `4c85fdec4efdb59534ab20af49615a36cbeef549f2f8de0431d78dbc5f21d918`
+- Size: 10,669,264 bytes
+- Magic: 0xFAB11BAF ✓ (matches)
+- Version: 29 ✓ (matches)
+- String table byte size: 1,613,544 ✓ (matches external "strings" claim)
+- Type definitions byte size: 1,142,064 (external "types=468,472" is a different metric — likely element count using a different struct size)
+- Methods byte size: 2,695,968 (external "methods=80,736" is a different metric — likely element count)
+
+**CHECK 2 — SharpEmu loads it:**
+- SharpEmu's BootDependencyAnalyzer checks `Media/Metadata/global-metadata.dat`
+- WITHOUT file at Media/Metadata/: "Exists: NO, Status: MISSING"
+- WITH file at Media/Metadata/: "Exists: YES, Size: 10.2 MB"
+- SharpEmu does NOT parse the file itself — the PRX (Il2cppUserAssemblies.prx) loads it via sceOpen
+
+**CHECK 3 — File vs runtime metadata:**
+- Cannot directly compare — SharpEmu doesn't parse metadata fields internally
+- The PRX parses the metadata file internally during il2cpp_init
+
+**CHECK 4 — Registration path consumes the data:**
+- WITHOUT file at Media/Metadata/: PRX takes fallback path → crash at 0x80080684D (per-image hash table NULL) — but reaches VideoOut first
+- WITH file at Media/Metadata/: PRX reads file → proper init path → DEADLOCK (EXP-062 pattern: all 14 threads blocked on WaitSema, main thread on handle 0x83)
+
+### Conclusion
+
+The external metadata claim is **CORRECT and RELEVANT**. The file exists, is valid (magic/version match), and IS loaded by the PRX. The string table byte size matches exactly.
+
+However, loading the metadata correctly leads to the **EXP-062 deadlock** (all threads blocked on WaitSema). NOT loading it (file at wrong path) leads to a different crash (0x80080684D) but allows further progress (reaches VideoOut).
+
+This is **supporting evidence only**, not a root cause. The metadata file is valid and consumed correctly by the PRX. The blocker is the semaphore synchronization deadlock that occurs after the metadata is loaded.
+
+### Important Discovery: File Path Matters
+
+The file was originally at the ROOT (`/tmp/games/yatzi/global-metadata.dat`) but SharpEmu expects it at `Media/Metadata/global-metadata.dat`. This path mismatch caused the PRX to take a different code path:
+- Wrong path → PRX can't find metadata → fallback init → crash at 0x80080684D → but reaches VideoOut
+- Correct path → PRX reads metadata → proper init → deadlock (EXP-062 pattern)
+
+This means the EXP-085 run that reached VideoOut was actually running with the metadata file NOT being found by the PRX. The "progress" to VideoOut was on a fallback code path, not the normal init path.
+
