@@ -1764,3 +1764,33 @@ Stage Summary:
 - Next: fix the re-patching to use address-based matching instead of name-based
 
 Commit: pending
+  * EXP-034 re-patching targets wrong mechanism (import stubs vs resolver)
+- BUT: Resolver already returns ALL 232 real func_impl addresses!
+  * 232/232 non-zero returns (0x804ED85D0 etc.)
+  * 0/232 NULL returns
+  * All stored in _resolverResults
+  * Game IS receiving real PRX function addresses
+  * Fake heap stubs are NOT used for IL2CPP API calls
+- User feedback #3: Verified causal chain
+  * last_il2cpp='<none>' in ALL 1004 NULL execute logs
+  * NO IL2CPP function called before NULL execute
+  * NULL is from [rbx+0xf8] in task descriptor (worker task function pointer)
+  * All 1004 NULL executes from same caller 0x800AA01D4 (worker task loop)
+  * Multiple worker threads (tid 26-35) all hit same NULL
+  * Workers are SPINNING: check [rbx+0xf8], find NULL, call NULL, recover, loop
+  * This is a TASK SUBMISSION issue, NOT an IL2CPP stub issue
+- Two separate issues identified:
+  1. EXP-034 re-patching: UNNECESSARY (resolver already works, returns real addresses)
+  2. NULL execute: TASK SUBMISSION issue (workers spin, no tasks submitted)
+- DecideIl2CppReturnValue fix had no effect (confirmed: IL2CPP stubs not the source)
+- Stack corruption from 1004 signal handler invocations (host-side glibc)
+
+Stage Summary:
+- EXP-034 re-patching is NOT the problem — resolver already returns real func_impl
+- NULL executes are from worker threads spinning on NULL task function pointer
+- [rbx+0xf8] is NULL because no tasks are submitted to workers
+- This is the same class as the semaphore issue: workers wait for work that never arrives
+- FAST_PATH=1 may cause main thread to skip task submission step
+- Next: investigate why tasks are never submitted (main thread path, FAST_PATH side effects)
+
+Commit: pending
