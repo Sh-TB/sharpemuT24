@@ -1,8 +1,8 @@
 # Yatzi Complete Diagnostic History
 
 **Single source of truth for all Yatzi (PPSA17697) debugging experiments.**
-**Coverage: EXP-026 through EXP-094 (65 experiments)**
-**Last updated: 2026-07-31 (EXP-094)**
+**Coverage: EXP-026 through EXP-095 (66 experiments)**
+**Last updated: 2026-08-01 (EXP-095)**
 
 This file consolidates ALL diagnostic knowledge from every EXP report, git commit, and worklog entry. Future debugging MUST start from this file.
 
@@ -10,10 +10,10 @@ This file consolidates ALL diagnostic knowledge from every EXP report, git commi
 
 ## Table of Contents
 
-1. [EXP Timeline (EXP-026 through EXP-094)](#exp-timeline)
+1. [EXP Timeline (EXP-026 through EXP-095)](#exp-timeline)
 2. [Phase Summary](#phase-summary)
 3. [Key Corrections and Superseded Theories](#key-corrections)
-4. [Current State (after EXP-094)](#current-state)
+4. [Current State (after EXP-095)](#current-state)
 5. [Knowledge Rules Learned](#knowledge-rules)
 6. [All Links](#all-links)
 
@@ -1250,3 +1250,34 @@ The investigation was NOT wasted:
 **Solved:** Actual lookup structure identified as `[0x808923D88]` (not `0x801EF7610`). Context structure IS populated. Method table pointer at `[context+0x30]` IS non-NULL.
 **Still blocked:** `_ThreadPoolWaitCallback` lookup still returns NULL despite populated context. The method table may be incomplete or contain wrong data.
 **Next debugging target:** Runtime trace the `_ThreadPoolWaitCallback` lookup at `0x804F055D6` to dump args, return value, and method table contents. (EXP-095)
+
+
+---
+
+## EXP-095 (added 2026-08-01)
+
+### EXP-095 — _ThreadPoolWaitCallback Lookup SUCCEEDS (rax=0x6007E64D0) — Deadlock Persists on WaitSema(0xA6)
+- **Date:** 2026-08-01
+- **Commit:** [see git log for EXP-095.md]
+- **Configuration:** `SHARPEMU_SEMA_FAST_PATH=0`, metadata at `Media/Metadata/`, EXP-085 flag patch active, DT_INIT_ARRAY fix (EXP-092) applied, EXP-095 tracer active
+- **Path:** B (real metadata path)
+- **Question:** What are the exact args and return value of the `_ThreadPoolWaitCallback` lookup at runtime, and what does the method table at `[context+0x30]` contain?
+- **Hypothesis (from EXP-094):** The method table is incomplete or doesn't contain `_ThreadPoolWaitCallback`, causing the lookup to return NULL.
+- **Tools/Logs:** New two-stage INT3 tracer (`_Exp095ThreadPoolLookupTracer.cs`): Stage 1 at call site `0x804F055D6` (captures args), Stage 2 at return site `0x804F055DB` (captures rax). Built SharpEmu with `dotnet publish`, ran with 120s timeout.
+- **Finding:** The lookup **SUCCEEDED**. `rax = 0x6007E64D0` (non-NULL guest heap pointer to a valid `MethodInfo` structure). The method table at `[context+0x30]` IS populated and DOES contain `_ThreadPoolWaitCallback`. The MethodInfo at `0x6007E64D0` contains: `+0x00 = 0x60070B3A0` (Il2CppClass* matching rdi arg), `+0x10/+0x18/+0x20` = guest heap pointers (method name, signature, invoker). However, the deadlock **still occurs** — main thread blocks on `WaitSema(0xA6)` at `0x804F6E9EB` (ThreadPool dispatch), identical to EXP-092. The callback EXISTS but is never INVOKED because no work is submitted to the ThreadPool.
+- **Root Cause:** NOT a missing callback — the lookup succeeds. The deadlock is caused by no work being submitted to the ThreadPool (re-confirms EXP-088/089).
+- **Status:** CONFIRMED — corrects EXP-090 and EXP-094
+- **Related:** EXP-040, EXP-085, EXP-088, EXP-089, EXP-090, EXP-091, EXP-092, EXP-093, EXP-094, EXP-096
+- **Impact:** Major correction — the entire EXP-090..094 chain was based on the wrong assumption that `_ThreadPoolWaitCallback` lookup returns NULL. It does NOT. The lookup succeeds. The real blocker is that no work is submitted to the ThreadPool after the lookup. EXP-088/089's original classification was correct all along.
+
+### Corrections
+- **EXP-090 CORRECTED:** Claimed "_ThreadPoolWaitCallback lookup returns NULL → deadlock". Wrong: the lookup returns `0x6007E64D0` (non-NULL). The assumption was based on the hash table at `0x801EF7610` being empty, but EXP-094 proved the lookup doesn't use `0x801EF7610`, and EXP-095 proves the lookup succeeds.
+- **EXP-094 CORRECTED:** Claimed "method table doesn't contain _ThreadPoolWaitCallback". Wrong: the method table DOES contain it, and the lookup succeeds.
+
+### Tracer Bug (Minor)
+`Exp095ReadCString` fails on guest heap addresses (`0x60...` range) — not identity-mapped to host addresses. The `method_name` string was read as `"??p"` instead of `"_ThreadPoolWaitCallback"`. The `namespace` string read correctly because it's in the PRX data segment (identity-mapped). This bug does NOT affect the key finding (rax was read from the register, not memory).
+
+### Updated Current State (after EXP-095)
+**Solved:** `_ThreadPoolWaitCallback` lookup traced at runtime. Lookup SUCCEEDS (rax=0x6007E64D0). Method info structure is valid and populated. Method table at `[context+0x30]` IS searchable. Deadlock is NOT caused by a missing callback.
+**Still blocked:** Main thread blocks on `WaitSema(0xA6)` at `0x804F6E9EB` (ThreadPool dispatch). No work submitted to the ThreadPool after the lookup succeeds. The callback exists but is never invoked.
+**Next debugging target:** Trace what the main thread does between `0x804F055DB` (lookup result stored) and `0x804F6E9EB` (WaitSema block). Look for a `QueueUserWorkItem` or similar work-submission call that should happen but doesn't. (EXP-096)

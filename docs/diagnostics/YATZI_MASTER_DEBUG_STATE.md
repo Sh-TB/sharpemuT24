@@ -825,3 +825,59 @@ Add a runtime tracer at the `_ThreadPoolWaitCallback` lookup call site (`0x804F0
 3. The context structure and method table contents
 
 One question: What does the method table at `[context+0x30]` actually contain, and is `_ThreadPoolWaitCallback` in it?
+
+
+---
+
+## EXP-095: _ThreadPoolWaitCallback Lookup SUCCEEDS — Deadlock Persists on WaitSema(0xA6) (2026-08-01)
+
+### Major Correction to EXP-090/094
+
+EXP-090 claimed "_ThreadPoolWaitCallback lookup returns NULL → deadlock".
+EXP-094 claimed "method table doesn't contain _ThreadPoolWaitCallback".
+
+**BOTH CORRECTED BY EXP-095:** The lookup **SUCCEEDED** at runtime. `rax = 0x6007E64D0` (non-NULL guest heap pointer to a valid `MethodInfo` structure). The method table at `[context+0x30]` IS populated and DOES contain `_ThreadPoolWaitCallback`.
+
+### Runtime Trace (Two-Stage INT3)
+
+A new tracer (`_Exp095ThreadPoolLookupTracer.cs`) was built with two-stage INT3:
+- Stage 1: INT3 at call site `0x804F055D6` — captures args (rdi, rsi, rdx)
+- Stage 2: INT3 at return site `0x804F055DB` — captures return value (rax)
+
+Results:
+- `rdi (type_ptr) = 0x60070B3A0` (guest heap — valid Il2CppClass*)
+- `rsi (namespace) = 0x80826CCD3` (PRX data — "System.Threading")
+- `rdx (method_name) = 0x6014F9870` (guest heap — tracer failed to read string)
+- `rax (return_value) = 0x6007E64D0` — **NON-NULL, lookup SUCCEEDED**
+
+Method info at `0x6007E64D0`:
+- `+0x00 = 0x60070B3A0` (Il2CppClass* — matches rdi arg)
+- `+0x10, +0x18, +0x20` = guest heap pointers (method name, signature, invoker)
+- Valid, populated MethodInfo structure
+
+### Deadlock Persists
+
+After the lookup succeeds, the main thread continues, creates the GC thread, enters the ThreadPool dispatch function (`0x804F6E510`), and blocks on `WaitSema(0xA6)` at `0x804F6E9EB`. This is the **exact same deadlock** as EXP-092:
+- Stall handle: `0xA6` (same as EXP-092)
+- Stall caller: `0x804F6E9EB` (same ThreadPool dispatch)
+- All 15 threads blocked
+
+### Root Cause Re-Confirmed (EXP-088/089)
+
+The deadlock is NOT caused by a missing callback. It's caused by **no work being submitted to the ThreadPool**. The callback EXISTS (`rax = 0x6007E64D0`) but is never INVOKED because no work items are queued.
+
+EXP-088/089 originally identified this correctly, but EXP-090/091/092/093/094 incorrectly redirected the investigation toward the metadata/hash table. EXP-095 corrects this: the metadata lookup is NOT the problem. The problem is that the IL2CPP runtime doesn't submit work to the ThreadPool after the lookup succeeds.
+
+### Tracer Bug (Minor)
+
+`Exp095ReadCString` fails on guest heap addresses (`0x60...` range) because they're not identity-mapped to host addresses. Only PRX/EBOOT data segment addresses are directly dereferenceable. Future tracers should use `CpuContext.TryReadUInt8()` for guest heap strings. This bug does NOT affect the key finding (rax was read from the register, not memory).
+
+### Updated Blocker
+
+**The blocker is NO LONGER "missing _ThreadPoolWaitCallback".** The callback exists and the lookup succeeds.
+
+**The new/old blocker:** No work is submitted to the ThreadPool after the lookup. The IL2CPP runtime has the callback pointer (stored at `[0x808B53C48] = 0x6007E64D0`) but doesn't queue any work items before entering the pool.
+
+### Next EXP-096
+
+Trace what the main thread does between `0x804F055DB` (lookup result stored) and `0x804F6E9EB` (WaitSema block). Look for a `QueueUserWorkItem` or similar work-submission call that should happen but doesn't. Check if an HLE function returns an error that causes the runtime to skip work submission.

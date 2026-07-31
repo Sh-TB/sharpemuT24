@@ -181,6 +181,17 @@ public sealed partial class DirectExecutionBackend
                         {
                                 return -1;
                         }
+                        // EXP-095: Handle INT3 from _ThreadPoolWaitCallback lookup call site
+                        // (0x804F055D6) and return site (0x804F055DB).
+                        // Must be checked BEFORE EXP-035/036 since both use SIGTRAP.
+                        if (exceptionCode == 2147483651u && Exp095TryHandleCallSiteInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        if (exceptionCode == 2147483651u && Exp095TryHandleReturnSiteInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-036: Handle INT3 from il2cpp_init (traces ENTER).
                         // Must be checked before EXP-035 since both use SIGTRAP.
                         if (exceptionCode == 2147483651u && Exp036TryHandleIl2cppInitInt3(contextRecord, rip))

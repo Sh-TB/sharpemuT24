@@ -2745,6 +2745,11 @@ public sealed partial class DirectExecutionBackend
                                     // the consumer candidate and confirm hash table population.
                                     Exp058PatchCall7Tracers();
 
+                                    // EXP-095: Install INT3 at the _ThreadPoolWaitCallback lookup
+                                    // call site (0x804F055D6) to trace args and return value.
+                                    // Two-stage: call site -> return site (0x804F055DB).
+                                    Exp095PatchThreadPoolLookup();
+
                                     // EXP-080 (2026-07-31): The 11-byte NOP bypass at 0x800AA0207 from
                                     // EXP-072/073 has been REMOVED. It was a diagnostic patch that masked
                                     // the symptom (workers spinning on unsignaled 0x5C) without addressing
