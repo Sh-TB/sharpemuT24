@@ -2059,3 +2059,28 @@ Stage Summary:
 - Next: identify the specific semaphore and completion event in PRX
 
 Commit: pending
+- A) Is handle 0x5C ever signaled? NO — 0 occurrences in 5.7M lines
+- B) SignalSema distribution: 13 odd handles signaled ~440K each, ALL even handles = 0
+- C) Who signals? 13 worker threads, all from ret=0x800AA0223 (worker function, after SignalSema call)
+- D) Is process stalled? YES — same return address for all 5.3M calls, same handles, no progress
+- E) Root cause: CASE 1 — 0x5C never signaled, missing completion/signal path
+- F) 144 CreateSema calls, all "Baselib_SystemSemaphore", handles 0x02-0x91
+- Workers signal WRONG handles (odd = main thread's, via [rbx+0xB0])
+- Workers NEVER signal their OWN handles (even, via [rbx+0x068])
+- The NOP bypass allows SignalSema to fire but on wrong handle
+- Correct handle (0x5C) would only be signaled through CLEAR callback path
+- CLEAR callback requires dependency at [rbx+0x108] to be resolved
+- Dependency resolution requires PRX task dispatch (170 write sites, never reached)
+- PRX task dispatch requires main thread to complete Unity runtime init
+- Main thread is stuck in its own initialization (never reaches task dispatch)
+
+Stage Summary:
+- CASE 1 CONFIRMED: Handle 0x5C NEVER signaled (0 out of 5.7M SignalSema calls)
+- Workers signal wrong handles (odd/main thread's) due to NOP bypass
+- ALL even handles (worker semaphores) = 0 signals
+- Process is in tight spin loop — no forward progress
+- Root cause: dependency at [rbx+0x108] never resolved
+- Permanent fix: implement dependency completion mechanism
+- Next: identify what SharpEmu HLE function should trigger CLEAR callback
+
+Commit: pending
