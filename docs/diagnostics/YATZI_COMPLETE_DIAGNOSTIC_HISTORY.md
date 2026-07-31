@@ -746,3 +746,38 @@ If Case B: The semaphore deadlock from EXP-062 still exists. The SignalSema sour
 **Current crash location:** 0x80135DE83 (crash_func reads NULL metadata global)
 **Next debugging target:** Trace hash_lookup to find what key it searches for and why entries are empty (EXP-084)
 
+
+---
+
+## EXP-084 (added 2026-07-31)
+
+### EXP-084 — Metadata List Flag Bug: Premature Searchable Entries
+- **Date:** 2026-07-31
+- **Commit:** [pending]
+- **Resumes:** EXP-039/040/041/046 (hash table population thread, abandoned when EXP-061 found wrong dump)
+- **Question:** What key does hash_lookup search for, and why are entries empty?
+- **Finding:** The crash is NOT caused by empty hash table entries. It is caused by prematurely searchable metadata list entries. The metadata list at [0x801EA4E80] has entries with flag=0x00 at offset +0x19. metadata_lookup (0x800C66B40) checks this flag: if 0, it searches and returns non-zero; if non-zero, it returns 0. On real PS5, the flag would be non-zero (not searchable), causing the lookup to return 0. On SharpEmu, flag=0 → lookup finds match → returns non-zero → callback calls crash_func → crash.
+- **Root Cause:** Metadata list entries have flag=0x00 (searchable) when they should have flag!=0 (not searchable) before il2cpp_init runs.
+- **Status:** CONFIRMED
+- **Related:** EXP-039, EXP-040, EXP-041, EXP-046, EXP-083
+- **Impact:** Root cause fully mapped since EXP-040/046. The fix is to set [entry+0x19]=1 before il2cpp_init. This makes metadata_lookup return 0, matching real PS5 behavior.
+
+### Updated Current State (after EXP-084)
+
+**Solved:**
+- Worker NULL [rbx+0xF8] crash (FAST_PATH=0, EXP-081)
+- il2cpp_init reaches successfully (FAST_PATH=0, EXP-081)
+- Unity job system starts (FAST_PATH=0, EXP-081)
+- Graphics threads created (FAST_PATH=0, EXP-081)
+- EXP-053 wrapper mystery resolved (EXP-083: it's a #dllimport: parser)
+- Metadata global NULL root cause identified (EXP-083/084: flag=0x00 on list entries)
+
+**Still blocked:**
+- Metadata list entries have flag=0x00 (should be non-zero before il2cpp_init)
+- metadata_lookup returns non-zero → callback crashes
+- Rendering not reached
+
+**Current crash location:** 0x80135DE83 (crash_func reads NULL metadata global)
+**Proposed fix:** Set [metadata_list_entry+0x19]=1 before il2cpp_init
+**Next debugging target:** Apply the fix and verify game progresses (EXP-085)
+

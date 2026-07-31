@@ -2493,3 +2493,42 @@ Stage Summary:
 - Fix: find what should populate hash table entries (EXP-084)
 
 Commit: pending
+
+---
+Task ID: EXP-084
+Agent: main (SharpEmu bringup)
+Task: EXP-084 — Trace hash_lookup to find why metadata entries are empty.
+
+Work Log:
+- Resumes abandoned EXP-039/040/041/046 thread (user correctly identified this)
+- STEP 0: Re-read EXP-040/041/046 findings
+  * EXP-040: "hash table fill function never called"
+  * EXP-041: "initialization order issue — il2cpp_init before hash lookup"
+  * EXP-046: "metadata list populated prematurely — flag=0 instead of flag=1"
+  * ALL THREE findings were on the WRONG dump (Dreaming Sarah, not Yatzi)
+- Verified on CORRECT dump + FAST_PATH=0:
+  * metadata_lookup returns 0x801EC0C78 (non-zero) — SAME as EXP-046
+  * [0x801E51240] = NULL — SAME as EXP-041
+  * [0x801EA4E80] = 0x600103EB0 (list populated) — SAME as EXP-046
+  * Metadata list entry: flag=0x00 — SAME as EXP-046
+- KEY DISCOVERY: metadata_lookup (0x800C66B40) checks [entry+0x19] flag:
+  * flag==0 → CONTINUE SEARCH (finds match, returns non-zero)
+  * flag!=0 → return 0 (NULL, no match)
+  * On SharpEmu: flag=0x00 → lookup finds match → returns non-zero → crash
+  * On real PS5: flag!=0 → lookup returns 0 → callback takes safe path
+- The mechanism is FULLY MAPPED since EXP-040/046 — just needed verification on correct dump
+- ROOT CAUSE: metadata list entries have flag=0x00 (searchable) when they should be
+  non-zero (not searchable) before il2cpp_init runs
+- FIX: Set [metadata_list_entry+0x19]=1 before il2cpp_init
+  * This makes metadata_lookup return 0, matching real PS5 behavior
+  * Prevents callback from calling crash_func
+  * Allows il2cpp_init to complete
+  * Allows hash_lookup at 0x8013EEFE7 to run and set [0x801E51240]
+
+Stage Summary:
+- ROOT CAUSE: metadata list flag=0x00 (searchable) before il2cpp_init
+- Mechanism fully mapped since EXP-040/046, now confirmed on correct dump
+- Fix: set [entry+0x19]=1 before il2cpp_init (diagnostic first, then find HLE root cause)
+- Next (EXP-085): apply the fix and verify game progresses
+
+Commit: pending
