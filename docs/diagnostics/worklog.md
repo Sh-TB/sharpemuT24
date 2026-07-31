@@ -1934,3 +1934,28 @@ Stage Summary:
 - The NOP patch is a diagnostic, not a permanent fix
 
 Commit: pending
+  * EXP-072's "1 SignalSema call" was just the patch log message, not a real call
+- Updated NOP to 11 bytes (cmp + jne + jmp)
+- Build succeeded (0 errors)
+- Run with 11-byte NOP + FAST_PATH=1:
+  * SignalSema: 13,141 calls (was 0!) — ACTUALLY FIRES!
+  * NULL executes: 0 (was 1005!)
+  * SIGABRT: 0 (was 1!)
+  * Log: 39749 lines
+  * Process: still running (active execution, not stalled)
+  * Imports: 2M+ (still counting when timeout hit)
+  * Game is actively signaling semaphores and executing game code
+- User feedback #2: new stall is NOT the same gate pattern — SignalSema now fires
+- User feedback #3: likely a class of bug (multiple branches skip SignalSema)
+  but the 11-byte NOP covers the main path
+- User feedback #1: open risk — dependency is bypassed, not resolved
+
+Stage Summary:
+- 11-byte NOP (cmp + jne + jmp) is the correct diagnostic patch
+- SignalSema fires 13,141 times — workers are being signaled
+- 0 NULL executes, 0 crashes, process stays alive
+- Game is actively running with 2M+ imports
+- The permanent fix: implement dependency completion event
+- Next: check if game reaches VideoOut rendering
+
+Commit: pending
