@@ -681,3 +681,57 @@ This is the SINGLE root cause that connects ALL prior findings:
 
 The hash table is NOT populated by DT_INIT_ARRAY. It's populated during `il2cpp_init` → `real_init` → `call#7`. The DT_INIT_ARRAY fix is correct and necessary but not sufficient. The remaining issue is inside il2cpp_init's execution path.
 
+
+---
+
+## EXP-093: il2cpp_codegen_register Is a Stub (2026-07-31)
+
+### Major Correction
+
+EXP-091 said: *"`il2cpp_codegen_register` should insert entries during PRX DT_INIT."*
+EXP-092 said: *"Hash table is populated during `il2cpp_init` → `real_init` → `call#7`."*
+
+**Both assumptions CORRECTED by EXP-093:** `il2cpp_codegen_register` is a STUB that does NOT populate any hash table.
+
+### il2cpp_codegen_register Location & Body
+
+Full call chain (verified by static disassembly):
+
+```
+real_init @ 0x804F04C5C:  call [0x808958220]
+  → 0x804D9C620   (wrapper: 3 LEAs + JMP)
+    → 0x804FA60C0 (trampoline: JMP)
+      → 0x804F23280  (ACTUAL il2cpp_codegen_register — 55-byte stub)
+```
+
+The stub at `0x804F23280` does only 3 things:
+1. `call 0x804F71390` (once_init / lock helper)
+2. Saves 3 args to globals: `[0x808B542E8]=rdi`, `[0x808B542F0]=rsi`, `[0x808B542F8]=rdx`
+3. Returns. **No iteration, no hash insert.**
+
+### Hardcoded Args (Match EXP-054/055)
+
+The wrapper loads 3 hardcoded pointers:
+- `rdi = 0x8086E9010` = `Il2CppCodeRegistration @ 0x8086E9000 + 0x10` (EXP-054 ✓)
+- `rsi = 0x80885C598` = `Il2CppMetadataRegistration @ 0x80885C580 + 0x18` (EXP-055 ✓)
+- `rdx = 0x8082AE0C0` = method pointers / type index array (new)
+
+### Where the Metadata Actually Goes
+
+The PRX uses a DIFFERENT structure than `0x801EF7610`:
+- `call#7` (`0x804F23320`) reads the 3 globals saved by `il2cpp_codegen_register`
+- Loop body `0x804F238F0` operates on a structure accessed via `[0x808923D88]`
+- `array_proc` (`0x804F2B4D0`) is a merge sort on the array at `0x808958230`
+- None of these write to `0x801EF7610` (PRX has 0 reads, 0 writes to it — EXP-091)
+
+### Updated Blocker
+
+**Root cause pivot:** The hash table at `0x801EF7610` may be a RED HERRING. The PRX doesn't use it by design. The actual metadata lookup mechanism (used by `_ThreadPoolWaitCallback` lookup at `0x804F055D6` → `0x804F21D70`) likely uses a different structure — possibly `[0x808923D88]` or the sorted array at `0x808958230`.
+
+**Next EXP-094:** Disassemble `il2cpp_class_get_method_from_name` (`0x804F21D70`) to find what structure it ACTUALLY searches. If it doesn't read `0x801EF7610`, then the entire EXP-040..092 hash table investigation was chasing the wrong structure.
+
+### Golden Rule Addendum
+
+**Golden Rule 8 — Verify the Function Body Before Assuming Its Behavior.**
+EXP-091 assumed `il2cpp_codegen_register` "should insert entries" based on its name and Unity documentation. EXP-093 proved by disassembly that the actual function is a 55-byte stub. **Never assume a function's behavior from its name alone — always disassemble and verify the body.** The same applies to EXP-052/053, which misidentified `0x800805AE0` as `il2cpp_codegen_register` (it was actually a `#dllimport:` parser, per EXP-083).
+

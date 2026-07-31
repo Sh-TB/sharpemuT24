@@ -1,8 +1,8 @@
 # Yatzi Complete Diagnostic History
 
 **Single source of truth for all Yatzi (PPSA17697) debugging experiments.**
-**Coverage: EXP-026 through EXP-092 (63 experiments)**
-**Last updated: 2026-07-31 (EXP-092)**
+**Coverage: EXP-026 through EXP-093 (64 experiments)**
+**Last updated: 2026-07-31 (EXP-093)**
 
 This file consolidates ALL diagnostic knowledge from every EXP report, git commit, and worklog entry. Future debugging MUST start from this file.
 
@@ -10,10 +10,10 @@ This file consolidates ALL diagnostic knowledge from every EXP report, git commi
 
 ## Table of Contents
 
-1. [EXP Timeline (EXP-026 through EXP-092)](#exp-timeline)
+1. [EXP Timeline (EXP-026 through EXP-093)](#exp-timeline)
 2. [Phase Summary](#phase-summary)
 3. [Key Corrections and Superseded Theories](#key-corrections)
-4. [Current State (after EXP-092)](#current-state)
+4. [Current State (after EXP-093)](#current-state)
 5. [Knowledge Rules Learned](#knowledge-rules)
 6. [All Links](#all-links)
 
@@ -1180,3 +1180,34 @@ The IL2CPP runtime looks up function pointers (like `_ThreadPoolWaitCallback`) v
 **Solved:** DT_INIT_ARRAY now executes. `module_start` (`0x804CD5010`) runs. PRX static initializers execute. 37 more semaphores created.
 **Still blocked:** Hash table STILL empty (`0/100`). `il2cpp_codegen_register` is called during `il2cpp_init` but doesn't insert entries.
 **Next debugging target:** Trace `il2cpp_init → real_init → call#7 → il2cpp_codegen_register → hash insert function`. Why doesn't `il2cpp_codegen_register` insert entries? (EXP-093)
+
+
+---
+
+## EXP-093 (added 2026-07-31)
+
+### EXP-093 — il2cpp_codegen_register Is a Stub: Saves 3 Pointers, Does NOT Populate Hash Table
+- **Date:** 2026-07-31
+- **Commit:** [see git log for EXP-093.md]
+- **Configuration:** `SHARPEMU_SEMA_FAST_PATH=0`, metadata at `Media/Metadata/`, EXP-085 flag patch active, DT_INIT_ARRAY fix (EXP-092) applied
+- **Path:** B (real metadata path)
+- **Question:** Why doesn't `il2cpp_codegen_register` insert entries into the hash table during `il2cpp_init`?
+- **Hypothesis:** `il2cpp_codegen_register` is called during `real_init` and should insert entries into the hash table at `0x801EF7610`.
+- **Tools/Logs:** Static disassembly (capstone) of the full call chain: `real_init` → `0x804D9C620` (wrapper) → `0x804FA60C0` (trampoline) → `0x804F23280` (impl). Plus existing EXP-041 tracer runtime evidence from EXP-092 log.
+- **Finding:** `il2cpp_codegen_register` (at `0x804F23280`) is a **55-byte STUB**. It only: (1) calls `0x804F71390` (once_init/lock helper), (2) saves its 3 args to 3 globals at `0x808B542E8`, `0x808B542F0`, `0x808B542F8`, (3) returns. It does NOT iterate types, does NOT compute hashes, does NOT insert anything into the hash table at `0x801EF7610` — by design, not a SharpEmu bug. The wrapper `0x804D9C620` loads 3 hardcoded args that match EXP-054 (`Il2CppCodeRegistration @ 0x8086E9000 + 0x10 = 0x8086E9010`) and EXP-055 (`Il2CppMetadataRegistration @ 0x80885C580 + 0x18 = 0x80885C598`). The third arg `rdx = 0x8082AE0C0` is the method pointers array (new finding).
+- **Root Cause:** Not a bug — `il2cpp_codegen_register` is designed to only save registration pointers for later use by `call#7` (`0x804F23320`), which reads those globals and processes them. Neither function writes to `0x801EF7610`.
+- **Status:** CONFIRMED — corrects EXP-091 and EXP-092 assumptions
+- **Related:** EXP-040, EXP-052, EXP-053, EXP-054, EXP-055, EXP-083, EXP-091, EXP-092
+- **Impact:** Major pivot — the hash table at `0x801EF7610` may be a RED HERRING. The PRX doesn't use it by design (0 reads, 0 writes). The actual metadata lookup mechanism (used by `_ThreadPoolWaitCallback` lookup at `0x804F055D6` → `0x804F21D70`) likely uses a different structure — possibly `[0x808923D88]` or the sorted array at `0x808958230`. The entire EXP-040..092 hash table investigation may have been chasing the wrong structure.
+
+### Corrections
+- **EXP-091 CORRECTED:** Said `il2cpp_codegen_register` "should insert entries during PRX DT_INIT". Wrong on two counts: (1) it's called from `real_init`, not DT_INIT; (2) it's a stub that doesn't insert anything, by design.
+- **EXP-092 CORRECTED:** Said "hash table is populated during `il2cpp_init` → `real_init` → `call#7`". Wrong: `call#7` doesn't write to `0x801EF7610` either.
+
+### New Golden Rule
+**Golden Rule 8 — Verify the Function Body Before Assuming Its Behavior.** EXP-091 assumed `il2cpp_codegen_register` "should insert entries" based on its name. EXP-093 proved by disassembly that the actual function is a 55-byte stub. Never assume a function's behavior from its name — always disassemble.
+
+### Updated Current State (after EXP-093)
+**Solved:** `il2cpp_codegen_register` located and disassembled. Call chain fully mapped. Confirmed it's a stub that only saves 3 pointers to globals.
+**Still blocked:** Hash table at `0x801EF7610` is empty — but the PRX never writes to it by design. The actual metadata lookup mechanism is not yet identified. ThreadPool deadlock persists.
+**Next debugging target:** Disassemble `il2cpp_class_get_method_from_name` (`0x804F21D70`) to find what structure it ACTUALLY searches. (EXP-094)
