@@ -712,3 +712,37 @@ If Case B: The semaphore deadlock from EXP-062 still exists. The SignalSema sour
 **Current crash location:** 0x80080684D (NULL per-image hash table)
 **Next debugging target:** Find what should trigger the metadata registration wrapper at 0x800805AE0 and why it's never reached (EXP-083)
 
+
+---
+
+## EXP-083 (added 2026-07-31)
+
+### EXP-083 — Metadata Global 0x801E51240 Never Populated
+- **Date:** 2026-07-31
+- **Commit:** [pending]
+- **Resumes:** EXP-057 (abandoned when EXP-061 found wrong dump)
+- **Question:** Where should the call to wrapper 0x800805AE0 happen, and why is metadata registration not completing?
+- **Finding:** The wrapper at 0x800805AE0 is a #dllimport: string parser, NOT il2cpp_codegen_register (EXP-052/053 misidentified it). The actual root cause is that the metadata global at 0x801E51240 is never populated because hash_lookup (0x8004BD620) returns NULL, causing the conditional write at 0x8013EF019 to be skipped. crash_func (0x80135DDD0) reads the NULL global and crashes at [NULL+0x98].
+- **Root Cause:** hash_lookup returns NULL → metadata global stays NULL → crash_func crashes
+- **Status:** CONFIRMED
+- **Related:** EXP-041, EXP-042, EXP-053, EXP-057, EXP-082
+- **Impact:** Root cause of the crash at 0x80080684D (and the earlier crash at 0x80135DE83) is that the IL2CPP metadata hash table has 0 populated entries. The hash table structure exists (0x600103DB0) but no entries were inserted. Fix requires finding what should populate the hash table entries.
+
+### Updated Current State (after EXP-083)
+
+**Solved:**
+- Worker NULL [rbx+0xF8] crash (FAST_PATH=0, EXP-081)
+- il2cpp_init reaches successfully (FAST_PATH=0, EXP-081)
+- Unity job system starts (FAST_PATH=0, EXP-081)
+- Graphics threads created (FAST_PATH=0, EXP-081)
+- EXP-053 wrapper mystery resolved — it's a #dllimport: parser, not il2cpp_codegen_register
+
+**Still blocked:**
+- IL2CPP metadata hash table has 0 populated entries (EXP-041/083)
+- Metadata global at 0x801E51240 stays NULL (EXP-083)
+- crash_func crashes at [NULL+0x98] (EXP-083)
+- Rendering not reached
+
+**Current crash location:** 0x80135DE83 (crash_func reads NULL metadata global)
+**Next debugging target:** Trace hash_lookup to find what key it searches for and why entries are empty (EXP-084)
+

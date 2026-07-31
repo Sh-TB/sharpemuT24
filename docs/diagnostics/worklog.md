@@ -2457,3 +2457,39 @@ Stage Summary:
 - Next (EXP-083): trace il2cpp_init call chain to find where registration should trigger
 
 Commit: pending
+
+---
+Task ID: EXP-083
+Agent: main (SharpEmu bringup)
+Task: EXP-083 — Trace il2cpp_init call chain to find why metadata registration is incomplete.
+
+Work Log:
+- Resumes abandoned EXP-057 thread (wrapper-never-called)
+- STEP 1: Re-checked EXP-053 wrapper tracer on correct binary + FAST_PATH=0
+  * Wrapper (0x800805AE0): 0 hits — confirmed still never called
+  * But: wrapper is a #dllimport: string parser, NOT il2cpp_codegen_register
+  * EXP-052/053 misidentified the wrapper's purpose
+- STEP 2: Re-ran EXP-057 static search on correct (verified Yatzi) binary
+  * Wrapper: 0 direct CALL/JMP, 0 pointer refs, 0 RELA entries
+  * Insert (0x800806940): 1 direct CALL from 0x80080602D (inside the wrapper itself)
+  * The wrapper's "never called" status is expected — it's not part of normal init
+- STEP 3: Traced il2cpp_init call chain
+  * il2cpp_init (0x804ED85D0) → real_init (0x804F04BA0) → call#7 (0x804F23320)
+  * call#7 returns to real_init, which continues with EBOOT code
+  * EBOOT calls metadata_lookup (0x80130CE66) → crash_path_lookup → crash_func
+- STEP 4: Found root cause — metadata global at 0x801E51240 is NULL
+  * crash_func (0x80135DDD0) reads [0x801E51240] → NULL → [NULL+0x98] → SIGSEGV
+  * Only 1 write site: 0x8013EF019 (conditional on hash_lookup returning non-NULL)
+  * hash_lookup returns NULL because hash table entries are empty (populated=0/100)
+  * This is the SAME issue as EXP-041/042 (now confirmed on correct dump)
+- EXP-082's claim ("downstream of EXP-053 wrapper") was PARTIALLY WRONG:
+  * The wrapper is not the issue — it's a string parser that's not supposed to be called
+  * The real issue is hash_lookup returning NULL due to empty hash table entries
+
+Stage Summary:
+- ROOT CAUSE: hash_lookup returns NULL → metadata global stays NULL → crash
+- The hash table structure exists (0x600103DB0) but has 0 populated entries
+- The wrapper mystery is RESOLVED — it was misidentified, not actually uncalled
+- Fix: find what should populate hash table entries (EXP-084)
+
+Commit: pending
