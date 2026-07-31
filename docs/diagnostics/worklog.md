@@ -1484,3 +1484,33 @@ Next Step:
 - File upstream GitHub issue with findings
 
 Commit: pending
+
+Work Log:
+- Wrote scripts/audit_game_dump.py:
+  * Checks for required files (eboot.bin, libc.prx, Il2cppUserAssemblies.prx)
+  * Searches all files for IL2CPP metadata magic 0xFAB11BAF
+  * Lists all .prx and .dat files found
+  * Reports PASS/FAIL verdict
+- Ran audit on existing upload (/tmp/my-project/upload/PPSA02929/PPSA02929-app0):
+  * eboot.bin: OK (7.7MB)
+  * libc.prx: OK (1.2MB)
+  * Il2cppUserAssemblies.prx: MISSING
+  * Media/Modules/ directory: COMPLETELY ABSENT
+  * IL2CPP metadata magic: NOT FOUND in any file
+  * Only 1 .prx file found (libc.prx) — all Media/*.prx files were dropped
+  * VERDICT: FAIL — extraction tool dropped Media/Modules/ directory
+- Wrote docs/resume_investigation_checklist.md:
+  * Ground-truth struct layouts from Unity 2022.3.5f1 header
+  * Step-by-step resume plan for when complete dump arrives
+  * Key addresses table (with corrected identifications)
+  * "What NOT to repeat" section to avoid EXP-035..058 mistakes
+
+Stage Summary:
+- Audit confirms: Media/Modules/ directory was entirely dropped during extraction.
+  Only sce_module/libc.prx survived. All Media/*.prx files are missing.
+- Resume checklist prepared with ground-truth structs — when the PRX arrives,
+  the investigation can skip the 20-EXP inference chain and go straight to
+  verifying metadata load + hash table population.
+- Both files committed to repo for permanent reference.
+
+Commit: pending
