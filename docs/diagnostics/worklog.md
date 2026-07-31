@@ -2367,3 +2367,49 @@ Stage Summary:
 - New blocker: crash at 0x80080684D (NULL ptr in Unity metadata) — EXP-082 scope
 
 Commit: pending
+
+---
+Task ID: EXP-081-validation
+Agent: main (SharpEmu bringup)
+Task: FAST_PATH=0 validation run + knowledge base creation.
+
+Work Log:
+- Created 3 knowledge base files:
+  * YATZI_EXP_INDEX.md (56 EXPs, quick-reference table)
+  * YATZI_KNOWLEDGE_BASE.md (detailed per-EXP listing)
+  * YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md (master file, 682 lines)
+- Question 1: Where is SHARPEMU_SEMA_FAST_PATH set?
+  * scripts/bootstrap-runtime.sh line 137
+  * scripts/game-loop.sh line 24
+  * scripts/golden-test.sh line 46
+  * Multiple game knowledge files (HarvestDays, NewGame, Arise, DreamingSarah, etc.)
+  * CLI_RUN_COMMANDS.md
+  * It was set as workaround for EXP-062 deadlock, never reverted after EXP-065 fix
+- Question 2: Does FAST_PATH=0 pass EXP-062 deadlock point?
+  * YES — main thread does NOT deadlock on handle 0x83
+  * Main thread progresses to il2cpp_init → real_init → call#7 → hash_lookup
+  * 29 Job.worker threads + graphics threads created
+  * 18 SignalSema calls (workers signal correctly)
+  * Worker wait_semas (0x5C, 0x5E, ...) are NOT signaled — but this doesn't cause deadlock
+  * Main thread CRASHES (not deadlocks) at 0x80080684D
+- Question 3: Crash classification
+  * Crash at 0x80080684D: "mov r8d, [r15+rcx]" where r15=NULL
+  * This happens AFTER il2cpp_init, real_init, call#7, Job.worker creation
+  * This is Case A: FAST_PATH=0 genuinely moved execution forward
+  * The crash is a NEW, SEPARATE issue (NULL ptr in Unity metadata iteration)
+  * NOT the EXP-062 deadlock
+- Semaphore statistics (FAST_PATH=0):
+  * Total WaitSema: 20
+  * Total SignalSema: 18
+  * Even handles (0x5C etc.) signaled: 0 (dispatcher not reached)
+  * Odd handles (0x5D etc.) signaled: 13 (workers signal main thread correctly)
+  * No deadlock — main thread crashes, not blocks
+
+Stage Summary:
+- FAST_PATH=0 VALIDATED as Case A (genuinely moved forward)
+- EXP-062 deadlock does NOT recur with current codebase
+- FAST_PATH=0 IS the correct configuration
+- New blocker: crash at 0x80080684D (NULL ptr in Unity metadata) — EXP-082 scope
+- Knowledge base files committed to GitHub
+
+Commit: pending
