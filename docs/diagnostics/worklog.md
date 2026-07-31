@@ -2771,3 +2771,35 @@ Stage Summary:
 - Next (EXP-092): verify if SharpEmu calls PRX DT_INIT and implement if missing
 
 Commit: pending
+
+---
+Task ID: EXP-092
+Agent: main (SharpEmu bringup)
+Task: EXP-092 — Does SharpEmu execute PRX DT_INIT during module loading?
+
+Work Log:
+- Found RunImageInitializers (calls DT_INIT_ARRAY) was DEAD CODE — never called
+- RunPreloadedModuleInitializers only called DT_INIT, not DT_INIT_ARRAY
+- Also: modules with DT_INIT < 0x10000 were skipped entirely (including DT_INIT_ARRAY)
+- Fix: Modified RunPreloadedModuleInitializers to:
+  1. Not skip module when DT_INIT is invalid — only skip the DT_INIT call
+  2. Call RunImageInitializers for every module
+- Built and ran with fix
+- Results:
+  * DT_INIT_ARRAY called for all modules (libc, libSceNpCppWebApi, Il2cppUserAssemblies, PS5Util)
+  * PRX module_start (0x804CD5010) executed
+  * 37 MORE semaphores created (stall handle 0x81 → 0xA6)
+  * Hash table STILL empty (populated=0/100)
+  * Same ThreadPool deadlock pattern (WaitSema at 0x804F6E9EB)
+- Analysis: DT_INIT_ARRAY fix is correct and necessary but not sufficient
+  * The hash table population happens during il2cpp_init, not DT_INIT
+  * The PRX's module_start does C++ static init, not IL2CPP metadata registration
+  * il2cpp_codegen_register (which populates hash table) is called during real_init
+
+Stage Summary:
+- FIXED: RunImageInitializers dead code bug (DT_INIT_ARRAY now called)
+- PROGRESS: 37 more semaphores created, stall handle changed
+- REMAINING: Hash table still empty — population happens in il2cpp_init, not DT_INIT
+- Next: trace il2cpp_codegen_register inside real_init to find why entries aren't inserted
+
+Commit: pending

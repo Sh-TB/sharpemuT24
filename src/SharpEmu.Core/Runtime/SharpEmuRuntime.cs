@@ -557,10 +557,6 @@ public sealed class SharpEmuRuntime : ISharpEmuRuntime
             }
 
             var initEntryPoint = loadedModule.Image.InitFunctionEntryPoint;
-            if (initEntryPoint < 0x10000)
-            {
-                continue;
-            }
 
             if (!KernelModuleRegistry.TryBeginModuleStart(loadedModule.Handle, out _))
             {
@@ -573,24 +569,48 @@ public sealed class SharpEmuRuntime : ISharpEmuRuntime
                 moduleName = $"module#{i}";
             }
 
-            Console.Error.WriteLine(
-                $"[RUNTIME] Starting module {moduleName}: dt_init=0x{initEntryPoint:X16}");
+            // EXP-092: Call DT_INIT if valid (address >= 0x10000).
+            // On PS5, DT_INIT often resolves to imageBase+0x10 (ELF header),
+            // so we skip it but still call DT_INIT_ARRAY below.
+            if (initEntryPoint >= 0x10000)
+            {
+                Console.Error.WriteLine(
+                    $"[RUNTIME] Starting module {moduleName}: dt_init=0x{initEntryPoint:X16}");
 
-            var result = _cpuDispatcher.DispatchModuleInitializer(
-                initEntryPoint,
+                var result = _cpuDispatcher.DispatchModuleInitializer(
+                    initEntryPoint,
+                    generation,
+                    activeImportStubs,
+                    activeRuntimeSymbols,
+                    moduleName,
+                    _cpuExecutionOptions);
+                KernelModuleRegistry.CompleteModuleStart(
+                    loadedModule.Handle,
+                    result == OrbisGen2Result.ORBIS_GEN2_OK);
+                if (result != OrbisGen2Result.ORBIS_GEN2_OK)
+                {
+                    Console.Error.WriteLine(
+                        $"[RUNTIME] Module start failed: {moduleName} -> {result}");
+                    return result;
+                }
+            }
+
+            // EXP-092: Call DT_INIT_ARRAY entries for this module.
+            // Previously, RunImageInitializers existed but was never called for
+            // preloaded modules. The PRX (Il2cppUserAssemblies.prx) has 16
+            // DT_INIT_ARRAY entries that include il2cpp_codegen_register, which
+            // populates the IL2CPP metadata hash table. Without calling these,
+            // the hash table stays empty and all lookups fail.
+            var initArrayResult = RunImageInitializers(
+                moduleName,
+                loadedModule.Image,
                 generation,
                 activeImportStubs,
                 activeRuntimeSymbols,
-                moduleName,
-                _cpuExecutionOptions);
-            KernelModuleRegistry.CompleteModuleStart(
-                loadedModule.Handle,
-                result == OrbisGen2Result.ORBIS_GEN2_OK);
-            if (result != OrbisGen2Result.ORBIS_GEN2_OK)
+                moduleName);
+            if (initArrayResult is not null)
             {
-                Console.Error.WriteLine(
-                    $"[RUNTIME] Module start failed: {moduleName} -> {result}");
-                return result;
+                return initArrayResult;
             }
         }
 

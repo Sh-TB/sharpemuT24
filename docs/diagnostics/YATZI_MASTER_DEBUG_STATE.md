@@ -661,3 +661,23 @@ This is the SINGLE root cause that connects ALL prior findings:
 - EXP-088: ThreadPool deadlock ← _ThreadPoolWaitCallback lookup fails
 - EXP-090: missing trigger ← _ThreadPoolWaitCallback NULL
 
+
+---
+
+## EXP-092: DT_INIT_ARRAY Fix Applied (2026-07-31)
+
+### Bug Fixed
+
+`RunImageInitializers` was dead code — never called. `RunPreloadedModuleInitializers` only called DT_INIT, not DT_INIT_ARRAY. Fixed by calling `RunImageInitializers` for each module.
+
+### Results
+
+- DT_INIT_ARRAY now called for all preloaded modules
+- PRX module_start (0x804CD5010) executes
+- **37 more semaphores created** (stall moved from handle 0x81 to 0xA6)
+- Hash table STILL empty (populated=0/100) — population happens during il2cpp_init, not DT_INIT
+
+### Updated Understanding
+
+The hash table is NOT populated by DT_INIT_ARRAY. It's populated during `il2cpp_init` → `real_init` → `call#7`. The DT_INIT_ARRAY fix is correct and necessary but not sufficient. The remaining issue is inside il2cpp_init's execution path.
+
