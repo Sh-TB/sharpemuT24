@@ -2803,3 +2803,43 @@ Stage Summary:
 - Next: trace il2cpp_codegen_register inside real_init to find why entries aren't inserted
 
 Commit: pending
+
+---
+Task ID: EXP-093
+Agent: main (Super Z)
+Task: Investigate why il2cpp_codegen_register doesn't insert entries into the hash table during il2cpp_init. Required trace: il2cpp_init -> real_init -> call#7 -> il2cpp_codegen_register -> hash insert.
+
+Work Log:
+- First verified knowledge storage compliance: ran git remote -v, git branch --show-current, git status, git ls-files, git log --all --name-only -- docs/diagnostics. Confirmed repo at https://github.com/Sh-TB/sharpemuT24, branch master, all 4 master knowledge files tracked.
+- Found compliance gap: YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md ended at EXP-085 (missing 086-092), YATZI_EXP_INDEX.md ended at EXP-081 (missing 082-092). Also EXP-082..085 had [pending] commit placeholders.
+- Backfilled both files: appended EXP-086..092 to history, EXP-082..092 to index, replaced [pending] with verified commit URLs. Committed as d2ddab0.
+- Verified all 11 commit URLs (a922906..96d3285) return HTTP 200 via curl -sI.
+- Read YATZI_MASTER_DEBUG_STATE.md (683 lines) and all individual EXP-086..092 reports to understand current state.
+- Read existing EXP-092 run log (/tmp/exp080_logs/exp092_run.log, 9202 lines). Found EXP-041 tracer captured the indirect call at 0x804F04C5C: rax=0x808958220, [rax]=0x804D9C620, rdi=0x8, rsi=0x20231F60. Hash table still 0/100 after the call.
+- Wrote Python script /home/z/my-project/scripts/exp093_disasm_targets.py to disassemble real_init, call#7, array_proc using capstone + exp079_load_elf.py helper.
+- Disassembled real_init (0x804F04BA0): found the indirect call at 0x804F04C5C (call [rax] where rax=0x808958220) followed by direct call to call#7 at 0x804F04C5E.
+- Disassembled call#7 (0x804F23320): found 2 loops + call to array_proc at 0x804F2342C. Loop 1 (0x804F233D0..0x804F233F4) calls 0x804F238F0 per iteration.
+- Disassembled array_proc (0x804F2B4D0): identified as MERGE SORT (recursive, divides array, cmp rax,0x701 threshold). NOT a hash insert.
+- Wrote /home/z/my-project/scripts/exp093_disasm_codegen_register.py to follow the indirect call chain. Disassembled 0x804D9C620 (wrapper): 3 LEAs + JMP to 0x804FA60C0. Computed the 3 hardcoded arg addresses: rdi=0x8086E9010 (matches EXP-054 Il2CppCodeRegistration+0x10), rsi=0x80885C598 (matches EXP-055 Il2CppMetadataRegistration+0x18), rdx=0x8082AE0C0 (method pointers).
+- Disassembled 0x804FA60C0 (trampoline): single JMP to 0x804F23280.
+- Wrote /home/z/my-project/scripts/exp093_disasm_codegen_register_impl.py to disassemble 0x804F23280.
+- Disassembled 0x804F23280: 55-byte STUB. Only calls 0x804F71390 (once_init), then saves 3 args to globals [0x808B542E8], [0x808B542F0], [0x808B542F8], then returns. NO iteration, NO hash insert.
+- Disassembled loop body 0x804F238F0: calls 5 functions (0x804F9FD40, 0x804F2AB80, 0x804F2B160, 0x804F2B330, 0x804F9FD60). Reads [0x808923D88] as its working structure — NOT 0x801EF7610.
+- Confirmed: PRX has 0 reads, 0 writes to 0x801EF7610 (EXP-091). Consistent with il2cpp_codegen_register being a stub.
+- Wrote EXP-093.md report with full call chain, hardcoded args, disassembly evidence, and corrections to EXP-091/092.
+- Updated YATZI_MASTER_DEBUG_STATE.md: added EXP-093 section + Golden Rule 8 (Verify the Function Body Before Assuming Its Behavior).
+- Appended EXP-093 to YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md (coverage 63 -> 64).
+- Appended EXP-093 row to YATZI_EXP_INDEX.md.
+- Committed as 649740c, pushed to origin/master.
+- Replaced [see commit] placeholder in index/history with real hash 649740c, committed as cea4112, pushed.
+- Final verification: all 14 commit URLs (a922906..cea4112) return HTTP 200. All 4 master knowledge file blob URLs return HTTP 200. origin/master HEAD = cea4112.
+
+Stage Summary:
+- EXP-093 ROOT CAUSE FOUND: il2cpp_codegen_register (at 0x804F23280) is a 55-byte STUB that only saves 3 registration pointers to globals (0x808B542E8/F0/F8) and returns. It does NOT populate the hash table at 0x801EF7610 — by design, not a SharpEmu bug.
+- Full call chain mapped: real_init @ 0x804F04C5C -> [0x808958220] -> 0x804D9C620 (wrapper, 3 hardcoded LEAs) -> 0x804FA60C0 (trampoline) -> 0x804F23280 (stub body).
+- Hardcoded args match EXP-054 (Il2CppCodeRegistration @ 0x8086E9000+0x10) and EXP-055 (Il2CppMetadataRegistration @ 0x80885C580+0x18). Third arg rdx=0x8082AE0C0 is the method pointers array (new finding).
+- MAJOR CORRECTION to EXP-091 (assumed il2cpp_codegen_register runs during DT_INIT — wrong, it runs during real_init) and EXP-092 (assumed call#7 populates hash table — wrong, call#7 doesn't write to 0x801EF7610).
+- ROOT CAUSE PIVOT: The hash table at 0x801EF7610 may be a RED HERRING. The PRX doesn't use it by design (0 reads, 0 writes). The actual metadata lookup uses [0x808923D88] instead.
+- New Golden Rule 8 added: Verify the Function Body Before Assuming Its Behavior.
+- Knowledge storage fully compliant: all 4 master files tracked, all EXP-082..093 commit URLs verified HTTP 200, origin/master HEAD = cea4112.
+- Next EXP-094: disassemble il2cpp_class_get_method_from_name (0x804F21D70) to find what structure it ACTUALLY searches.
