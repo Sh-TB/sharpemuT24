@@ -458,3 +458,35 @@ Possible investigation directions (NOT yet started):
 4. Check if the deadlock is in the PRX's il2cpp_init or in EBOOT post-init code
 
 **Do NOT investigate GPU, VideoOut, or rendering until the semaphore deadlock is resolved.**
+
+---
+
+## EXP-086 Correction (2026-07-31)
+
+### Correction to Current Blocker
+
+**Previous (incorrect):** "SignalSema is never called by any thread"
+
+**Corrected:** SignalSema IS called — 13 times. Workers signal their signal_semas (0x5D, 0x5F, ...) during creation. The actual deadlock is:
+- Workers block on wait_semas (0x5C..0x74) — nobody dispatches tasks
+- GC thread blocks on SuspendSemaphore (0x83) — nobody triggers GC
+- Main thread is NOT blocked — it's running but went silent after sceKernelAllocateDirectMemory
+
+### Updated Path B Description
+
+```
+Path B (real metadata path):
+  ├── il2cpp_init → real_init → call#7 → array_proc entered
+  ├── 13 workers created, signal their signal_semas, then block on wait_semas
+  ├── GC thread created, blocks on SuspendSemaphore (0x83)
+  ├── Import errors: sceKernelVirtualQuery NOT_FOUND, sceKernelDirectMemoryQuery NOT_FOUND, 
+  │   fopen NOT_FOUND, PERMISSION_DENIED for unknown NID
+  ├── sceKernelAllocateDirectMemory called (GPU memory allocated!)
+  ├── Main thread goes silent — running but no more HLE calls
+  └── Stall detector fires (all 14 other threads blocked)
+```
+
+### Key Progress on Path B
+
+The main thread reaches `sceKernelAllocateDirectMemory` — this is significant progress! It means IL2CPP initialization completed enough to start GPU resource allocation. The blocker is that the main thread stops making HLE calls after this point.
+

@@ -2567,3 +2567,40 @@ Stage Summary:
 - Next: fix X11 display, check if per-image crash persists
 
 Commit: pending
+
+---
+Task ID: EXP-086
+Agent: main (SharpEmu bringup)
+Task: EXP-086 — Path B deadlock analysis: main thread goes silent after AllocateDirectMemory.
+
+Work Log:
+- Read YATZI_MASTER_DEBUG_STATE.md for current state
+- Re-examined Path B log (exp085_metadata_fixed_run.log) with correct metadata
+- CRITICAL CORRECTION to master state:
+  * Master state said "SignalSema is never called" — WRONG
+  * Actually: 13 SignalSema calls occur (workers signal their signal_semas)
+  * The deadlock is NOT "SignalSema never called" — it's "specific semaphores never signaled"
+  * Workers block on wait_semas (0x5C..0x74) — nobody dispatches tasks
+  * GC thread blocks on SuspendSemaphore (0x83) — nobody triggers GC
+- Main thread (tid=4) is NOT blocked — NOT in stall report
+- Main thread's last HLE call: Import#79360 (sceKernelAllocateDirectMemory)
+- After AllocateDirectMemory, main thread goes silent (no more HLE calls)
+- Found 6 import errors before stall:
+  * sceKernelVirtualQuery: NOT_FOUND
+  * sceKernelDirectMemoryQuery: NOT_FOUND
+  * fopen: NOT_FOUND
+  * scePadDeviceClassGetExtendedInformation: UNRESOLVED
+  * scePadOpen: Error
+  * NID 1-LFLmRFxxM (not in catalog): PERMISSION_DENIED
+- EXP058-ARRAYPROC-ENTER was hit — array_proc IS entered on Path B!
+- The main thread is likely in a long PRX computation or error retry loop
+- No crashes, no NULL executes, no unmapped reads — the main thread is running
+
+Stage Summary:
+- CORRECTED master state: SignalSema IS called (13 times), just not on the right handles
+- Main thread is RUNNING, not blocked — the stall is from other threads
+- Main thread reaches sceKernelAllocateDirectMemory (GPU memory allocation!)
+- Then goes silent — likely in PRX computation or error path
+- Next: add RIP sampling to trace what main thread is doing
+
+Commit: pending
