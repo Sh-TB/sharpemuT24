@@ -1984,3 +1984,28 @@ Stage Summary:
 - Next: find what should signal handle 0x5C
 
 Commit: pending
+  * [rbx+0x108] = 0x6006D1101 (dependency tagged pointer)
+- Key finding: SignalSema uses [rbx+0xB0] = handle 0x5F (task's signal handle)
+  Workers wait on handle 0x5C (worker's personal handle)
+  THESE ARE DIFFERENT HANDLES — that's why the NOP bypass doesn't work
+- The dependency at [rbx+0x108] is a tagged pointer to rbx-0x30 (same allocation)
+  It represents an async Unity initialization step
+- The CLEAR function (0x800A9F750) is an async callback that:
+  1. Writes 0 to [rbx+0x108] (resolves dependency)
+  2. Triggers the correct SignalSema path with handle 0x5C
+  3. Workers wake up and receive tasks
+- CLEAR is NEVER called because the async completion event is not implemented
+- Task 4: SAME CLASS of bug — workers wait on unsignaled semaphore
+  Root cause: async dependency never completes
+- The NOP bypass is insufficient because it skips the dependency resolution,
+  causing SignalSema to use the wrong handle (0x5F instead of 0x5C)
+
+Stage Summary:
+- Who should signal 0x5C? The CLEAR function (0x800A9F750)
+- Why doesn't it fire? Async dependency never completes
+- What is the dependency? An async Unity initialization step
+- What should complete it? A SharpEmu HLE completion event (not implemented)
+- The NOP bypass fails because SignalSema uses wrong handle (0x5F vs 0x5C)
+- Next: identify what specific async operation the dependency represents
+
+Commit: pending
