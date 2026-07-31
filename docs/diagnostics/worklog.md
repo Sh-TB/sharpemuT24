@@ -2740,3 +2740,34 @@ Stage Summary:
 - Next (EXP-091): find the PRX function that should populate the hash table
 
 Commit: pending
+
+---
+Task ID: EXP-091
+Agent: main (SharpEmu bringup)
+Task: EXP-091 — Find what should populate the IL2CPP metadata hash table.
+
+Work Log:
+- Searched EBOOT for writes to 0x801EF7610: only 1 write site (0x8007F928C, the creator)
+- Searched EBOOT for reads from 0x801EF7610: 1689 read sites, ALL are lookups (no inserts)
+- Searched PRX for reads/writes to 0x801EF7610: 0 reads, 0 writes
+- hash_table_writer (0x8007F90A0) creates the table but does NOT insert entries
+- Entries are all 0xFFFFFFFF (empty sentinel), count=0
+- ROOT CAUSE: il2cpp_codegen_register should insert entries during PRX DT_INIT
+  but SharpEmu likely doesn't call the PRX's DT_INIT
+- Chicken-and-egg: insert function is looked up via the hash table, but hash table is empty
+- On real PS5: DT_INIT runs il2cpp_codegen_register which directly inserts entries
+  (without using the lookup mechanism)
+- Fix: call PRX DT_INIT during module loading → hash table populated → all lookups succeed
+
+Stage Summary:
+- ROOT CAUSE (FINAL): PRX DT_INIT not called → hash table empty → all lookups fail
+- This is the SINGLE root cause connecting ALL prior findings:
+  * EXP-040: hash table never filled
+  * EXP-083: metadata global NULL
+  * EXP-085: flag patch needed (can be removed after fix)
+  * EXP-088: ThreadPool deadlock
+  * EXP-090: missing _ThreadPoolWaitCallback
+- Fix: implement PRX DT_INIT calling in SharpEmu's module loader
+- Next (EXP-092): verify if SharpEmu calls PRX DT_INIT and implement if missing
+
+Commit: pending

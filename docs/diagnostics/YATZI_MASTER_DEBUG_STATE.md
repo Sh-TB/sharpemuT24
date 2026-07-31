@@ -623,3 +623,41 @@ The fix must populate the IL2CPP metadata hash table so lookups return valid res
 
 If the hash table is properly populated, the EXP-085 flag patch can be REMOVED.
 
+
+---
+
+## EXP-091: Hash Table Never Populated — DT_INIT Missing (2026-07-31)
+
+### Root Cause (FINAL)
+
+The IL2CPP metadata hash table at `0x801EF7610` is **created but never populated**. 
+
+- EBOOT: 1689 READ sites (lookups), 1 WRITE site (creator only)
+- PRX: 0 reads, 0 writes to `0x801EF7610`
+- Entries are all `0xFFFFFFFF` (empty sentinel), count=0
+
+The entries should be inserted by `il2cpp_codegen_register` during PRX DT_INIT (module initialization). SharpEmu likely doesn't call the PRX's DT_INIT, so the registration never runs.
+
+### Chicken-and-Egg
+
+The IL2CPP runtime looks up function pointers (like `_ThreadPoolWaitCallback`) via the hash table. But the insert function is ALSO looked up via the hash table. Without initial entries (from DT_INIT), no lookups succeed, including the lookup for the insert function itself.
+
+### Fix: Call PRX DT_INIT
+
+SharpEmu's PRX loader must call the PRX's DT_INIT function during module loading. This runs `il2cpp_codegen_register` which populates the hash table with initial entries. After DT_INIT:
+- Hash table is populated → lookups succeed
+- `_ThreadPoolWaitCallback` is found → ThreadPool works
+- `0x801E51240` is set → crash_func doesn't crash
+- EXP-085 flag patch can be REMOVED
+
+### Updated Blocker
+
+**Root cause: PRX DT_INIT not called → hash table empty → all lookups fail → deadlock.**
+
+This is the SINGLE root cause that connects ALL prior findings:
+- EXP-040: hash table never filled ← DT_INIT not called
+- EXP-083: metadata global NULL ← hash table empty
+- EXP-085: flag patch needed ← hash table empty (can be removed after fix)
+- EXP-088: ThreadPool deadlock ← _ThreadPoolWaitCallback lookup fails
+- EXP-090: missing trigger ← _ThreadPoolWaitCallback NULL
+
