@@ -1794,3 +1794,33 @@ Stage Summary:
 - Next: investigate why tasks are never submitted (main thread path, FAST_PATH side effects)
 
 Commit: pending
+  * BUT same FAST_PATH root cause at a different stage
+- Task 1: Worker creation traced
+  * Entry: 0x800BB06A0 (eboot code)
+  * Name: AssetGarbageCollectorHelper
+  * 13+ threads created by main thread (tid=4)
+  * Created after il2cpp_init + resolver completion
+- Task 2: Task submission path
+  * sceKernelSignalSema NEVER called (0 occurrences in 11181-line log)
+  * Task function pointer [rbx+0xf8] never set (always NULL)
+  * Workers spin: WaitSema→skip→task loop→NULL→recover→loop
+- Task 4: FAST_PATH comparison
+  * FAST_PATH=0: main thread blocks on WaitSema → deadlock (EXP-062)
+  * FAST_PATH=1: main thread skips WaitSema → creates workers prematurely → workers spin
+  * Same root cause: SignalSema never called
+- Root cause unified across EXP-036/062/068:
+  * SignalSema never called by game code
+  * FAST_PATH=0: deadlock (threads wait forever)
+  * FAST_PATH=1: spin (threads skip wait, proceed prematurely)
+  * Real fix: implement proper semaphore scheduling
+- The main thread blocks on handle 0x5D (FAST_PATH=0) — something should
+  signal this semaphore but doesn't
+
+Stage Summary:
+- FAST_PATH tension confirmed as root cause across EXP-036/062/068
+- SignalSema never called in either mode
+- Workers spin on NULL task function pointer [rbx+0xf8]
+- Need to find what should signal the main thread's semaphore (handle 0x5D)
+- Real fix: proper semaphore scheduling, not FAST_PATH toggle
+
+Commit: pending
