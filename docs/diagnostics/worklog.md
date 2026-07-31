@@ -1514,3 +1514,63 @@ Stage Summary:
 - Both files committed to repo for permanent reference.
 
 Commit: pending
+  * EXP058-ARRAYPROC-ENTER: 0 hits (array processor NOT reached)
+  * Same as EXP-058 — metadata loader still failing
+- Discovered SharpEmu expects metadata at Media/Metadata/global-metadata.dat
+  (not at root). BootDependencyAnalyzer listed this path.
+- Moved metadata to /tmp/games/yatzi/Media/Metadata/global-metadata.dat
+- Run 2: Metadata at correct path
+  * EXP058-CALL7-ENTER: 1 hit (call #7 entered)
+  * EXP058-LOOP-ITER: 1 hit (LOOP BODY FIRED! Metadata loaded!)
+  * EXP058-ARRAYPROC-ENTER: 1 hit (ARRAY PROCESSOR FIRED!)
+  * SIGSEGV count: 0 (NO CRASH CASCADE!)
+  * SIGABRT: 0
+  * Array processor called with rcx=0x379 (889 entries) — matches CodeGenModule count
+  * Array at 0x808958230 (NOT the hash table at 0x60053E990 — different array)
+- Boot progressed PAST il2cpp_init:
+  * AssetGarbageCollectorHelper threads created (13+ threads)
+  * Threads blocked on sceKernelWaitSema semaphore
+  * Stall detected after 20s with no import progress
+  * This is a DIFFERENT issue (threading/semaphore, not IL2CPP metadata)
+- The IL2CPP crash chain from EXP-035..058 is RESOLVED:
+  * Metadata loaded successfully
+  * Consumer function (call #7) executed its loops
+  * No SIGSEGV cascade
+  * No crash function 0x80135DDD0 invoked
+  * No callback crash at 0x80134FA00
+  * Game progressed to Unity runtime initialization
+
+Stage Summary:
+- ROOT CAUSE OF EXP-035..058 CONFIRMED: Missing global-metadata.dat file.
+  The previous dump was incomplete (missing Media/Modules/ directory entirely).
+  The complete dump has the metadata file, and IL2CPP initialization now works.
+- The metadata file must be at Media/Metadata/global-metadata.dat (not at root).
+  SharpEmu's BootDependencyAnalyzer lists this as the expected path.
+- IL2CPP initialization is now WORKING:
+  * il2cpp_init called and completed
+  * Metadata loaded by 0x804F04750
+  * Consumer function 0x804F23320 executed its loops
+  * No SIGSEGV crashes
+- NEW BLOCKER (different subsystem): AssetGarbageCollectorHelper threads
+  blocked on sceKernelWaitSema. This is a threading/semaphore issue, not
+  an IL2CPP issue. The game has progressed past IL2CPP init to Unity
+  runtime initialization.
+- EXP-048 callback stub is NOT needed (unset for this run).
+- No patches or stubs are active.
+
+Key Files Produced:
+- docs/diagnostics/EXP-060.md (dump verification report)
+- /tmp/exp060_logs/baseline_run2.log (8768-line boot trace showing IL2CPP success)
+- /tmp/exp060_logs/baseline_run1.log (10311-line trace with metadata at wrong path)
+
+Next Step (EXP-061):
+- Investigate AssetGarbageCollectorHelper semaphore stall:
+  * Threads blocked on sceKernelWaitSema (NID: Zxa0VhQVTsk)
+  * 13+ AssetGarbageCollectorHelper threads all blocked
+  * This may be a semaphore initialization or signaling issue
+  * Check if SHARPEMU_SEMA_FAST_PATH=0 is still needed or if it causes this stall
+  * May need to trace the semaphore creation and signal path
+- This is a COMPLETELY DIFFERENT subsystem from IL2CPP — do not apply
+  any IL2CPP-related findings or patches from EXP-035..058.
+
+Commit: pending
