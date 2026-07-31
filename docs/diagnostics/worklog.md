@@ -2413,3 +2413,47 @@ Stage Summary:
 - Knowledge base files committed to GitHub
 
 Commit: pending
+
+---
+Task ID: EXP-082
+Agent: main (SharpEmu bringup)
+Task: EXP-082 — Investigate crash at 0x80080684D (NULL per-image hash table).
+
+Work Log:
+- Identity verified: Yatzi (SHA256 d17fba4a... PASS)
+- Configuration: SHARPEMU_SEMA_FAST_PATH=0 (proper blocking, no NOP)
+- TASK 0: Hash table address verification
+  * Crash is NOT about global hash table at 0x801EF7610 or 0x801EE7610
+  * Crash reads [r15+rcx] where r15 = rdi = first parameter to crash function
+  * r15 = [r12+0x278] = per-image hash table inside IL2CPP image object
+  * The 0x801EF7610 vs 0x801EE7610 typo is NOT relevant to this crash
+- TASK 1: Relationship to EXP-053 wrapper-never-called
+  * CONFIRMED: crash IS downstream of EXP-053
+  * EXP-053 wrapper (0x800805AE0) has 0 hits in FAST_PATH=0 run
+  * Crash function (0x800806750) is in same code region (0xC70 bytes from wrapper)
+  * Per-image hash table [image+0x278] = NULL because registration never completed
+  * Global hash table at 0x801EF7610 IS initialized (0x600103DB0) but per-image is NOT
+- TASK 2: Traced backward from 0x80080684D
+  * Crash function at 0x800806750: r15 = rdi (first param)
+  * Caller at 0x800C853C9: rdi = [r12+0x278] where r12 = image object (first param)
+  * [image+0x278] = NULL because never initialized by registration
+- TASK 3: Which HLE/metadata API should provide the pointer?
+  * [image+0x278] should be initialized by il2cpp_codegen_register or equivalent
+  * The registration chain: il2cpp_init → EBOOT registration → wrapper (0x800805AE0)
+  * The wrapper is never called → per-image hash tables stay NULL
+  * Note: wrapper at 0x800805AE0 is actually a #dllimport: string parser, not
+    il2cpp_codegen_register itself — the actual registration function is different
+- TASK 4: Diagnostics collected
+  * RIP: 0x80080684D, R15=0, R14=0
+  * Caller: 0x800C853C9 (return addr 0x800C854CE on stack)
+  * Instruction: mov r8d, [r15+rcx] → Access Violation at NULL
+  * EXP-053 wrapper: 0 hits (never called)
+
+Stage Summary:
+- ROOT CAUSE: IL2CPP metadata registration incomplete (same as EXP-053)
+- The crash at 0x80080684D is NOT a new bug — it's the next symptom of EXP-053
+- Per-image hash table [image+0x278] = NULL because registration wrapper never called
+- Fix: complete the IL2CPP registration chain in SharpEmu HLE
+- Next (EXP-083): trace il2cpp_init call chain to find where registration should trigger
+
+Commit: pending

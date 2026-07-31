@@ -680,3 +680,35 @@ EXP-081 proposes `SHARPEMU_SEMA_FAST_PATH=0` as the fix for the worker NULL `[rb
 If Case A: FAST_PATH=0 is validated. The new blocker is the 0x80080684D crash (EXP-082).
 If Case B: The semaphore deadlock from EXP-062 still exists. The SignalSema source must be investigated.
 
+
+---
+
+## EXP-082 (added 2026-07-31)
+
+### EXP-082 — Crash at 0x80080684D: NULL Per-Image Hash Table
+- **Date:** 2026-07-31
+- **Commit:** [pending]
+- **Question:** Why does the game crash at 0x80080684D (mov r8d, [r15+rcx] where r15=NULL)?
+- **Finding:** The crash is a NULL per-image hash table dereference. r15 = rdi = [r12+0x278] where r12 is an IL2CPP image object. The per-image hash table at [image+0x278] was never initialized because the IL2CPP metadata registration process is incomplete. This is downstream of EXP-053's wrapper-never-called issue.
+- **Root Cause:** IL2CPP metadata registration wrapper (0x800805AE0) is never called → per-image hash tables stay NULL → hash lookup crashes
+- **Status:** CONFIRMED
+- **Related:** EXP-053, EXP-056, EXP-052
+- **Impact:** The crash is NOT a new bug — it's the next symptom of the still-open EXP-053 mechanism. Fix requires completing the IL2CPP registration chain in SharpEmu HLE.
+
+### Updated Current State (after EXP-082)
+
+**Solved:**
+- Worker NULL [rbx+0xF8] crash (FAST_PATH=0, EXP-081)
+- il2cpp_init reaches successfully (FAST_PATH=0, EXP-081)
+- Unity job system starts (FAST_PATH=0, EXP-081)
+- Graphics threads created (FAST_PATH=0, EXP-081)
+
+**Still blocked:**
+- IL2CPP metadata registration incomplete (EXP-053/082)
+- Per-image type hash tables not initialized (EXP-082)
+- Crash at 0x80080684D when Unity tries type lookup (EXP-082)
+- Rendering not reached (sceVideoOutOpen never called)
+
+**Current crash location:** 0x80080684D (NULL per-image hash table)
+**Next debugging target:** Find what should trigger the metadata registration wrapper at 0x800805AE0 and why it's never reached (EXP-083)
+
