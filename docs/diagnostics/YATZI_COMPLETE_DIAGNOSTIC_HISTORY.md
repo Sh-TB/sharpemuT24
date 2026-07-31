@@ -872,3 +872,132 @@ The file was originally at the ROOT (`/tmp/games/yatzi/global-metadata.dat`) but
 
 This means the EXP-085 run that reached VideoOut was actually running with the metadata file NOT being found by the PRX. The "progress" to VideoOut was on a fallback code path, not the normal init path.
 
+
+---
+
+## Golden Rule Validation (2026-07-31)
+
+### Golden Rule 1 — File Exists
+
+```
+Hypothesis: global-metadata.dat exists and is valid
+Evidence:
+  Location 1: /tmp/games/yatzi/global-metadata.dat (root, original extraction)
+    Size: 10,669,264 bytes
+    SHA256: 4c85fdec4efdb59534ab20af49615a36cbeef549f2f8de0431d78dbc5f21d918
+  Location 2: /tmp/games/yatzi/Media/Metadata/global-metadata.dat (copy, created during validation)
+    Size: 10,669,264 bytes
+    SHA256: 4c85fdec4efdb59534ab20af49615a36cbeef549f2f8de0431d78dbc5f21d918
+  Both copies are identical (same SHA256).
+Conclusion: CONFIRMED — file exists, valid, two identical copies
+```
+
+### Golden Rule 2 — Loader Path
+
+```
+Hypothesis: The PRX expects global-metadata.dat at Media/Metadata/ (relative to /app0/)
+Evidence:
+  - PRX (Il2cppUserAssemblies.prx) contains string "global-metadata.dat" (filename only)
+  - PRX contains string "/app0/" (base path)
+  - PRX contains string "Metadata" (directory component)
+  - EBOOT contains string "/app0/" at offset 0x1BBB235
+  - SharpEmu's BootDependencyAnalyzer checks "Media/Metadata/global-metadata.dat"
+  - With file at Media/Metadata/: PRX takes proper init path (deadlock, different behavior)
+  - Without file at Media/Metadata/: PRX takes fallback path (crash at 0x80080684D)
+  - The different behavior proves the file IS found at Media/Metadata/ when present
+Conclusion: CONFIRMED — expected loader path is /app0/Media/Metadata/global-metadata.dat
+  Host path: /tmp/games/yatzi/Media/Metadata/global-metadata.dat
+  Match: YES (file exists at expected location)
+```
+
+### Golden Rule 3 — Metadata Header
+
+```
+Hypothesis: global-metadata.dat has valid IL2CPP v29 header
+Evidence:
+  Magic: 0xFAB11BAF (expected: 0xFAB11BAF) ✓
+  Version: 29 (expected: 29) ✓
+  String table byte size: 1,613,544
+  Type definitions byte size: 1,142,064
+  Methods byte size: 2,695,968
+  Images byte size: 4,160
+  Assemblies byte size: 6,656
+Conclusion: CONFIRMED — valid IL2CPP v29 metadata file
+```
+
+### Golden Rule 4 — Test A vs Test B
+
+```
+Hypothesis: Behavior differs when metadata file is found vs not found
+Evidence:
+
+Test A (metadata NOT at Media/Metadata/):
+  - PRX cannot find file → takes fallback init path
+  - il2cpp_init called but uses fallback metadata handling
+  - metadata_lookup returns 0 (with EXP-085 flag patch)
+  - Game reaches VideoOut (GPU detected, Vulkan selected)
+  - Crashes at 0x80080684D (per-image hash table NULL)
+  - 36+ threads created (Job.workers, Gfx threads)
+  - Exit code: 139 (SIGSEGV)
+
+Test B (metadata at Media/Metadata/):
+  - PRX finds and reads file → takes proper init path
+  - il2cpp_init called with real metadata
+  - metadata_lookup NOT reached (different code path)
+  - Game does NOT reach VideoOut
+  - DEADLOCK: all 14 threads blocked on WaitSema
+  - Main thread blocked on handle 0x83 at ret=0x804FB5BAF
+  - Workers blocked on handles 0x5C, 0x5E, etc.
+  - Exit code: 4 (stall)
+
+  | Metric | Test A (no Media/Metadata/) | Test B (with Media/Metadata/) |
+  |--------|---------------------------|------------------------------|
+  | File found by PRX | NO | YES |
+  | il2cpp_init | YES | YES |
+  | metadata_lookup | returns 0 (patched) | not reached |
+  | VideoOut | REACHED | NOT reached |
+  | Job.workers | 29 | 0 |
+  | Gfx threads | 3 | 0 |
+  | Result | SIGSEGV at 0x80080684D | Deadlock (all blocked) |
+  | Exit code | 139 | 4 |
+
+Conclusion: CONFIRMED — behavior differs significantly.
+  - Without metadata: fallback path → crash but reaches VideoOut
+  - With metadata: proper path → deadlock (EXP-062 pattern)
+```
+
+### Golden Rule 5 — Answers to Questions
+
+```
+Q1: Do we actually have a valid global-metadata.dat?
+A: YES. Magic 0xFAB11BAF, version 29, SHA256 4c85fdec..., 10.7MB.
+
+Q2: Is it located where the loader expects it?
+A: YES, when placed at Media/Metadata/global-metadata.dat.
+   The original extraction put it at the root, which is NOT where the PRX looks.
+   A copy was placed at Media/Metadata/ during validation.
+
+Q3: Is SharpEmu running the real metadata initialization path or a fallback path?
+A: BOTH paths have been tested:
+   - Without Media/Metadata/ copy: FALLBACK path (PRX can't find file)
+   - With Media/Metadata/ copy: REAL path (PRX reads file)
+   The EXP-085 run that reached VideoOut was on the FALLBACK path.
+
+Q4: Does behavior change between metadata missing vs metadata correctly loaded?
+A: YES, significantly:
+   - Missing: crash at 0x80080684D, but reaches VideoOut (fallback path)
+   - Loaded: deadlock (all threads blocked on WaitSema) — EXP-062 pattern
+   The correct metadata loading leads to the semaphore deadlock.
+```
+
+### Impact on Current Understanding
+
+The metadata validation does NOT change our current understanding. The key findings are:
+
+1. The metadata file is valid and IS loaded by the PRX when placed at the correct path
+2. Correct loading leads to the EXP-062 deadlock (semaphore synchronization issue)
+3. The EXP-085 "VideoOut reached" milestone was on the FALLBACK path (metadata not found)
+4. The real blocker when metadata is correctly loaded is the semaphore deadlock, not the metadata
+
+This is supporting evidence only. The metadata file is not the root cause — the semaphore synchronization is.
+
