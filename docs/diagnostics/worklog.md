@@ -1739,3 +1739,28 @@ Stage Summary:
 - This is the same documented pattern across 3 Unity/IL2CPP games
 
 Commit: pending
+Work Log:
+- Identity verified: Yatzi (SHA256 d17fba4a... PASS)
+- Rule 007: Read knowledge transfer (Unity_IL2CPP_Common.md, FIX_HISTORY.md)
+- Task 0: Identified host RIP — glibc __fortify_fail (HOST-SIDE, not guest)
+  * EXP-065 "guest-side" conclusion was WRONG
+  * User's feedback was correct
+- Task 1: All 1004 NULL executes from 0x800AA01D4 (worker task processing)
+  * [rbx+0xf8] = NULL (task function pointer never set)
+- Root cause chain: EXP-034 re-patching fails (0/232) → fake stubs remain → return NULL → cascade
+- Why re-patching fails: NID-to-name lookup fails for most eboot import entries
+  * _resolverResults has 232 entries (all real func_impl found)
+  * But patched=0 (no import stubs matched)
+- Task 3: Modified DecideIl2CppReturnValue to return fake objects for more functions
+  * No improvement — stubs use EXP-035 INT3 handler, not DecideIl2CppReturnValue
+  * Still 1004 NULL executes, still stack smashing
+- The real fix: make EXP-034 re-patching work (patch import stubs with real PRX addresses)
+
+Stage Summary:
+- ROOT CAUSE: EXP-034 re-patching fails because NID-to-name lookup fails for eboot imports
+- The resolver DID find all 232 real IL2CPP func_impl addresses in the PRX
+- But import stubs still point to fake heap stubs (return 0)
+- DecideIl2CppReturnValue fix had no effect (INT3 handler bypasses it)
+- Next: fix the re-patching to use address-based matching instead of name-based
+
+Commit: pending

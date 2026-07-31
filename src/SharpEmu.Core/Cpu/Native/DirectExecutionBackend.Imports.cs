@@ -2922,7 +2922,17 @@ public sealed partial class DirectExecutionBackend
                 if (name.Contains("get_") || name.Contains("_from_") || name.Contains("_new") ||
                     name.Contains("_alloc") || name.Contains("_open") || name.Contains("_create"))
                         return _il2cppHeap + Il2CppObjectOffset;
-                return 0;
+                // EXP-066: Return fake object for ALL remaining il2cpp functions
+                // that could return a pointer. Only return 0 for void functions
+                // and functions explicitly known to return integers.
+                if (name.Contains("_count") || name.Contains("_size") || name.Contains("_length") ||
+                    name.Contains("_has") || name.Contains("_is_") || name.Contains("_equals") ||
+                    name.Contains("_compare") || name.Contains("_find") || name.Contains("_index") ||
+                    name == "il2cpp_free" || name == "il2cpp_array_length" ||
+                    name == "il2cpp_array_get_byte_length")
+                        return 0;  // These return integers, not pointers
+                // Default: return fake object pointer instead of NULL
+                return _il2cppHeap + Il2CppObjectOffset;
         }
 
         private OrbisGen2Result DispatchBootstrapBridge()
