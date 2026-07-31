@@ -941,3 +941,65 @@ Find what should set up the indirect call chain:
 4. Determine which HLE function should populate the function pointer
 
 One question: What indirect call mechanism should reach `0x804F6EC20`, and why is the function pointer never set?
+
+
+---
+
+## EXP-097: Dead-Code Functions Not Registered Anywhere — Self-Registering Function Never Called (2026-08-01)
+
+### Exhaustive Search Result
+
+Searched for the 5 dead-code function addresses (`0x804F456E0`, `0x804F9FA80`, `0x804FA1440`, `0x804FA1FE0`, `0x804F6EC20`) as function pointers:
+
+| Search Method | Hits |
+|-------------|------|
+| Stored qwords in PRX data segments | **0** |
+| Stored qwords in EBOOT data segments | **0** |
+| 4-byte values in non-executable segments | **0** |
+| LEA instructions computing the addresses | **1** (self-referential: `0x804FA210F: lea rsi, -> 0x804FA1FE0`) |
+| `movabs reg, imm64` instructions | **0** |
+| IL2CPP registration globals (runtime) | 3/3 populated, **0 match** dead-code addresses |
+| Runtime-set function pointer globals | 7/7 populated, **0 match** dead-code addresses |
+| Fini_array entries (runtime) | 16 entries, **0 match** |
+
+### Self-Registering Function Pattern
+
+Function `0x804FA1FE0` is a **self-registering function**:
+```asm
+0x804FA210F  lea  rsi, [rip+...]  ; -> 0x804FA1FE0 (its own address!)
+0x804FA2127  jmp  0x804F889D0     ; tail jump to registration function
+```
+
+It loads its own address into `rsi` and tail-jumps to `0x804F889D0` (registration function that reads `[0x808923D88]` context). But `0x804FA1FE0` itself has **0 callers** — it's dead code.
+
+### Once-Init Guard Never Cleared
+
+`[0x808B418D8]` = `0xFFFFFFFFFFFFFFFF` (sentinel) at runtime. The self-registering function `0x804FA1FE0` was supposed to clear this guard and register the function pointers, but it's never called.
+
+### 7 Runtime-Set Function Pointer Globals (All Populated, None Point to Dead Code)
+
+| Global | Call Sites | Runtime Value |
+|--------|-----------|---------------|
+| `[0x808B417E0]` | 1 | `0x804F09550` |
+| `[0x808B417E8]` | 2 | `0x800C76C60` |
+| `[0x808B417F8]` | 2 | `0x800C76CA0` |
+| `[0x808B418E8]` | 1 | `0x804FB0B30` |
+| `[0x808B418F0]` | **35** | `0x804FBF820` |
+| `[0x808B41900]` | **15** | `0x804FBF760` |
+| `[0x808B41938]` | 1 | `0x804D49340` |
+
+All populated, none match dead-code functions.
+
+### Updated Blocker
+
+**The blocker is NO LONGER "function pointers not set".** The 7 runtime-set globals ARE populated, the 3 IL2CPP globals ARE populated. The problem is that the **self-registering function `0x804FA1FE0`** (which should register the work-submission path) is itself dead code — it has 0 callers and is never executed.
+
+### Next EXP-098
+
+Find what should call `0x804FA1FE0`:
+1. Check the PRX's **init_array** (DT_INIT_ARRAY) at runtime — is `0x804FA1FE0` one of the entries?
+2. Trace the 25 call sites in `real_init` to see if any reaches `0x804FA1FE0`
+3. Check if `0x804FA1FE0` is an IL2CPP icall that should be registered by a runtime function
+4. Consider: is `0x804FA1FE0` supposed to be called from EBOOT?
+
+One question: Is `0x804FA1FE0` in the PRX's init_array, and if not, what code path should reach it?

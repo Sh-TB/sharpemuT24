@@ -215,6 +215,9 @@ public sealed unsafe partial class DirectExecutionBackend
         // Dump context and method table again (post-call state)
         Exp095DumpContextAndMethodTable("RETURNSITE");
 
+        // EXP-097: Dump function pointer globals and IL2CPP registration globals
+        Exp097DumpFunctionPointerGlobals();
+
         // EXP-096 fix: Skip the MethodInfo content dump to avoid .NET JIT crash.
         // The return value (rax) is sufficient — we only need to know it's non-NULL.
         if (rax != 0 && rax > 0x1000)
