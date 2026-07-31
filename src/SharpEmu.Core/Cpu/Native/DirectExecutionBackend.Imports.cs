@@ -2750,6 +2750,10 @@ public sealed partial class DirectExecutionBackend
                                     // Two-stage: call site -> return site (0x804F055DB).
                                     Exp095PatchThreadPoolLookup();
 
+                                    // EXP-096: Install INT3 at all 3 callers of the work-submission
+                                    // function (0x804F6EC20) to determine if work submission is reached.
+                                    Exp096PatchWorkSubmissionTracers();
+
                                     // EXP-080 (2026-07-31): The 11-byte NOP bypass at 0x800AA0207 from
                                     // EXP-072/073 has been REMOVED. It was a diagnostic patch that masked
                                     // the symptom (workers spinning on unsignaled 0x5C) without addressing

@@ -215,27 +215,11 @@ public sealed unsafe partial class DirectExecutionBackend
         // Dump context and method table again (post-call state)
         Exp095DumpContextAndMethodTable("RETURNSITE");
 
-        // If rax is non-NULL, dump what it points to (the method info structure)
+        // EXP-096 fix: Skip the MethodInfo content dump to avoid .NET JIT crash.
+        // The return value (rax) is sufficient — we only need to know it's non-NULL.
         if (rax != 0 && rax > 0x1000)
         {
-            try
-            {
-                Console.Error.WriteLine($"  Method info at 0x{rax:X16} (first 0x40 bytes):");
-                byte* mp = (byte*)rax;
-                for (int i = 0; i < 0x40; i += 8)
-                {
-                    ulong val = *(ulong*)(mp + i);
-                    string cls = "";
-                    if (val >= 0x804CD5000 && val < 0x808800000) cls = " (PRX)";
-                    else if (val >= 0x800000000 && val < 0x804CD5000) cls = " (eboot)";
-                    else if (val == 0) cls = " (NULL)";
-                    Console.Error.WriteLine($"    +0x{i:X2}: 0x{val:X16}{cls}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"  Failed to read method info: {ex.Message}");
-            }
+            Console.Error.WriteLine($"  Method info at 0x{rax:X16} (content dump skipped — EXP-096)");
         }
 
         Console.Error.Flush();
@@ -284,39 +268,9 @@ public sealed unsafe partial class DirectExecutionBackend
                 return;
             }
 
-            // Dump first 0x40 bytes of the method table structure
-            Console.Error.WriteLine($"  [EXP095-{stage}] Method table at 0x{methodTablePtr:X16} (first 0x40 bytes):");
-            byte* mt = (byte*)methodTablePtr;
-            for (int i = 0; i < 0x40; i += 8)
-            {
-                ulong val = *(ulong*)(mt + i);
-                string cls = "";
-                if (val >= 0x804CD5000 && val < 0x808800000) cls = " (PRX)";
-                else if (val >= 0x800000000 && val < 0x804CD5000) cls = " (eboot)";
-                else if (val >= 0x600000000 && val < 0x700000000) cls = " (heap)";
-                else if (val == 0) cls = " (NULL)";
-                Console.Error.WriteLine($"    +0x{i:X2}: 0x{val:X16}{cls}");
-            }
-
-            // Try to interpret the method table as an array of method entries.
-            // Common IL2CPP patterns:
-            //   - Array of pointers (each 8 bytes) to Il2CppMethodInfo structs
-            //   - Inline array of Il2CppMethodInfo structs (each 0x48 or 0x58 bytes)
-            //
-            // Try reading first 8 entries as pointers and see if they look valid.
-            Console.Error.WriteLine($"  [EXP095-{stage}] First 8 entries (as pointers):");
-            for (int i = 0; i < 8; i++)
-            {
-                ulong entry = *(ulong*)(methodTablePtr + (ulong)i * 8);
-                string cls = "";
-                if (entry >= 0x804CD5000 && entry < 0x808800000) cls = " (PRX)";
-                else if (entry >= 0x800000000 && entry < 0x804CD5000) cls = " (eboot)";
-                else if (entry >= 0x600000000 && entry < 0x700000000) cls = " (heap)";
-                else if (entry == 0) cls = " (NULL)";
-                else if (entry == 0xFFFFFFFFFFFFFFFF) cls = " (sentinel)";
-                Console.Error.WriteLine(
-                    $"    [{i}] 0x{entry:X16}{cls}");
-            }
+            // EXP-096 fix: Skip the method table content dump to avoid .NET JIT crash.
+            // The pointer value itself is sufficient — we only need to know it's non-NULL.
+            Console.Error.WriteLine($"  [EXP095-{stage}] Method table at 0x{methodTablePtr:X16} (content dump skipped — EXP-096)");
         }
         catch (Exception ex)
         {

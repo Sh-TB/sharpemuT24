@@ -1,8 +1,8 @@
 # Yatzi Complete Diagnostic History
 
 **Single source of truth for all Yatzi (PPSA17697) debugging experiments.**
-**Coverage: EXP-026 through EXP-095 (66 experiments)**
-**Last updated: 2026-08-01 (EXP-095)**
+**Coverage: EXP-026 through EXP-096 (67 experiments)**
+**Last updated: 2026-08-01 (EXP-096)**
 
 This file consolidates ALL diagnostic knowledge from every EXP report, git commit, and worklog entry. Future debugging MUST start from this file.
 
@@ -10,10 +10,10 @@ This file consolidates ALL diagnostic knowledge from every EXP report, git commi
 
 ## Table of Contents
 
-1. [EXP Timeline (EXP-026 through EXP-095)](#exp-timeline)
+1. [EXP Timeline (EXP-026 through EXP-096)](#exp-timeline)
 2. [Phase Summary](#phase-summary)
 3. [Key Corrections and Superseded Theories](#key-corrections)
-4. [Current State (after EXP-095)](#current-state)
+4. [Current State (after EXP-096)](#current-state)
 5. [Knowledge Rules Learned](#knowledge-rules)
 6. [All Links](#all-links)
 
@@ -1281,3 +1281,39 @@ The investigation was NOT wasted:
 **Solved:** `_ThreadPoolWaitCallback` lookup traced at runtime. Lookup SUCCEEDS (rax=0x6007E64D0). Method info structure is valid and populated. Method table at `[context+0x30]` IS searchable. Deadlock is NOT caused by a missing callback.
 **Still blocked:** Main thread blocks on `WaitSema(0xA6)` at `0x804F6E9EB` (ThreadPool dispatch). No work submitted to the ThreadPool after the lookup succeeds. The callback exists but is never invoked.
 **Next debugging target:** Trace what the main thread does between `0x804F055DB` (lookup result stored) and `0x804F6E9EB` (WaitSema block). Look for a `QueueUserWorkItem` or similar work-submission call that should happen but doesn't. (EXP-096)
+
+
+---
+
+## EXP-096 (added 2026-08-01)
+
+### EXP-096 — Work Submission Function NEVER Reached — Entire Call Chain Is Dead Code
+- **Date:** 2026-08-01
+- **Commit:** [see git log for EXP-096.md]
+- **Configuration:** `SHARPEMU_SEMA_FAST_PATH=0`, metadata at `Media/Metadata/`, EXP-085 flag patch active, DT_INIT_ARRAY fix (EXP-092) applied, EXP-095 + EXP-096 tracers active
+- **Path:** B (real metadata path)
+- **Question:** What code path should submit work to the ThreadPool after the `_ThreadPoolWaitCallback` lookup, and why doesn't it execute?
+- **Hypothesis:** The work-submission function (`0x804F6EC20`) should be called during IL2CPP init to queue work. Deadlock occurs because it's never called (Case A), or called but skips (Case B), or submits but SignalSema fails (Case C).
+- **Tools/Logs:** Static disassembly (capstone) of `0x804F6EC20` and its callers. PRX/EBOOT-wide `E8 rel32` scan for all callers. New INT3 tracer (`_Exp096WorkSubmissionTracer.cs`) at all 3 call sites. Runtime run with 120s timeout.
+- **Finding:** **Case A confirmed.** The work-submission function (`0x804F6EC20`) is NEVER reached at runtime. All 3 call sites (`0x804F4571A`, `0x804F9FAAA`, `0x804FA14C8`) had ZERO INT3 hits. Static analysis proves the entire call chain is dead code: the containing functions (`0x804F456E0`, `0x804F9FA80`, `0x804FA1440`) have zero direct callers, and the one caller (`0x804FA2089` in `0x804FA1FE0`) also has zero direct callers. The work-submission path is only reachable via indirect function pointers (vtables, delegates, runtime callbacks) that are never set up.
+- **Root Cause:** The work-submission call chain is dead code because the indirect function pointers that should reach it are never registered. SharpEmu likely doesn't implement the HLE function that performs this registration.
+- **Status:** CONFIRMED — Case A (work submission never reached)
+- **Related:** EXP-088, EXP-089, EXP-090, EXP-092, EXP-095, EXP-097
+- **Impact:** Root cause of the ThreadPool deadlock identified at the call-chain level. The callback EXISTS (EXP-095) but the code that should INVOKE it is dead code. The fix must identify what indirect registration mechanism should set up the call chain and implement the missing HLE function.
+
+### Work-Submission Call Chain (All Dead Code)
+
+```
+0x804F6EC20 (SignalSema(0xA6) caller — work submission)
+  ← 0x804F4571A in 0x804F456E0  (0 direct callers — DEAD)
+  ← 0x804F9FAAA in 0x804F9FA80  (1 caller: 0x804FA2089 in 0x804FA1FE0)
+  ← 0x804FA14C8 in 0x804FA1440  (0 direct callers — DEAD)
+
+0x804FA1FE0 (caller of 0x804F9FA80)
+  ← 0 direct callers — DEAD
+```
+
+### Updated Current State (after EXP-096)
+**Solved:** Work-submission function located (`0x804F6EC20`). 3 call sites identified. Runtime proof: NONE reached (Case A). Static proof: entire call chain is dead code (0 direct callers). Root cause: indirect function pointers never set up.
+**Still blocked:** The indirect registration mechanism that should set up the call chain is not identified. SharpEmu likely doesn't implement the HLE function that performs this registration.
+**Next debugging target:** Search PRX data segment for function pointers to the dead-code functions. Check IL2CPP registration data. Find what should populate the function pointer. (EXP-097)

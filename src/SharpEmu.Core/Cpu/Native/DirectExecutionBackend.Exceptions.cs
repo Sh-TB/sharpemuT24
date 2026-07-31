@@ -192,6 +192,12 @@ public sealed partial class DirectExecutionBackend
                         {
                                 return -1;
                         }
+                        // EXP-096: Handle INT3 from work-submission call sites
+                        // (0x804F4571A, 0x804F9FAAA, 0x804FA14C8 — callers of 0x804F6EC20).
+                        if (exceptionCode == 2147483651u && Exp096TryHandleWorkSubmissionInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-036: Handle INT3 from il2cpp_init (traces ENTER).
                         // Must be checked before EXP-035 since both use SIGTRAP.
                         if (exceptionCode == 2147483651u && Exp036TryHandleIl2cppInitInt3(contextRecord, rip))

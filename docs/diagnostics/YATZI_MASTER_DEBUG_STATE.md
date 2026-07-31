@@ -881,3 +881,63 @@ EXP-088/089 originally identified this correctly, but EXP-090/091/092/093/094 in
 ### Next EXP-096
 
 Trace what the main thread does between `0x804F055DB` (lookup result stored) and `0x804F6E9EB` (WaitSema block). Look for a `QueueUserWorkItem` or similar work-submission call that should happen but doesn't. Check if an HLE function returns an error that causes the runtime to skip work submission.
+
+
+---
+
+## EXP-096: Work Submission Function NEVER Reached — Entire Call Chain Is Dead Code (2026-08-01)
+
+### Case A Confirmed
+
+The work-submission function (`0x804F6EC20`, which calls `SignalSema(0xA6)`) is **NEVER reached** at runtime. None of its 3 call sites (`0x804F4571A`, `0x804F9FAAA`, `0x804FA14C8`) are executed. Static analysis proves the entire call chain is dead code.
+
+### Work-Submission Function
+
+`0x804F6EC20` is the function that:
+1. Iterates worker entries (loop at `0x804F6EC50..0x804F6EC66`)
+2. Performs atomic CAS on `[entry+0x90]` (`0x804F6ECD3: lock cmpxchg`)
+3. If CAS succeeds and `esi < 0`, calls `SignalSema` at `0x804F6ECF9`
+
+### 3 Call Sites — All Dead Code
+
+| Call Site | In Function | Direct Callers of That Function |
+|-----------|-------------|-------------------------------|
+| `0x804F4571A` | `0x804F456E0` | **0** |
+| `0x804F9FAAA` | `0x804F9FA80` | **1** (at `0x804FA2089`, in function `0x804FA1FE0`) |
+| `0x804FA14C8` | `0x804FA1440` | **0** |
+
+And `0x804FA1FE0` itself has **0 direct callers**.
+
+The ENTIRE work-submission call chain is dead code — only reachable via indirect function pointers that are never set up.
+
+### Runtime Verification
+
+- EXP-096 tracer patched all 3 call sites with INT3
+- **ZERO hits** — none of the 3 call sites were reached
+- EXP-095 lookup still succeeded (`rax = 0x6007E64D0`)
+- Same stall: `WaitSema(0xA6)` at `0x804F6E9EB`
+- Exit code: 4 (stall)
+
+### Why the Call Chain Is Dead Code
+
+The functions `0x804F456E0`, `0x804F9FA80`, `0x804FA1440`, and `0x804FA1FE0` have zero direct `call` instructions targeting them. They are only callable via:
+1. C++ virtual method tables (vtables)
+2. .NET delegate invocation
+3. IL2CPP runtime callbacks (GC, timer, type init)
+4. Function pointer globals
+
+On a real PS5, one of these indirect registration mechanisms would set up the call chain. SharpEmu likely doesn't implement the HLE function that performs this registration.
+
+### Updated Blocker
+
+**The blocker is NO LONGER "no work submitted" (symptom).** The root cause is: **the work-submission call chain is dead code because the indirect function pointers that should reach it are never set up.**
+
+### Next EXP-097
+
+Find what should set up the indirect call chain:
+1. Search PRX data segment for function pointers to `0x804F456E0`, `0x804F9FA80`, `0x804FA1440`, `0x804FA1FE0`
+2. Check if these appear in IL2CPP registration data (globals at `0x808B542E8/F0/F8`)
+3. Look for `call [reg]` or `call [rip+disp]` that might indirectly call these
+4. Determine which HLE function should populate the function pointer
+
+One question: What indirect call mechanism should reach `0x804F6EC20`, and why is the function pointer never set?
