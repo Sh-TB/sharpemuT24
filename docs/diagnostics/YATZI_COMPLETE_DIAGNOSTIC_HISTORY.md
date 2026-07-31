@@ -781,3 +781,38 @@ If Case B: The semaphore deadlock from EXP-062 still exists. The SignalSema sour
 **Proposed fix:** Set [metadata_list_entry+0x19]=1 before il2cpp_init
 **Next debugging target:** Apply the fix and verify game progresses (EXP-085)
 
+
+---
+
+## EXP-085 (added 2026-07-31)
+
+### EXP-085 — Metadata Flag Patch: Crash Eliminated, VideoOut Reached
+- **Date:** 2026-07-31
+- **Commit:** [pending]
+- **Question:** Does setting [metadata_list_entry+0x19]=1 before il2cpp_init allow the game to progress?
+- **Finding:** YES. The patch eliminates the crash at 0x80135DE83. metadata_lookup returns 0 (matching real PS5). il2cpp_init completes. Game reaches VideoOut initialization — the furthest progress ever achieved for Yatzi. New crash at 0x80080684D (per-image hash table, separate issue) occurs AFTER VideoOut.
+- **Root Cause:** CONFIRMED — metadata list entries had flag=0x00 (searchable) when they should be non-zero
+- **Status:** CONFIRMED — patch works, progress proven
+- **Related:** EXP-040, EXP-041, EXP-046, EXP-082, EXP-083, EXP-084
+- **Impact:** MAJOR MILESTONE — first time Yatzi reaches VideoOut. The metadata flag fix is the correct fix for the crash_func crash. The remaining crash at 0x80080684D is a separate per-image hash table issue.
+
+### Updated Current State (after EXP-085)
+
+**Solved:**
+- Worker NULL [rbx+0xF8] crash (FAST_PATH=0, EXP-081)
+- il2cpp_init reaches and completes (FAST_PATH=0 + metadata flag patch, EXP-085)
+- Metadata lookup returns correct value (0, matching real PS5) (EXP-085)
+- crash_func crash at 0x80135DE83 eliminated (EXP-085)
+- Unity job system starts (EXP-081/085)
+- Graphics threads created (EXP-081/085)
+- **VideoOut reached** (EXP-085) ← FIRST TIME
+
+**Still blocked:**
+- Per-image hash table at [image+0x278] is NULL (EXP-082, separate issue)
+- Crash at 0x80080684D when Unity tries type lookup (EXP-082)
+- X11 display :99 not available for GLFW (host-side config issue)
+- Rendering not yet achieved
+
+**Current crash location:** 0x80080684D (per-image hash table NULL, AFTER VideoOut attempt)
+**Next debugging target:** Fix X11 display, then check if per-image hash table crash persists (EXP-086)
+

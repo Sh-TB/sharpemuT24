@@ -2532,3 +2532,38 @@ Stage Summary:
 - Next (EXP-085): apply the fix and verify game progresses
 
 Commit: pending
+
+---
+Task ID: EXP-085
+Agent: main (SharpEmu bringup)
+Task: EXP-085 — Apply metadata flag patch and verify game progresses.
+
+Work Log:
+- Implemented diagnostic patch in _Exp036Il2cppInitTracer.cs
+  * Before il2cpp_init executes, reads metadata list at [0x801EA4E80]
+  * Sets [entry_data+0x19] = 1 (non-searchable) for the first entry
+  * This makes metadata_lookup return 0, matching real PS5 behavior
+- Built SharpEmu with patch, ran Yatzi with FAST_PATH=0, no NOP
+- RESULTS:
+  * Patch applied: [EXP085-META-FLAG] entry_data=0x60011BD50 [+0x19] was=0x00 → set to 0x01
+  * metadata_lookup returns 0 (was 0x801EC0C78) ← FIXED
+  * Old crash at 0x80135DE83 GONE ← FIXED
+  * il2cpp_init completes ← PROGRESS
+  * 0 NULL execute faults ← CLEAN
+  * 29 Job.workers + 3 Gfx threads created ← SAME AS BEFORE
+  * VideoOut REACHED! ← FIRST TIME EVER FOR YATZI
+    - "GPU Available: True, using Vulkan"
+    - "VulkanVideoPresenter (default)" selected
+    - Failed: "GLFW Init failed: X11: Failed to open display :99" (host config issue)
+  * New crash at 0x80080684D (per-image hash table NULL, separate issue from EXP-082)
+  * Exit code: 139 (SIGSEGV from the new crash)
+
+Stage Summary:
+- MAJOR MILESTONE: Yatzi reaches VideoOut for the first time
+- The metadata flag patch SUCCESSFULLY eliminates the crash_func crash
+- il2cpp_init completes, Unity job system + graphics threads start
+- VideoOut is reached but fails on X11 display (host config, not game bug)
+- New blocker: per-image hash table NULL at 0x80080684D (separate issue)
+- Next: fix X11 display, check if per-image crash persists
+
+Commit: pending

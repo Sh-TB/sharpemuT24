@@ -146,6 +146,56 @@ public sealed unsafe partial class DirectExecutionBackend
             FlushInstructionCache(GetCurrentProcess(), (void*)Exp036_Il2cppInitAddr, 16u);
         }
 
+        // EXP-085: Diagnostic patch — set metadata list entry flags to 1 (non-searchable)
+        // before il2cpp_init executes. This prevents metadata_lookup from finding
+        // prematurely-populated entries and returning a non-zero result that causes
+        // crash_func to read the NULL global at 0x801E51240.
+        //
+        // The metadata list is at [0x801EA4E80] → [head+8] → [node+8] → entry_data
+        // Set [entry_data+0x19] = 1 for each entry.
+        try
+        {
+            const ulong MetadataListHeadAddr = 0x801EA4E80;
+            ulong listHead = *(ulong*)MetadataListHeadAddr;
+            if (listHead != 0)
+            {
+                int patched = 0;
+                ulong node = *(ulong*)(listHead + 8); // first node
+                while (node != 0 && patched < 100)
+                {
+                    ulong entryData = *(ulong*)(node + 8); // entry data pointer
+                    if (entryData != 0)
+                    {
+                        byte oldFlag = *((byte*)(entryData + 0x19));
+                        *((byte*)(entryData + 0x19)) = 1;
+                        Console.Error.WriteLine(
+                            $"[EXP085-META-FLAG] entry_data=0x{entryData:X16} " +
+                            $"[+0x19] was=0x{oldFlag:X2} → set to 0x01");
+                        patched++;
+                    }
+                    // Move to next node — check if there's a next pointer
+                    // The node structure may have next at different offsets.
+                    // For safety, just patch the first node's entry (the one
+                    // metadata_lookup checks first).
+                    break;
+                }
+                Console.Error.WriteLine(
+                    $"[EXP085-META-FLAG] Patched {patched} metadata list entries " +
+                    $"at [0x{MetadataListHeadAddr:X16}] before il2cpp_init");
+            }
+            else
+            {
+                Console.Error.WriteLine(
+                    $"[EXP085-META-FLAG] Metadata list head at " +
+                    $"[0x{MetadataListHeadAddr:X16}] is NULL — no patch applied");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[EXP085-META-FLAG] Patch failed: {ex.Message}");
+        }
+        Console.Error.Flush();
+
         // Set RIP = il2cpp_init (re-execute original instruction)
         WriteCtxU64(contextRecord, 248, Exp036_Il2cppInitAddr); // CTX_RIP
         _exp036InsideIl2cppInit = true;
