@@ -1258,7 +1258,7 @@ The investigation was NOT wasted:
 
 ### EXP-095 — _ThreadPoolWaitCallback Lookup SUCCEEDS (rax=0x6007E64D0) — Deadlock Persists on WaitSema(0xA6)
 - **Date:** 2026-08-01
-- **Commit:** [see git log for EXP-095.md]
+- **Commit:** [e131ce7](https://github.com/Sh-TB/sharpemuT24/commit/e131ce7)
 - **Configuration:** `SHARPEMU_SEMA_FAST_PATH=0`, metadata at `Media/Metadata/`, EXP-085 flag patch active, DT_INIT_ARRAY fix (EXP-092) applied, EXP-095 tracer active
 - **Path:** B (real metadata path)
 - **Question:** What are the exact args and return value of the `_ThreadPoolWaitCallback` lookup at runtime, and what does the method table at `[context+0x30]` contain?
