@@ -1654,3 +1654,33 @@ Stage Summary:
   function failure causes the signaling code to be skipped
 
 Commit: pending
+Work Log:
+- Identity verified: eboot SHA256 d17fba4a... (Yatzi), PRX d73b3fc7... (Yatzi), metadata 4c85fdec... (Yatzi)
+- Found upstream knowledge transfer file: PPSA17697_Yatzi.md
+  * Already documents the EXACT same sceKernelWaitSema deadlock
+  * Already documents FAST_PATH=1 as the fix
+  * Already documents 14+ AssetGarbageCollectorHelper threads blocked
+- Root cause confirmed: FAST_PATH=0 causes main thread to block on its own
+  sceKernelWaitSema (handle 0x83). The signaling code is AFTER the main
+  thread's wait — chicken-and-egg problem.
+- Ran with FAST_PATH=1:
+  * NO deadlock
+  * 0 SIGSEGVs
+  * 100,000+ imports (was 83K with FAST_PATH=0)
+  * VideoOut reached (38 references)
+  * Unity game managers listed (globalgamemanagers, globalgamemanagers.assets)
+  * New crash: SIGABRT at RIP=0 (NULL execute — completely different issue)
+  * 11,179 log lines (was 8,768)
+
+Stage Summary:
+- FAST_PATH=1 RESOLVES the semaphore deadlock
+- Game progresses MUCH further: past IL2CPP init, past semaphore stall,
+  into Unity game manager loading
+- New crash is NULL execute (RIP=0) — different subsystem, likely a missing
+  HLE function or unregistered callback
+- IL2CPP initialization is FULLY WORKING with the correct dump
+- The entire EXP-035..058 investigation was on the wrong game (Dreaming Sarah)
+  with missing metadata — none of those findings apply
+- EXP-060..063 are the FIRST valid experiments with the correct Yatzi dump
+
+Commit: pending
