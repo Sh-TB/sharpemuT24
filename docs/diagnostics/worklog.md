@@ -1684,3 +1684,33 @@ Stage Summary:
 - EXP-060..063 are the FIRST valid experiments with the correct Yatzi dump
 
 Commit: pending
+  * PPSA17697_Yatzi.md already documents: "NULL execute fault recovery — redirects NULL calls"
+  * FIX_HISTORY.md EXP-002: "Before: Crash at RIP=0. After: 15-1005 faults recovered"
+  * Same pattern across 3 games: Harvest Days, Seeker My Shadow, Yatzi
+- Rule 012: Configuration recorded: SHARPEMU_SEMA_FAST_PATH=1, SHARPEMU_EXP048_STUB unset
+- Task 4: Unity asset files were MISSING from dump
+  * Found in old upload: globalgamemanagers, globalgamemanagers.assets, unity_default_resources, unity_builtin_extra
+  * Copied all to /tmp/games/yatzi/Media/ and /tmp/games/yatzi/Media/Resources/
+  * Re-ran audit: PASS
+- Task 1: NULL execute crash analysis
+  * 1,004 NULL execute recoveries before fatal crash
+  * Fatal crash: "*** stack smashing detected ***: terminated"
+  * This is HOST-SIDE stack corruption, not guest code
+  * TryRecoverNullExecuteFault redirects NULL calls to return-zero stub
+  * After ~1000 recoveries, host stack corrupted → SIGABRT
+- Task 2: No NOT_FOUND/unresolved imports near crash — all imports resolved
+- Task 3: NULL calls come from IL2CPP API stubs returning NULL where game expects objects
+- Ran with Unity assets: same crash (assets don't affect NULL execute pattern)
+- Layer classification: Layer 4 (Unity) — IL2CPP stubs return NULL
+
+Stage Summary:
+- ROOT CAUSE CONFIRMED: IL2CPP fake heap stubs return NULL for API functions
+  that should return real Unity objects. Game stores NULL, calls NULL later,
+  SharpEmu recovers 1004 times, host stack corrupts, SIGABRT.
+- Same root cause as Harvest Days and Seeker My Shadow (documented in knowledge transfer)
+- Unity asset files don't affect the crash (IL2CPP stub issue, not file issue)
+- EXP-035..058 were on wrong game (Dreaming Sarah) — fully invalidated
+- EXP-060..064 are first valid experiments with correct Yatzi dump
+- Progress: Layer 1-3 SOLVED, Layer 4 CURRENT, Layer 5 NOT REACHED
+
+Commit: pending
