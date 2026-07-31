@@ -490,3 +490,38 @@ Path B (real metadata path):
 
 The main thread reaches `sceKernelAllocateDirectMemory` — this is significant progress! It means IL2CPP initialization completed enough to start GPU resource allocation. The blocker is that the main thread stops making HLE calls after this point.
 
+
+---
+
+## EXP-087 Correction (2026-07-31)
+
+### Correction to EXP-086
+
+**EXP-086 said:** "Main thread is NOT blocked — it's running but went silent"
+
+**Corrected:** The main thread IS blocked — on `sceKernelWaitSema(handle=0x81)`. The stall detector captured this in the "Stall snapshot" line:
+```
+Stall snapshot: rip=0x6FFFFD001150 rdi=0x6FFF00000081
+Stall import-stub: nid=Zxa0VhQVTsk -> libKernel:sceKernelWaitSema
+sema.wait-host-block handle=0x00000081 name='Baselib_SystemSemaphore' ret=0x804F6E9EB
+```
+
+The main thread was NOT listed as a "Stall guest-thread" because the stall detector only lists threads blocked in HLE handlers, not threads stuck in import stubs. But the thread IS effectively blocked.
+
+### Updated Current Blocker
+
+**ALL 15 threads are deadlocked:**
+- Main thread: blocked on `WaitSema(0x81)` at PRX `0x804F6E9EB`
+- 13 Workers: blocked on `WaitSema(0x5C..0x74)` at EBOOT `0x800AA0207`
+- GC thread: blocked on `WaitSema(0x83=SuspendSemaphore)` at PRX `0x804FB5BAF`
+
+**Nobody signals any of these semaphores.** This is a true all-threads-deadlocked state.
+
+### Handle 0x81 Details
+
+- Name: `Baselib_SystemSemaphore`
+- Created alongside 0x80, 0x82 (right before GC semaphores 0x83, 0x84)
+- Never signaled (0 `sema.signal` entries in entire log)
+- Main thread waits on it from PRX `0x804F6E9EB` (vaddr 0x2999EB)
+- Created AFTER workers and BEFORE GC thread
+

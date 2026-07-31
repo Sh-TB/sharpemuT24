@@ -2604,3 +2604,38 @@ Stage Summary:
 - Next: add RIP sampling to trace what main thread is doing
 
 Commit: pending
+
+---
+Task ID: EXP-087
+Agent: main (SharpEmu bringup)
+Task: EXP-087 — Determine what main thread is doing after AllocateDirectMemory.
+
+Work Log:
+- Read YATZI_MASTER_DEBUG_STATE.md for current state
+- EXP-086 said main thread is "running but silent" — this was WRONG
+- Re-examined the stall detector output from Path B log
+- FOUND: "Stall snapshot: rip=0x6FFFFD001150 rdi=0x6FFF00000081"
+  * This is the IMPORT STUB for sceKernelWaitSema
+  * Handle 0x81 = Baselib_SystemSemaphore
+  * Return address: 0x804F6E9EB (PRX vaddr 0x2999EB)
+- Also found: "sema.wait-host-block handle=0x00000081" — confirms the wait
+- The main thread IS blocked — just not listed in "Stall guest-thread" entries
+  because the stall detector only lists HLE-handler-blocked threads, not
+  import-stub-blocked threads
+- ALL 15 threads are deadlocked:
+  * Main: WaitSema(0x81) at PRX 0x804F6E9EB
+  * 13 Workers: WaitSema(0x5C..0x74) at EBOOT 0x800AA0207
+  * GC thread: WaitSema(0x83=SuspendSemaphore) at PRX 0x804FB5BAF
+- Handle 0x81 was NEVER signaled (0 entries in log)
+- Handle 0x81 created alongside 0x80, 0x82 (before GC semaphores 0x83, 0x84)
+- No new diagnostic needed — stall detector already had the data
+- Classification: B) RIP repeats (blocked in import stub)
+
+Stage Summary:
+- CORRECTED EXP-086: main thread IS blocked, not running
+- ALL 15 threads deadlocked — true deadlock
+- Main thread blocks on WaitSema(0x81) from PRX 0x804F6E9EB
+- Handle 0x81 never signaled — need to find what should signal it
+- Next (EXP-088): disassemble PRX at 0x804F6E9EB to understand the wait context
+
+Commit: pending
