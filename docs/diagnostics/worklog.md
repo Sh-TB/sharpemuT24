@@ -2918,3 +2918,40 @@ Stage Summary:
 - Deadlock pattern identical to EXP-092: WaitSema(0xA6) at 0x804F6E9EB, all 15 threads blocked.
 - Knowledge storage fully compliant: all 4 master files tracked, EXP-095 commit URL (e131ce7) verified, origin/master HEAD updated.
 - Next EXP-096: trace what the main thread does between 0x804F055DB (lookup result stored) and 0x804F6E9EB (WaitSema block). Look for QueueUserWorkItem or similar work-submission call that should happen but doesn't.
+
+---
+Task ID: EXP-096
+Agent: main (Super Z)
+Task: Find the actual missing gate in the ThreadPool work-submission path. Determine if work submission is never reached (Case A), reached but no task inserted (Case B), or task inserted but SignalSema not called (Case C).
+
+Work Log:
+- Verified git state: origin/master HEAD = bcd8904, all knowledge files tracked, working tree clean.
+- Read YATZI_MASTER_DEBUG_STATE.md (883 lines), YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md (1283 lines), YATZI_EXP_INDEX.md (78 lines), EXP-095.md (184 lines), _Exp095ThreadPoolLookupTracer.cs (353 lines). Reviewed all Golden Rules 0-9.
+- Step 1 (static analysis): Disassembled ThreadPool dispatch function 0x804F6E510 (301 instructions, 22 calls, 4 lock ops). Found the WaitSema call is at 0x804F6E9E6 (call 0x804FC1C60) inside function 0x804F6E880, NOT 0x804F6E510.
+- Disassembled function 0x804F6EC20 (work-submission function containing SignalSema at 0x804F6ECF9). It iterates worker entries, performs atomic CAS on [entry+0x90], and calls SignalSema via 0x804FC1CE0 when CAS succeeds + esi < 0.
+- Found all 3 callers of 0x804F6EC20 in PRX via E8 rel32 scan: 0x804F4571A, 0x804F9FAAA, 0x804FA14C8. Zero callers in EBOOT.
+- Step 2 (runtime tracer): Wrote _Exp096WorkSubmissionTracer.cs — patches all 3 call sites with INT3. On hit, logs caller RIP, registers (rdi/rsi/rdx/rbx), and thread pool context fields.
+- Wired into DirectExecutionBackend.Exceptions.cs (new handler before EXP-035/036) and DirectExecutionBackend.Imports.cs (Exp096PatchWorkSubmissionTracers() registration).
+- First build + run: crashed with .NET JIT "Invalid Program" error in EXP-095's memory dump (host pointer 0x7200093528 caused JIT crash). Fixed by simplifying EXP-095's method table and MethodInfo dumps to skip content reading — only log pointer values.
+- Second build + run: succeeded. Exit code 4 (stall). Log: /tmp/exp080_logs/exp096_run2.log (8993 lines).
+- Step 3 (classification): CASE A CONFIRMED. All 3 EXP-096 patches installed, ZERO EXP096-WORKSUBMIT-ENTER hits. EXP-095 lookup still succeeded (rax=0x6007E64D0). Same stall: WaitSema(0xA6) at 0x804F6E9EB.
+- Step 5 (static confirmation): Found all callers of the 3 containing functions:
+  - 0x804F456E0 (contains site #1): 0 direct callers — DEAD CODE
+  - 0x804F9FA80 (contains site #2): 1 caller at 0x804FA2089 (in function 0x804FA1FE0)
+  - 0x804FA1440 (contains site #3): 0 direct callers — DEAD CODE
+  - 0x804FA1FE0 (contains caller of site #2's function): 0 direct callers — DEAD CODE
+- The ENTIRE work-submission call chain is dead code. Only reachable via indirect function pointers (vtables, .NET delegates, IL2CPP runtime callbacks, function pointer globals) that are never set up.
+- Wrote EXP-096.md report with full call chain analysis, Case A classification, and evidence table.
+- Updated YATZI_MASTER_DEBUG_STATE.md: added EXP-096 section documenting the dead-code call chain.
+- Appended EXP-096 to YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md (coverage 66 -> 67).
+- Appended EXP-096 row to YATZI_EXP_INDEX.md.
+- Committed as 8fc4ddc (8 files, 432 insertions, 57 deletions), pushed to origin/master.
+- Replaced [see commit] placeholder with real hash 8fc4ddc, committed, pushed.
+
+Stage Summary:
+- EXP-096 CASE A CONFIRMED: Work-submission function (0x804F6EC20) is NEVER reached. All 3 call sites had zero INT3 hits. The entire call chain is dead code — containing functions have 0 direct callers.
+- Root cause: The work-submission path is only reachable via indirect function pointers (vtables/delegates/callbacks) that are never set up during SharpEmu's initialization.
+- The callback EXISTS (EXP-095) but the code that should INVOKE it is dead code because the function pointer registration is missing.
+- Also fixed EXP-095 tracer: simplified memory dumps to avoid .NET JIT "Invalid Program" crash.
+- Knowledge storage fully compliant: all 4 master files tracked, EXP-096 commit URL (8fc4ddc) verified, origin/master HEAD updated.
+- Next EXP-097: search PRX data segment for function pointers to the dead-code functions. Check IL2CPP registration data. Find what should populate the function pointer.
