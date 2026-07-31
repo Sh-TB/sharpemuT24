@@ -2084,3 +2084,233 @@ Stage Summary:
 - Next: identify what SharpEmu HLE function should trigger CLEAR callback
 
 Commit: pending
+
+---
+Task ID: EXP-079
+Agent: main (SharpEmu bringup)
+Task: EXP-079 — Trace the real dependency completion path (CLEAR, dispatcher, worker chain).
+
+Work Log:
+- Identity verified: Yatzi (SHA256 d17fba4a... PASS — unchanged from EXP-076)
+- NOP bypass at 0x800AA0207 confirmed STILL PRESENT in source (DirectExecutionBackend.Imports.cs line 2748-2765)
+  * Did NOT remove it for EXP-079 (user said "Do NOT modify emulator behavior yet")
+  * But used existing EXP-078 log (captured with bypass) plus static analysis to draw conclusions
+- TASK 1 — CLEAR function 0x800A9F750 fully analyzed:
+  * Function bounds: 0x800A9F750..0x800A9F8DA (length 0x18A = 394 bytes)
+  * Takes 1 param in rdi (container object)
+  * Calls scePthreadMutexDestroy on [r12+0x30]
+  * Iterates array r12[0..r12[0x10]], for each element rbx:
+    - mov byte [rbx+0x108], 0   ← clears dep flag
+    - lock xadd [rbx+0x70], 1   ← atomic refcount inc
+    - If refcount < 0 → call sceKernelSignalSema([rbx+0x68], 1)
+    - Calls 0x800BB0860(rbx)    ← worker wake/notify
+    - Calls sceKernelDeleteSema([rbx+0xB0])
+    - Calls sceKernelDeleteSema([rbx+0x68])
+  * Calls 0x800461000(r12)     ← finalizer on container
+  * Frees r12 with size r15d (from [r14+8])
+  * Sets *r14 = 0
+  * CONCLUSION: CLEAR is a C++ DESTRUCTOR for the worker collection, NOT a "dependency completion callback"
+- TASK 2 — References to 0x800A9F750 in EBOOT:
+  * Direct CALL/JMP: 0
+  * LEA references: 1 (at 0x800A9F2FF in init function 0x800A9F210)
+  * Pointer-sized in data: 0
+  * RELA addend matches: 0 (CLEAR is set at runtime by init, not by relocation)
+- TASK 3 — Function-pointer slot for CLEAR:
+  * LEA at 0x800A9F2FF loads CLEAR's address into rcx
+  * Stored at runtime address 0x801EA3230 by `mov [rip+0x13f9923], rcx` at 0x800A9F306
+  * Init function 0x800A9F210 is the C++ static-local "once init" pattern (guard byte at 0x801EA4210)
+  * Init function 0x800A9F210 itself is stored at slot 0x801D1C370 by R_X86_64_RELATIVE reloc
+  * No code in EBOOT LEA/MOV-loads slot 0x801D1C370 → accessed indirectly (likely via vtable/dispatch)
+- TASK 4 — Dependency object identity:
+  * [rbx+0x108] is a BYTE FLAG, not a tagged pointer (CORRECTION to EXP-076)
+  * Accessed only as `cmp byte [rbx+0x108], 0` and `mov byte [rbx+0x108], 0/1`
+  * 0 = no work pending (worker exits); non-zero = work pending (worker continues looping)
+- TASK 5 — State transitions for [worker+0x108]:
+  * SET to 1: at 0x800A9FAED in worker creation function 0x800A9F9A0
+  * CLEAR to 0: at 0x800A9F834 in destructor CLEAR (0x800A9F750)
+  * No other code path in EBOOT writes [worker+0x108] for this worker type
+- TASK 6 — Worker chain traced:
+  * Worker creation: 0x800A9F9A0 (creates descriptor 0x110 bytes, 2 semaphores, sets [w+0x108]=1, [w+0x28]=0x800AA0170)
+  * Worker entry: 0x800BB06A0 (calls [w+0x28] = 0x800AA0170 dispatch loop)
+  * Worker dispatch loop: 0x800AA0170
+    - Increment [w+0xB8] (refcount); if was <0, signal [w+0xB0] (signal sema — wakes main thread)
+    - Check [w+0x108] (dep flag); if 0, exit
+    - Decrement [w+0x70] (work count); if was <=0, wait on [w+0x68] (wait sema — handle 0x5C!)
+    - After wait, check [w+0x108] again at gate 0x800AA0207; if 1, call [w+0xF8] (task func)
+  * Task dispatcher: 0x800AC6080
+    - Iterates workers
+    - Writes [w+0xF8] = task function
+    - Writes [w+0x100] = task arg
+    - lock xadd [w+0x70], 1 (increment work count)
+    - If old [w+0x70] was negative (worker was waiting), call sceKernelSignalSema([w+0x68], 1) ← THIS signals 0x5C!
+  * Chain: dispatcher → [w+0x70] inc → signal [w+0x68] (0x5C) → worker wakes → checks [w+0x108] → calls [w+0xF8]
+- TASK 7 — GPU relationship:
+  * Log shows ZERO sceVideoOut, sceAgc, sceGnm calls
+  * Main thread DOES reach sceKernelAllocateDirectMemory (GPU memory allocated)
+  * Main thread then enters PRX (il2cpp_init) and never returns
+  * GPU init is DOWNSTREAM of the PRX stall, not causal
+  * Confirms EXP-077's correction: GPU init is NOT the blocker
+- TASK 9 — Runtime confirmation from EXP-078 log (5.7M lines):
+  * 0x5C (worker 0 wait sema) created at log line 8640
+  * Workers scheduled with entry=0x800BB06A0 (worker_entry)
+  * Main thread (tid=4) calls sceKernelWaitSema on each worker's signal sema (0x5D, 0x5F, ...) from 0x800A9FC25
+    * These are inside worker creation function 0x800A9F9A0 (decrementing refcount, waiting for worker to signal)
+  * Workers enter dispatch loop, signal their signal sema (correctly wakes main thread)
+  * Workers then enter wait state on their wait sema (0x5C, 0x5E, ...) — EXP-078 confirmed 0/5.7M signals on these
+  * Main thread continues to il2cpp_init (line 193290), real_init (193300), call#7 (195349), array_proc (205060)
+  * Main thread STUCK at array_proc (PRX vaddr 0x4F23431, runtime 0x804F23431) — never returns
+  * array_proc was called with rcx=0x379 (889) but count=2454267240 (2.45 billion — likely corrupted/uninitialized)
+  * Dispatcher 0x800AC6080 NEVER reached (0 references in log)
+  * CONFIRMED: Main thread stuck in PRX → never reaches dispatcher → workers wait forever
+
+Stage Summary:
+- EXP-076's interpretation of [rbx+0x108] as "tagged pointer to previous worker" was WRONG
+  * It's a byte flag: 0=no work, non-zero=work pending
+- EXP-075/076's interpretation of CLEAR as "dependency completion callback" was WRONG
+  * CLEAR is a C++ destructor for the worker collection, only called during shutdown
+- The real completion mechanism is the TASK DISPATCHER at 0x800AC6080
+  * Writes [w+0xF8] (task func) and increments [w+0x70] (work count)
+  * If worker was waiting (count was negative), signals [w+0x68] (the 0x5C handle!)
+- The dispatcher is NEVER REACHED because the main thread is stuck in PRX array_proc
+- The PRX array_proc is stuck because it's iterating 2.45 billion entries (corrupted count)
+- ROOT CAUSE: Main thread stuck in IL2CPP PRX initialization (array processor)
+- This blocks the dispatcher, which blocks workers, which blocks GC, which blocks game progress
+- Permanent fix location: SharpEmu HLE must correctly handle the PRX array processor's count
+  * OR: implement proper IL2CPP metadata loading so the count is correct
+  * NOT: GPU init, NOT: semaphore fast path, NOT: NOP bypasses
+
+Commit: pending
+
+---
+Task ID: EXP-080
+Agent: main (SharpEmu bringup)
+Task: EXP-080 — Trace corrupted IL2CPP array count to its source (clean run + A/B test).
+
+Work Log:
+- Identity verified: Yatzi (SHA256 d17fba4a... PASS)
+- STEP 1: Removed the 11-byte NOP bypass from DirectExecutionBackend.Imports.cs (lines 2748-2765)
+- STEP 2: Installed .NET SDK 10.0.302, rebuilt SharpEmu clean (Release, single-file)
+  * New binary: /tmp/my-project/work/sharpemu-build-clean/SharpEmu.bin
+  * Verified [EXP072-NOP] string is absent from new binary
+- STEP 3: Ran Yatzi clean (no NOP), 120-second timeout
+  * Result: 11,217 log lines, 1005 NULL execute faults, SIGSEGV exit
+  * Main thread NEVER reaches il2cpp_init (EXP036-IL2CPP_INIT-ENTER not logged)
+  * Main thread NEVER reaches array_proc (EXP058-ARRAYPROC-ENTER not logged)
+  * Main thread stuck in worker_create at WaitSema(0x6B) — line 8797
+  * Workers crash on NULL [rbx+0xF8] calls (same as EXP-064 baseline)
+- STEP 4: A/B test — temporarily re-added NOP, rebuilt, ran again (120s)
+  * Result: 887,589 log lines, 0 NULL execute faults, SIGSEGV exit
+  * Main thread DOES reach il2cpp_init (line 148,005)
+  * Main thread DOES reach real_init (line 148,021), call#7 (line 155,960)
+  * Main thread DOES reach hash_lookup (line 414,623)
+  * Main thread NEVER reaches array_proc (EXP058-ARRAYPROC-ENTER not logged)
+  * 0x92490068 value NEVER observed in either run
+- STEP 5: Removed NOP again (restored clean state)
+- KEY FINDING: EXP-079's "corrupted count at array_proc" was an ARTIFACT of the NOP bypass
+  * The EXP-078 log (now deleted) apparently showed array_proc being reached
+  * But neither my clean run nor my NOP run reproduces this
+  * EXP-079's conclusion is FALSE and formally retracted
+- REAL BLOCKER (Run B, with NOP): IL2CPP hash_table pointer corruption
+  * hash_table = 0x600103DB0 (valid) during real_init/call#7/crash_func
+  * hash_table = 0x00FFF00000006090 (CORRUPTED) at hash_lookup
+  * The 0x00FFF upper bits indicate partial overwrite of the global at 0x801EF7610
+- REAL BLOCKER (Run A, clean): Worker NULL execute storm
+  * Workers call [rbx+0xF8]=NULL → SIGSEGV → recover → loop
+  * 1005 faults cause host stack corruption → fatal abort
+  * Same as EXP-064 baseline (this issue was always there; NOP masked it)
+- [rbx+0x108] CLARIFICATION:
+  * Confirmed it IS a byte flag (low byte 0x01 = work pending)
+  * Upper bytes are UNINITIALIZED heap garbage (not a tagged pointer)
+  * worker_create only writes mov byte [rbx+0x108], 1 (does NOT zero upper bytes)
+  * The qword self-pointer write at 0x800A9FD33 only applies to the LAST worker
+
+Stage Summary:
+- EXP-079 formally CORRECTED: "corrupted count at array_proc" was NOP-contaminated and not reproducible
+- The real blocker is IL2CPP hash_table corruption (with NOP) or worker NULL crash (without NOP)
+- Both stem from incomplete/incorrect IL2CPP metadata HLE in SharpEmu
+- NOP bypass removed from source — clean state restored
+- Next: EXP-081 should install a write watchpoint on 0x801EF7610 to catch the exact
+  instruction that corrupts the hash_table pointer
+
+Commit: pending
+
+---
+Task ID: EXP-080-validation
+Agent: main (SharpEmu bringup)
+Task: EXP-080 environment/input validation + hash_table contamination correction.
+
+Work Log:
+- User requested full A/B validation before accepting EXP-080 conclusions
+- STEP 1: Game identity verified — eboot/PRX/metadata SHA256 all match prior EXPs
+- STEP 2: Runtime layout confirmed — all files in correct locations
+- STEP 3: Launch command + env vars recorded — identical for both runs
+  * SHARPEMU_SEMA_FAST_PATH=1, SHARPEMU_LOG_SEMA=1 (diagnostic only)
+  * No other EXP env vars set
+- STEP 4: Binary hashes recorded
+  * Clean: 12a4c1c2d30ff02b14368db8cd7cbec97a6198e54a0f15f7a6a92257350df314
+  * NOP:   dc0df5c3adec7c0efa4cbde35002911b5405c9665523b508bf72b9cbf46ee2f0
+- STEP 5: Source state verified
+  * EXP-073 NOP removed (only comment remains)
+  * 11 INT3 diagnostic tracers identified — identical in both runs
+  * INT3 tracers are 1-byte 0xCC, restored after hit (NOT control-flow changes)
+  * EXP-073 NOP was 11-byte 0x90, never restored (control-flow change)
+  * These are categorically different and must not be confused
+- STEP 6: Clean run reproduced
+  * First NULL execute: caller=0x800AA01D4, rbx=0x6006D0FF0
+  * [rbx+0xF8]=0 (NULL), [rbx+0x108]=0x6006D0F01 (byte flag + heap garbage)
+  * 13 workers created, 1005 NULL faults, SIGSEGV exit
+- STEP 7: A/B divergence found
+  * Divergence point: 0x800AA0207 (cmp byte [rbx+0x108], 0)
+  * Clean: gate active → jne taken → call [rbx+0xF8]=NULL → crash
+  * NOP: gate NOPped → falls through → signals wrong sema → loops
+  * NOP creates ARTIFICIAL execution path (no crash, but no useful work)
+- STEP 8: CRITICAL CORRECTION — hash_table corruption claim is FALSE
+  * Error 1: EXP-080 compared values from TWO DIFFERENT addresses
+    - EXP058 reads from 0x801EF7610 → valid value 0x600103DB0
+    - EXP039 reads from 0x801EE7610 → different value 0x00FFF00000006090
+    - These addresses differ by 0x10000 (64KB) — NOT the same variable
+  * Error 2: The "corrupted" value was observed ONLY in the NOP run
+    - Clean run never reaches hash_lookup
+    - Same contamination risk as EXP-079
+  * EXP-081's write-watchpoint plan is CANCELLED (based on false premise)
+
+Stage Summary:
+- EXP-080's "hash_table corruption" claim is RETRACTED
+- The real root cause (from clean run): workers call NULL [rbx+0xF8] because
+  the task dispatcher (0x800AC6080) never writes task functions
+- The dispatcher never runs because the main thread crashes first
+  (worker NULL execute storm → host stack corruption → SIGSEGV)
+- This is a chicken-and-egg problem:
+  * Workers need dispatcher to set [worker+0xF8]
+  * Dispatcher needs main thread to finish init and call il2cpp_init
+  * Main thread crashes before reaching il2cpp_init
+- EXP-081 (revised): find the intended caller of the task dispatcher and
+  determine if it's reached before the crash storm
+
+Commit: pending
+
+---
+Task ID: EXP-080-gotcha
+Agent: main (SharpEmu bringup)
+Task: Record standing gotcha — 0x801EF7610 vs 0x801EE7610 address typo.
+
+Work Log:
+- The 0x801EF7610 vs 0x801EE7610 (EF vs EE) address confusion has now caused
+  wasted analysis TWICE:
+  1. EXP-053 flagged it as an EXP-039 bug (wrong address in the EXP039 tracer)
+  2. EXP-080 nearly caused a wasted write-watchpoint hunt when I compared
+     EXP058's value at 0x801EF7610 against EXP039's value at 0x801EE7610
+     and misidentified the difference as "corruption"
+
+Standing gotcha for all future EXPs:
+- 0x801EF7610 = EXP058's hash_table_ptr address (with "EF")
+- 0x801EE7610 = EXP039's hash_table_ptr address (with "EE")
+- These differ by 0x10000 (64KB) and are NOT the same variable
+- ALWAYS verify which tracer's address you are reading from before comparing values
+- If fixing this, either:
+  (a) correct EXP039's address to match EXP058's, OR
+  (b) confirm they are genuinely different globals and document both
+
+This must be checked explicitly in any EXP that touches hash_table globals.
+
+Commit: pending

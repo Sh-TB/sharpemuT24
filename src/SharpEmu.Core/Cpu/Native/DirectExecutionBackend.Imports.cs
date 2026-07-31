@@ -2745,24 +2745,11 @@ public sealed partial class DirectExecutionBackend
                                     // the consumer candidate and confirm hash table population.
                                     Exp058PatchCall7Tracers();
 
-                                    // EXP-072: NOP out the gate check at 0x800AA0207
-                                    // to allow SignalSema to be reached.
-                                    // cmp byte [rbx+0x108], 0 (7) + jne (2) + jmp (2) = 11 bytes → 11 NOPs
-                                    // The jmp at 0x800AA0210 also skips SignalSema, so it must be NOPped too.
-                                    unsafe
-                                    {
-                                        var gatePtr = (byte*)0x800AA0207;
-                                        uint flGate = 0;
-                                        if (VirtualProtect((void*)0x800AA0207, 16u, 64u, &flGate))
-                                        {
-                                            // NOP out: cmp (7) + jne (2) + jmp (2) = 11 NOPs
-                                            for (int gi = 0; gi < 11; gi++)
-                                                gatePtr[gi] = 0x90; // NOP
-                                            VirtualProtect((void*)0x800AA0207, 16u, flGate, &flGate);
-                                            FlushInstructionCache(GetCurrentProcess(), (void*)0x800AA0207, 16u);
-                                            Console.Error.WriteLine("[EXP072-NOP] Gate at 0x800AA0207 NOPped (11 bytes) — SignalSema should now be reachable");
-                                        }
-                                    }
+                                    // EXP-080 (2026-07-31): The 11-byte NOP bypass at 0x800AA0207 from
+                                    // EXP-072/073 has been REMOVED. It was a diagnostic patch that masked
+                                    // the symptom (workers spinning on unsignaled 0x5C) without addressing
+                                    // the upstream cause. EXP-079's "corrupted count" finding must be
+                                    // re-verified on a clean run before any further action.
                                 }
 
                                 return OrbisGen2Result.ORBIS_GEN2_OK;
