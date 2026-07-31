@@ -1325,7 +1325,7 @@ The investigation was NOT wasted:
 
 ### EXP-097 — Dead-Code Functions Not Registered Anywhere — Self-Registering Function 0x804FA1FE0 Never Called
 - **Date:** 2026-08-01
-- **Commit:** [see git log for EXP-097.md]
+- **Commit:** [dede8eb](https://github.com/Sh-TB/sharpemuT24/commit/dede8eb)
 - **Configuration:** `SHARPEMU_SEMA_FAST_PATH=0`, metadata at `Media/Metadata/`, EXP-085 flag patch active, DT_INIT_ARRAY fix (EXP-092) applied, EXP-095 + EXP-096 + EXP-097 tracers active
 - **Path:** B (real metadata path)
 - **Question:** What indirect call mechanism should reach the work-submission function `0x804F6EC20`, and why is the function pointer never set?
