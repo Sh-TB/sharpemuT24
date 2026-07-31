@@ -1624,3 +1624,33 @@ Key Files Produced:
 - docs/diagnostics/EXP-061.md (identity audit report)
 
 Commit: pending
+- Quick Check 2: sceKernelSignalSema (NID 4czppHBiriw) NEVER called
+  * 0 occurrences in entire 8768-line log
+  * SignalSema IS implemented in SharpEmu (KernelSemaphoreCompatExports.cs)
+  * 0 unresolved imports — all NIDs resolved
+  * PROVEN: genuine deadlock, not fast-path artifact
+- Quick Check 3: Different from EXP-036
+  * EXP-036: workers spun because FAST_PATH=1 made WaitSema return immediately
+  * EXP-062: FAST_PATH=0, workers properly block, but nothing signals
+  * Different root cause at different stage
+- Root cause: 14 threads blocked on sceKernelWaitSema, nothing calls sceKernelSignalSema
+  * 13 AssetGarbageCollectorHelper threads (handles 0x5C-0x74)
+  * 1 main thread (handle 0x83, ret=0x804FB5BAF in PRX)
+  * Workers wait for task assignment
+  * Main thread waits for unknown condition
+  * No thread ever signals any semaphore
+- Main thread created at entry 0x804F88AA0 (PRX code, Unity runtime init)
+  * Executed briefly (1 import call), then blocked
+  * Return address 0x804FB5BAF is in PRX (post-il2cpp_init Unity code)
+
+Stage Summary:
+- IL2CPP initialization WORKS (EXP-060 confirmed)
+- New blocker is a genuine semaphore deadlock (NOT a fast-path issue)
+- sceKernelSignalSema is NEVER called by the game code
+- The signaling code path is never reached — likely due to a missing or
+  failing HLE function that prevents Unity from progressing to the
+  task-dispatch stage
+- Next step: trace the main thread's execution path to find what HLE
+  function failure causes the signaling code to be skipped
+
+Commit: pending
