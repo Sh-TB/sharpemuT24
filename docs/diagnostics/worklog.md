@@ -1959,3 +1959,28 @@ Stage Summary:
 - Next: check if game reaches VideoOut rendering
 
 Commit: pending
+  * 2 sceKernelAllocateDirectMemory (not GPU-related)
+- User feedback #1: Confirmed no real VideoOut calls (not string matches)
+- User feedback #2: SignalSema handle diversity — 13K calls but NOT on handle 0x5C
+  * Workers wait on 0x5C (42 WaitSema calls)
+  * SignalSema signals OTHER handles (main thread's handles)
+  * This IS a spin pattern — appears active but workers still stuck
+- Task 3: Same class of issue — workers spin on unsignaled semaphore
+  * NOP bypassed the gate but didn't resolve the dependency
+  * SignalSema fires on wrong handles because dependency is bypassed
+- Task 4: Layer status updated — Layer 4 (Unity) NOT REACHED
+- Root cause: workers wait on 0x5C, nobody signals 0x5C
+  * The dependency at [rbx+0x108] must be properly resolved
+  * When resolved, CLEAR function would signal the correct handle (0x5C)
+  * NOP bypass causes SignalSema to fire with wrong handle
+
+Stage Summary:
+- Game does NOT reach rendering (0 VideoOut/AGC calls)
+- SignalSema fires 13K times but on WRONG handles (not 0x5C)
+- Workers still spin on handle 0x5C
+- NOP bypassed the gate but didn't resolve the dependency
+- The permanent fix must resolve the dependency properly so the
+  correct semaphore handle (0x5C) is signaled
+- Next: find what should signal handle 0x5C
+
+Commit: pending
