@@ -1003,3 +1003,50 @@ Find what should call `0x804FA1FE0`:
 4. Consider: is `0x804FA1FE0` supposed to be called from EBOOT?
 
 One question: Is `0x804FA1FE0` in the PRX's init_array, and if not, what code path should reach it?
+
+
+---
+
+## EXP-111: UD2 Instructions Are Noreturn Markers, NOT Function Entry Stubs (2026-08-02)
+
+### Hypothesis REJECTED
+
+**Hypothesis:** "UD2 stubs at function entry fail because patching skips the original function prologue. A trampoline that preserves the function entry/prologue semantics may allow execution to continue."
+
+**Verdict: REJECTED.** Both UD2 instructions are noreturn markers AFTER calls, NOT at function entry.
+
+### Critical Context
+
+- **EXP-108/109/110 do not exist.** The latest EXP before this was EXP-097. No previous UD2 patching was attempted.
+- **libSceApt does not exist** anywhere in the codebase, docs, or game files.
+- The function containing the primary UD2 (0x801832480) was **never reached** during any emulator run.
+
+### Primary UD2: 0x801832489
+
+Function at 0x801832480:
+```asm
+0x801832480  push     rbp           ; FUNCTION ENTRY (prologue)
+0x801832481  mov      rbp, rsp      ; prologue continued
+0x801832484  call     0x801936B50   ; call PLT stub (imported function)
+0x801832489  ud2                    ; NORETURN MARKER (not function entry!)
+```
+
+The UD2 is at offset +9, AFTER the prologue and call. The prologue IS preserved.
+
+### Secondary UD2: 0x8007F9093
+
+After `call 0x801832480` (calls the primary UD2's function). Also a noreturn marker.
+
+### 67 Callers, Zero Hits
+
+The noreturn wrapper at 0x801832480 has 67 callers in the EBOOT. None were reached during EXP-092/095/096/097. The function is an error/panic path that was correctly never triggered.
+
+### Conclusion
+
+The UD2 trampoline hypothesis is irrelevant:
+1. The UD2 is a compiler-generated noreturn marker, NOT a function-entry stub
+2. The prologue is already preserved and executes before the call
+3. There is no code to continue to after the UD2 (only INT3 padding + next function)
+4. The function was never called during any emulator run
+
+The actual blocker remains the ThreadPool deadlock from EXP-096/097 (work-submission call chain is dead code).

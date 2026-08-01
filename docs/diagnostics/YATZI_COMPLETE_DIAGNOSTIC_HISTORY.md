@@ -1,8 +1,8 @@
 # Yatzi Complete Diagnostic History
 
 **Single source of truth for all Yatzi (PPSA17697) debugging experiments.**
-**Coverage: EXP-026 through EXP-097 (68 experiments)**
-**Last updated: 2026-08-01 (EXP-097)**
+**Coverage: EXP-026 through EXP-111 (69 experiments — note: EXP-098..110 not created)**
+**Last updated: 2026-08-02 (EXP-111)**
 
 This file consolidates ALL diagnostic knowledge from every EXP report, git commit, and worklog entry. Future debugging MUST start from this file.
 
@@ -1347,3 +1347,19 @@ The investigation was NOT wasted:
 **Solved:** 5 dead-code functions NOT registered anywhere (0 stored qwords, 0 LEA except self-ref, 0 movabs). 7 runtime-set function pointer globals all populated but point elsewhere. 3 IL2CPP globals populated but don't contain dead-code addresses. Once-init guard never cleared. Self-registering function `0x804FA1FE0` identified as the registration entry point but is itself dead code.
 **Still blocked:** What should call `0x804FA1FE0`? Is it in the init_array? Is it an IL2CPP icall? Is it called from EBOOT?
 **Next debugging target:** Check the PRX's init_array at runtime for `0x804FA1FE0`. Trace the 25 call sites in real_init. (EXP-098)
+
+
+---
+
+## EXP-111 (added 2026-08-02)
+
+### EXP-111 — UD2 Instructions Are Noreturn Markers, NOT Function Entry Stubs — Hypothesis REJECTED
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-111.md]
+- **Configuration:** Static analysis only
+- **Question:** Are the UD2 instructions at 0x801832489 and 0x8007F9093 function-entry stubs that fail because patching skips the prologue?
+- **Hypothesis:** UD2 stubs at function entry fail because patching skips the original function prologue. A trampoline that preserves the function entry/prologue semantics may allow execution to continue.
+- **Finding:** HYPOTHESIS REJECTED. Both UD2 instructions are noreturn markers AFTER calls, NOT at function entry. The function at 0x801832480 has prologue (push rbp; mov rbp, rsp) that executes BEFORE the call — prologue is NOT skipped. The UD2 is the compiler's safety net after a call to a noreturn imported function via PLT. The function has 67 callers in EBOOT but was NEVER reached during any emulator run. libSceApt does not exist anywhere in the codebase. EXP-108/109/110 do not exist — no previous UD2 patching was attempted.
+- **Status:** CONFIRMED — hypothesis REJECTED
+- **Related:** EXP-096, EXP-097
+- **Impact:** The UD2 trampoline experiment is irrelevant to the current blocker (ThreadPool deadlock). The UD2 instructions are in error/panic paths that were never reached. The actual blocker remains the work-submission call chain being dead code (EXP-096/097).
