@@ -1438,3 +1438,18 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — root cause found
 - **Related:** EXP-098, EXP-099, EXP-100, EXP-101, EXP-103
 - **Impact:** The callback registration succeeds (all PLT stubs return 0) but the storage target is NULL. The callback pointer is written to address 0 instead of a valid structure field. This is why the callback is never invoked — no code reads from address 0 to find it.
+
+
+---
+
+## EXP-103 (added 2026-08-02)
+
+### EXP-103 — EXP-102 Corrected: r14 Is Valid (Tracer Bug) — Callback Stored at 0x20337660
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-103.md]
+- **Question:** Is EXP-102's r14=0 real or a tracer artifact?
+- **Hypothesis:** r14=0 is a tracer bug (wrong register offsets).
+- **Finding:** HYPOTHESIS CONFIRMED. EXP-102 tracer used wrong offsets (284 instead of 232 for R14, 276 instead of 216 for R12). With corrected offsets: r14=0x20337660 (valid guest heap), r12=0x7FCEC8EE0710 (IL2CPP context populated). Callback IS stored at valid address. No crash. EXP-102's "root cause" is INVALID.
+- **Status:** CONFIRMED — EXP-102 corrected, tracer bug identified
+- **Related:** EXP-101, EXP-102, EXP-104
+- **Impact:** The callback registration works correctly end-to-end. The callback IS stored at a valid address. The mystery remains: the callback is stored but never invoked. Golden Rule 9 validated — the reviewer's contamination warning was correct.

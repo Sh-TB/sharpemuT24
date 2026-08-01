@@ -3053,3 +3053,32 @@ Stage Summary:
 - The registration context's [+8] field is NULL — this field should point to the callback storage location.
 - The IL2CPP context [0x808923D88] is also NULL at this point.
 - Next EXP-103: trace what rbx is and why [rbx+8] is NULL. What should set this field?
+
+
+---
+Task ID: EXP-103
+Agent: main (Super Z)
+Task: Verify EXP-102's r14=0 finding — is it real or a tracer artifact?
+
+Work Log:
+- Verified git state: HEAD = origin/master = c65aa96.
+- Reviewer flagged EXP-102's crash contamination: "r14=0 finding is real, but crash prevented normal completion" → declared root cause anyway. Contradiction.
+- Checked register offsets: EXP-102 tracer used offset 284 for R14 (should be 232) and 276 for R12 (should be 216).
+- Confirmed from DirectExecutionBackend.cs:800: CTX_R14 = 232, CTX_R12 = 216.
+- ***** TRACER BUG FOUND *****: Wrong offsets returned 0 (uninitialized memory), misinterpreted as NULL.
+- Fixed tracer: corrected R14 offset (284→232), R12 offset (276→216), added NULL guard.
+- Rebuilt and ran: exit code 4 (normal stall, NO CRASH).
+- Corrected results: r14=0x20337660 (valid guest heap), r12=0x7FCEC8EE0710 (IL2CPP context populated).
+- [r14] before xchg = 0 (empty slot), [r14+0x10] = 0x804FA1FE0 (callback function).
+- Callback IS stored at valid address. EXP-102's "root cause" is INVALID.
+- Reconciled with EXP-097: r12 matches [0x808923D88] — no contradiction.
+- Wrote EXP-103.md report documenting the correction.
+- Updated YATZI_MASTER_DEBUG_STATE.md, YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md, YATZI_EXP_INDEX.md, worklog.md.
+
+Stage Summary:
+- EXP-103 CORRECTED EXP-102: r14=0 was a tracer bug (wrong register offsets).
+- r14 = 0x20337660 (valid). Callback IS stored correctly.
+- The registration mechanism works end-to-end. Callback exists at valid address.
+- Mystery remains: callback stored but never invoked.
+- Golden Rule 9 validated: reviewer's contamination warning was correct.
+- Next EXP-104: search for readers of the structure at 0x20337660.

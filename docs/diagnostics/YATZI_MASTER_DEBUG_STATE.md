@@ -1286,3 +1286,37 @@ EXP-101 concluded "callback IS stored correctly" — but only checked that PLT s
 ### Next EXP-103
 
 Trace what `rbx` is (original `rdi` to `0x804FA20E0`) and why `[rbx + 8]` is NULL. What should set this field?
+
+
+---
+
+## EXP-103: EXP-102 Corrected — r14 Is Valid (Tracer Bug) — Callback Stored at 0x20337660 (2026-08-02)
+
+### EXP-102 INVALIDATED
+
+EXP-102's "ROOT CAUSE FOUND: r14 = NULL" was a **TRACER BUG**. The EXP-102 tracer used wrong register offsets:
+- R14: used 284, should be 232 (CTX_R14 from DirectExecutionBackend.cs:800)
+- R12: used 276, should be 216 (CTX_R12)
+
+Both wrong offsets returned 0 (uninitialized context record memory), misinterpreted as NULL.
+
+### Corrected Values (clean run, no crash)
+
+```
+r14 = 0x0000000020336760  ← VALID guest heap address
+r12 = 0x00007FCEC8EE0710  ← IL2CPP context (matches [0x808923D88])
+[r14] before xchg = 0 (empty slot)
+[r14+0x10] = 0x804FA1FE0 (callback function address)
+```
+
+### What Actually Happens
+
+The callback IS stored at `[0x20337660]` via `xchg [r14], rax`. The registration works correctly. The callback function `0x804FA1FE0` is referenced at `[r14+0x10]`. The run completes normally (exit code 4 = stall).
+
+### Golden Rule 9 Validated
+
+The reviewer correctly flagged the contamination risk ("crash prevented normal completion"). This is exactly the Golden Rule 9 scenario: a finding from a contaminated run was accepted as root cause without independent verification. The fix: corrected the tracer, got a clean run, disproved the "root cause."
+
+### Next EXP-104
+
+Search for readers of the structure at `0x20337660`. The callback is stored at `[struct+0]`, and `[struct+0x10]` = `0x804FA1FE0`. Find what code reads these fields to invoke the callback.

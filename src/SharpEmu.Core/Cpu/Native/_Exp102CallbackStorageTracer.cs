@@ -95,9 +95,9 @@ public sealed unsafe partial class DirectExecutionBackend
         }
         _exp102Dumped = true;
 
-        ulong r14 = ReadCtxU64(contextRecord, 284); // CTX_R14
+        ulong r14 = ReadCtxU64(contextRecord, 232); // CTX_R14 (corrected from 284 in EXP-103)
         ulong rax = ReadCtxU64(contextRecord, 120); // CTX_RAX
-        ulong r12 = ReadCtxU64(contextRecord, 276); // CTX_R12 (context global)
+        ulong r12 = ReadCtxU64(contextRecord, 216); // CTX_R12 (corrected from 276 in EXP-103)
 
         Console.Error.WriteLine(
             $"[EXP102-XCHG] *** CALLBACK STORAGE *** r14=0x{r14:X16} rax=0x{rax:X16} (callback ptr)");
@@ -112,37 +112,44 @@ public sealed unsafe partial class DirectExecutionBackend
         else if (r14 >= 0x6FFFF000000 && r14 < 0x700000000000) region = "stack/import area";
         Console.Error.WriteLine($"  r14 region: {region}");
 
-        // Read [r14] BEFORE the xchg
-        ulong beforeVal = 0;
-        try { beforeVal = *(ulong*)r14; } catch { }
-        Console.Error.WriteLine(
-            $"  [r14] BEFORE xchg = 0x{beforeVal:X16}");
-
-        // Read what's at [r14-8] and [r14+8] to understand the structure
-        try
+        // Read [r14] BEFORE the xchg — ONLY if r14 is non-NULL (EXP-103 fix: prevent JIT crash)
+        if (r14 != 0 && r14 > 0x1000)
         {
-            ulong pre = *(ulong*)(r14 - 8UL);
-            ulong post = *(ulong*)(r14 + 8UL);
+            ulong beforeVal = 0;
+            try { beforeVal = *(ulong*)r14; } catch { }
             Console.Error.WriteLine(
-                $"  [r14-8]=0x{pre:X16}  [r14]=0x{beforeVal:X16}  [r14+8]=0x{post:X16}");
-        }
-        catch { }
+                $"  [r14] BEFORE xchg = 0x{beforeVal:X16}");
 
-        // Also read more context around r14
-        try
-        {
-            Console.Error.WriteLine($"  Context around r14 (0x{r14:X16}):");
-            for (int i = -0x20; i <= 0x20; i += 8)
+            // Read what's at [r14-8] and [r14+8]
+            try
             {
-                ulong val = *(ulong*)(r14 + (ulong)i);
-                string cls = "";
-                if (val >= 0x804CD5000 && val < 0x808800000) cls = " (PRX)";
-                else if (val >= 0x600000000 && val < 0x700000000) cls = " (heap)";
-                else if (val == 0) cls = " (NULL)";
-                Console.Error.WriteLine($"    [r14+0x{i:X2}] = 0x{val:X16}{cls}");
+                ulong pre = *(ulong*)(r14 - 8UL);
+                ulong post = *(ulong*)(r14 + 8UL);
+                Console.Error.WriteLine(
+                    $"  [r14-8]=0x{pre:X16}  [r14]=0x{beforeVal:X16}  [r14+8]=0x{post:X16}");
             }
+            catch { }
+
+            // Also read more context around r14
+            try
+            {
+                Console.Error.WriteLine($"  Context around r14 (0x{r14:X16}):");
+                for (int i = -0x20; i <= 0x20; i += 8)
+                {
+                    ulong val = *(ulong*)(r14 + (ulong)i);
+                    string cls = "";
+                    if (val >= 0x804CD5000 && val < 0x808800000) cls = " (PRX)";
+                    else if (val >= 0x600000000 && val < 0x700000000) cls = " (heap)";
+                    else if (val == 0) cls = " (NULL)";
+                    Console.Error.WriteLine($"    [r14+0x{i:X2}] = 0x{val:X16}{cls}");
+                }
+            }
+            catch { }
         }
-        catch { }
+        else
+        {
+            Console.Error.WriteLine($"  *** r14 is NULL or invalid — skipping memory dump ***");
+        }
 
         // Check: is r14 inside the IL2CPP context structure at [0x808923D88]?
         try
