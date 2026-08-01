@@ -1503,7 +1503,7 @@ The investigation was NOT wasted:
 
 ### EXP-107 — PLT 218 NEVER Reached — Gap Is Upstream — Hypothesis B Confirmed
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-107.md]
+- **Commit:** [038290c](https://github.com/Sh-TB/sharpemuT24/commit/038290c)
 - **Question:** Is PLT 218 (0x804FC3720) reached at runtime?
 - **Hypothesis B:** PLT 218 is never reached — the gap is upstream.
 - **Finding:** HYPOTHESIS B CONFIRMED. All 3 addresses (0x804F88AD0, 0x804FA84E0, 0x804FC3720) had ZERO INT3 hits. The callback invocation chain is never reached. EXP-106's "PLT 218 is the missing link" was based on static analysis only — runtime disproves it. The real gap is upstream: nothing calls 0x804F88AD0.
