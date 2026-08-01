@@ -1431,7 +1431,7 @@ The investigation was NOT wasted:
 
 ### EXP-102 — r14 = NULL at Callback Storage — Callback Stored at Address 0
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-102.md]
+- **Commit:** [54904c8](https://github.com/Sh-TB/sharpemuT24/commit/54904c8)
 - **Question:** Where is the callback pointer stored, and what code should read it?
 - **Hypothesis:** The callback is stored at a valid address inside an IL2CPP context structure.
 - **Finding:** HYPOTHESIS REJECTED. r14 = 0 (NULL) at xchg [r14], rax. Callback stored at address 0. r12 (IL2CPP context) also 0. The registration context's [+8] field is NULL. This is the root cause — callback is stored at NULL and never invoked.
