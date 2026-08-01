@@ -1386,7 +1386,7 @@ The investigation was NOT wasted:
 
 ### EXP-099 — Once-Init Primitive SUCCEEDS (eax=0) — Registration Works — Hypothesis REJECTED
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-099.md]
+- **Commit:** [f3fc0df](https://github.com/Sh-TB/sharpemuT24/commit/f3fc0df)
 - **Question:** Does the once-init primitive 0x804FC33B0 succeed or fail?
 - **Hypothesis:** 0x804FC33B0 returns failure, causing registration to be skipped.
 - **Finding:** HYPOTHESIS REJECTED. 0x804FC33B0 SUCCEEDS (eax=0). Registration is NOT skipped. The callback IS registered. After registration, an unresolved import fires (nid=J3edELK4FvM at ret=0x804FC1635), then the same deadlock.
