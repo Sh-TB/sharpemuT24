@@ -1371,7 +1371,7 @@ The investigation was NOT wasted:
 
 ### EXP-098 — Registration Function IS Reached — EXP-097 Corrected — Registration Helper May Fail
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-098.md]
+- **Commit:** [8eb4b19](https://github.com/Sh-TB/sharpemuT24/commit/8eb4b19)
 - **Question:** Why is the IL2CPP ThreadPool initialization path never started?
 - **Hypothesis:** The registration function 0x804FA20E0 (which registers callback 0x804FA1FE0) is never called — it's dead code.
 - **Finding:** HYPOTHESIS REJECTED. 0x804FA20E0 IS REACHED at runtime. INT3 tracer fired at line 8492, caller=0x804F527F9 (inside 0x804F527C0, called from real_init at 0x804F0590B). The registration path IS executed AFTER the _ThreadPoolWaitCallback lookup. The deadlock persists because the registration helper 0x804F889D0 calls 0x804FC33B0 (once-init primitive) which may return failure.
