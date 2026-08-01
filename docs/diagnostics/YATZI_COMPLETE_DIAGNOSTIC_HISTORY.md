@@ -1416,7 +1416,7 @@ The investigation was NOT wasted:
 
 ### EXP-101 — All 5 PLT Stubs SUCCEED — Callback IS Stored — Case B Confirmed
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-101.md]
+- **Commit:** [00dd986](https://github.com/Sh-TB/sharpemuT24/commit/00dd986)
 - **Question:** Do all 5 PLT stubs inside the registration helper return 0?
 - **Hypothesis:** One PLT stub returns failure, causing callback storage to be skipped.
 - **Finding:** HYPOTHESIS REJECTED. All 3 PLT stubs in 0x804F889D0 return eax=0 (SUCCESS). Callback IS stored via xchg [r14], rax at 0x804F88A76. Sites 0,1 (in 0x804FA8490) not reached — code correctly skipped 0x804FA8490 (r15 == -1). Case B: callback stored but mystery is now purely invocation.
