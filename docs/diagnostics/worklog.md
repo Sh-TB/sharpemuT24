@@ -3164,3 +3164,29 @@ Stage Summary:
 - It receives callback data but doesn't invoke the callback function.
 - The callback function 0x804FA1FE0 is at [struct+0x10], but HLE receives [struct+0x00].
 - Next EXP-107: identify PLT 218's NID and check if SharpEmu implements it.
+
+
+---
+Task ID: EXP-107
+Agent: main (Super Z)
+Task: Identify PLT 218 (0x804FC3720 / GOT 0x808924580). Verify if it's reached at runtime.
+
+Work Log:
+- Verified git state: HEAD = origin/master = f60862d.
+- Attempted to decode PLT 218 NID from PRX relocation table — sym_idx=0 for all entries, PRX uses binary NID format.
+- Searched ps5_names.txt — no match (NID unknown).
+- Searched all runtime logs for GOT 0x808924580, PLT 0x804FC3720, trampoline 0x804FA84E0, invoker 0x804F88AD0 — ZERO matches in any log.
+- Built _Exp107PLT218Tracer.cs: INT3 at 3 addresses (0x804F88AD0, 0x804FA84E0, 0x804FC3720).
+- Register offsets verified against DirectExecutionBackend.cs:800 (CTX_RDI=176, CTX_RSI=168, etc.)
+- Ran emulator: exit code 4 (normal stall). ALL 3 addresses had ZERO INT3 hits.
+- HYPOTHESIS B CONFIRMED: PLT 218 is never reached. Gap is upstream.
+- EXP-106 CORRECTED: "PLT 218 is the missing link" was static-only, runtime disproves.
+- The reviewer's concern was correct: the gap is one level higher — nothing calls 0x804F88AD0.
+- Wrote EXP-107.md report.
+- Updated YATZI_MASTER_DEBUG_STATE.md, YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md, YATZI_EXP_INDEX.md, worklog.md.
+
+Stage Summary:
+- EXP-107: PLT 218 NEVER reached. Hypothesis B confirmed. EXP-106 corrected.
+- The callback invocation chain (0x804F88AD0 → 0x804FA84E0 → PLT 218) is completely unreachable.
+- The gap is upstream: nothing triggers the callback invoker 0x804F88AD0.
+- Next EXP-108: find what should call 0x804F88AD0.

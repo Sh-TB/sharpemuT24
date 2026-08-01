@@ -2772,6 +2772,11 @@ public sealed partial class DirectExecutionBackend
                                     // to capture the callback storage address.
                                     Exp102PatchXchgTracer();
 
+                                    // EXP-107: Install INT3 at PLT 218 (0x804FC3720),
+                                    // 0x804FA84E0 (trampoline), and 0x804F88AD0 (invoker)
+                                    // to check if the callback invocation path is reached.
+                                    Exp107PatchPLT218Tracers();
+
                                     // EXP-080 (2026-07-31): The 11-byte NOP bypass at 0x800AA0207 from
                                     // EXP-072/073 has been REMOVED. It was a diagnostic patch that masked
                                     // the symptom (workers spinning on unsignaled 0x5C) without addressing

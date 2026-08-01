@@ -1495,3 +1495,18 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — root cause chain complete
 - **Related:** EXP-096, EXP-098, EXP-101, EXP-103, EXP-105, EXP-107
 - **Impact:** The entire work-submission chain is blocked because the HLE function at PLT 218 doesn't invoke the registered callback. This connects EXP-096 (work submission never reached) to EXP-098..101 (registration succeeds) in one coherent chain.
+
+
+---
+
+## EXP-107 (added 2026-08-02)
+
+### EXP-107 — PLT 218 NEVER Reached — Gap Is Upstream — Hypothesis B Confirmed
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-107.md]
+- **Question:** Is PLT 218 (0x804FC3720) reached at runtime?
+- **Hypothesis B:** PLT 218 is never reached — the gap is upstream.
+- **Finding:** HYPOTHESIS B CONFIRMED. All 3 addresses (0x804F88AD0, 0x804FA84E0, 0x804FC3720) had ZERO INT3 hits. The callback invocation chain is never reached. EXP-106's "PLT 218 is the missing link" was based on static analysis only — runtime disproves it. The real gap is upstream: nothing calls 0x804F88AD0.
+- **Status:** CONFIRMED — Hypothesis B, EXP-106 corrected
+- **Related:** EXP-096, EXP-106, EXP-108
+- **Impact:** The reviewer's concern was correct: the gap is one level higher than EXP-106 claimed. The callback invoker (0x804F88AD0) is never called, so PLT 218 never runs. The question shifts to: what should call 0x804F88AD0?

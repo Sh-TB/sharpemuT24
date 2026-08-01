@@ -1444,3 +1444,27 @@ The HLE function at PLT 218 (GOT `0x808924580`, NID unknown) should:
 ### Next EXP-107
 
 Identify the HLE function at PLT 218 (GOT 0x808924580). What NID? Is it implemented in SharpEmu?
+
+
+---
+
+## EXP-107: PLT 218 NEVER Reached — Gap Is Upstream — Hypothesis B Confirmed (2026-08-02)
+
+### EXP-106 Corrected
+
+EXP-106 claimed "PLT 218 is the missing link" based on static analysis. **Runtime evidence disproves this:**
+
+- `0x804F88AD0` (callback invoker): **0 INT3 hits**
+- `0x804FA84E0` (trampoline to PLT 218): **0 INT3 hits**
+- `0x804FC3720` (PLT 218): **0 INT3 hits**
+
+The entire callback invocation chain is **never reached**. The gap is upstream — nothing calls `0x804F88AD0`.
+
+### Hypothesis B Confirmed
+
+- Hypothesis A (PLT 218 reached but does wrong thing): **REJECTED**
+- Hypothesis B (PLT 218 never reached, gap upstream): **CONFIRMED**
+
+### Next EXP-108
+
+Find what should call `0x804F88AD0` (the callback invoker). Something must trigger this invocation.
