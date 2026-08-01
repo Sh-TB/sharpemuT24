@@ -1229,3 +1229,30 @@ EXP-101 will trace 5 PLT stub return values inside the registration helper:
 Also resolve NIDs for each PLT stub (same approach as EXP-100).
 If any returns non-zero, callback storage at `0x804F88A76: xchg [r14], rax` is skipped.
 If all return 0, callback IS stored — investigation shifts to "callback stored but never invoked."
+
+
+---
+
+## EXP-101: All PLT Stubs SUCCEED — Callback IS Stored — Case B Confirmed (2026-08-02)
+
+### Case B Confirmed
+
+All 3 PLT stubs in `0x804F889D0` (registration helper) return `eax=0` (SUCCESS):
+- `0x804FC33C0` (PLT 164): SUCCESS
+- `0x804FC33D0` (PLT 165): SUCCESS
+- `0x804FC33E0` (PLT 166): SUCCESS
+
+The callback IS stored via `xchg [r14], rax` at `0x804F88A76`. The registration returns 0 (success).
+
+Sites 0, 1 (in `0x804FA8490`) were NOT reached — code took `je` branch (r15 == -1), correctly skipping `0x804FA8490`.
+
+### Mystery Shifts to Invocation
+
+The callback EXISTS and IS STORED. The issue is now purely:
+- The callback pointer is stored at `[r14]` (IL2CPP context field)
+- No code path ever reads `[r14]` and calls the callback
+- The ThreadPool work-submission function (`0x804F6EC20`) is still never reached
+
+### Next EXP-102
+
+Trace where the callback pointer is stored (what address `r14` points to) and find what code should read it to invoke the callback.

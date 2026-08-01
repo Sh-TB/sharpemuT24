@@ -224,6 +224,15 @@ public sealed partial class DirectExecutionBackend
                         {
                                 return -1;
                         }
+                        // EXP-101: Handle INT3 from PLT stub return value tracers
+                        if (exceptionCode == 2147483651u && Exp101TryHandlePLTCallInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        if (exceptionCode == 2147483651u && Exp101TryHandlePLTRetInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-036: Handle INT3 from il2cpp_init (traces ENTER).
                         // Must be checked before EXP-035 since both use SIGTRAP.
                         if (exceptionCode == 2147483651u && Exp036TryHandleIl2cppInitInt3(contextRecord, rip))

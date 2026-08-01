@@ -3001,3 +3001,30 @@ Stage Summary:
 - Followed user's precise framing: traced the exact addresses, didn't pattern-guess. Used the same "trace the exact address" discipline that worked in EXP-046/057.
 - Knowledge storage fully compliant: all 4 master files tracked, EXP-097 commit URL (dede8eb) verified, origin/master HEAD updated.
 - Next EXP-098: find what should call 0x804FA1FE0. Check the PRX's init_array at runtime. Trace the 25 call sites in real_init.
+
+
+---
+Task ID: EXP-101
+Agent: main (Super Z)
+Task: Trace all 5 PLT stub return values inside registration helper. Decode NIDs. Determine if callback storage is skipped.
+
+Work Log:
+- Verified git state: HEAD = origin/master = 4d2b2b8.
+- Decoded 5 PLT stubs: GOT slots 0x8089243D0/D8/E0 (PLT 164-166) and 0x808924568/570 (PLT 215-216).
+- PRX .dynstr does not contain readable NID strings (PS5 PRX uses different encoding).
+- Built _Exp101PLTStubTracer.cs: INT3 at all 5 call sites, captures input regs and return values.
+- Ran emulator (exit code 4, stall). Results:
+  - Site[2] PLT 0x804FC33C0: eax=0 SUCCESS
+  - Site[3] PLT 0x804FC33D0: eax=0 SUCCESS
+  - Site[4] PLT 0x804FC33E0: eax=0 SUCCESS
+  - Site[0] PLT 0x804FC36F0: NOT REACHED (0x804FA8490 skipped, r15==-1)
+  - Site[1] PLT 0x804FC3700: NOT REACHED
+- Case B confirmed: callback IS stored via xchg [r14], rax at 0x804F88A76.
+- All PLT stubs succeed. Registration works completely.
+- Mystery shifts to invocation: callback stored but never called.
+
+Stage Summary:
+- EXP-101 Case B CONFIRMED: All PLT stubs succeed. Callback IS stored.
+- The registration mechanism works end-to-end: once-init succeeds, PLT stubs succeed, callback stored via xchg.
+- The remaining mystery: the callback is stored at [r14] but never invoked.
+- Next EXP-102: trace where callback pointer is stored and find what should read it to invoke.

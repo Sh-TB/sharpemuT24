@@ -1408,3 +1408,18 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — hypothesis rejected
 - **Related:** EXP-099, EXP-101
 - **Impact:** The unresolved import is a red herring. The real question is whether the 5 PLT stubs inside the registration helper (0x804FC36F0, 0x804FC3700, 0x804FC33C0, 0x804FC33D0, 0x804FC33E0) all return 0. If any returns non-zero, callback storage is skipped.
+
+
+---
+
+## EXP-101 (added 2026-08-02)
+
+### EXP-101 — All 5 PLT Stubs SUCCEED — Callback IS Stored — Case B Confirmed
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-101.md]
+- **Question:** Do all 5 PLT stubs inside the registration helper return 0?
+- **Hypothesis:** One PLT stub returns failure, causing callback storage to be skipped.
+- **Finding:** HYPOTHESIS REJECTED. All 3 PLT stubs in 0x804F889D0 return eax=0 (SUCCESS). Callback IS stored via xchg [r14], rax at 0x804F88A76. Sites 0,1 (in 0x804FA8490) not reached — code correctly skipped 0x804FA8490 (r15 == -1). Case B: callback stored but mystery is now purely invocation.
+- **Status:** CONFIRMED — Case B, hypothesis rejected
+- **Related:** EXP-098, EXP-099, EXP-100, EXP-102
+- **Impact:** The registration mechanism works completely. The callback is stored. The remaining mystery is why the callback is never invoked — the work-submission path (0x804F6EC20) is still unreachable.

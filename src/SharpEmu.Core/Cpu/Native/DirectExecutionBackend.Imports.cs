@@ -2763,6 +2763,11 @@ public sealed partial class DirectExecutionBackend
                                     // Working path: 0x804FBF799 (call 0x804FC3750) + return 0x804FBF79E
                                     Exp099PatchOnceInitTracers();
 
+                                    // EXP-101: Install INT3 at 5 PLT stub call sites inside
+                                    // registration helper (0x804F889D0) and callback storage (0x804FA8490).
+                                    // Captures return values to determine if callback storage is skipped.
+                                    Exp101PatchPLTTracers();
+
                                     // EXP-080 (2026-07-31): The 11-byte NOP bypass at 0x800AA0207 from
                                     // EXP-072/073 has been REMOVED. It was a diagnostic patch that masked
                                     // the symptom (workers spinning on unsignaled 0x5C) without addressing
