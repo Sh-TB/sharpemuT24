@@ -1446,7 +1446,7 @@ The investigation was NOT wasted:
 
 ### EXP-103 — EXP-102 Corrected: r14 Is Valid (Tracer Bug) — Callback Stored at 0x20337660
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-103.md]
+- **Commit:** [0b30a3c](https://github.com/Sh-TB/sharpemuT24/commit/0b30a3c)
 - **Question:** Is EXP-102's r14=0 real or a tracer artifact?
 - **Hypothesis:** r14=0 is a tracer bug (wrong register offsets).
 - **Finding:** HYPOTHESIS CONFIRMED. EXP-102 tracer used wrong offsets (284 instead of 232 for R14, 276 instead of 216 for R12). With corrected offsets: r14=0x20337660 (valid guest heap), r12=0x7FCEC8EE0710 (IL2CPP context populated). Callback IS stored at valid address. No crash. EXP-102's "root cause" is INVALID.
