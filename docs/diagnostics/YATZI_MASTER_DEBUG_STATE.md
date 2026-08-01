@@ -1054,6 +1054,22 @@ The actual blocker remains the ThreadPool deadlock from EXP-096/097 (work-submis
 
 ---
 
+## EXP Numbering Gap Explanation (2026-08-02)
+
+**Gap:** EXP-099 through EXP-110 do not exist (12 numbers skipped).
+
+**Cause:** EXP-111 was created as a side hypothesis test (UD2/libSceApt trampoline validation) requested by an external agent. It was numbered EXP-111 because the external agent assumed EXP-098..110 already existed. They did not — the last mainline EXP was EXP-098.
+
+**Resolution:**
+- EXP-111 is kept as-is (Golden Rule 5: never delete old conclusions)
+- EXP-099 is the next mainline EXP (NOT EXP-112)
+- The gap EXP-099..110 is administrative, not investigative — no experiments were lost
+- Future EXPs continue from EXP-099 sequentially
+
+**Current EXP count:** 10 mainline EXPs (090-098) + 1 side test (111) = 11 EXPs in the 090+ range
+
+---
+
 ## EXP-098: Registration Function IS Reached — EXP-097 Corrected (2026-08-02)
 
 ### EXP-097 CORRECTED

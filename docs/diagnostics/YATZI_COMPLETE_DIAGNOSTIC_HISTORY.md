@@ -1,7 +1,7 @@
 # Yatzi Complete Diagnostic History
 
 **Single source of truth for all Yatzi (PPSA17697) debugging experiments.**
-**Coverage: EXP-026 through EXP-111 (70 experiments — note: EXP-099..110 not created)**
+**Coverage: EXP-026 through EXP-098 + EXP-111 (71 entries — note: EXP-099..110 do not exist, numbering gap from EXP-111 side test)**
 **Last updated: 2026-08-02 (EXP-098)**
 
 This file consolidates ALL diagnostic knowledge from every EXP report, git commit, and worklog entry. Future debugging MUST start from this file.
