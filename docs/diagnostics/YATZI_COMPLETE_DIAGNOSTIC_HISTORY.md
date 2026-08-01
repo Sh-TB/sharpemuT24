@@ -1510,3 +1510,17 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — Hypothesis B, EXP-106 corrected
 - **Related:** EXP-096, EXP-106, EXP-108
 - **Impact:** The reviewer's concern was correct: the gap is one level higher than EXP-106 claimed. The callback invoker (0x804F88AD0) is never called, so PLT 218 never runs. The question shifts to: what should call 0x804F88AD0?
+
+
+---
+
+## EXP-108 (added 2026-08-02)
+
+### EXP-108 — 0x804F88AD0 Has 0 Direct Callers — Invocation Path Completely Unreachable
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-108.md]
+- **Question:** What should call 0x804F88AD0, and why doesn't it execute?
+- **Finding:** 0x804F88AD0 has 0 direct callers, 0 LEA refs, 0 stored qwords. Only entry: trampoline 0x804FA1FB0 (4 callers — all circular, dead-code, or unreachable). Chain from 0x804FA1FE0 to 0x804F6EC20 re-verified as valid. Pattern identified: 3rd recurrence of "registered but never invoked." Suggests missing dispatcher/scheduler.
+- **Status:** CONFIRMED
+- **Related:** EXP-096, EXP-106, EXP-107, EXP-109
+- **Impact:** The callback invocation mechanism is structurally unreachable. The actual missing piece is likely a shared dispatcher/scheduler loop that should iterate and invoke registered callbacks.

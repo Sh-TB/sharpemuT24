@@ -1468,3 +1468,33 @@ The entire callback invocation chain is **never reached**. The gap is upstream �
 ### Next EXP-108
 
 Find what should call `0x804F88AD0` (the callback invoker). Something must trigger this invocation.
+
+
+---
+
+## EXP-108: 0x804F88AD0 Has 0 Direct Callers — Invocation Path Completely Unreachable (2026-08-02)
+
+### Exhaustive Search Result
+
+0x804F88AD0 (callback invoker):
+- Direct E8 callers: **0**
+- LEA references: **0**
+- Stored qwords: **0**
+
+Only entry point: trampoline `0x804FA1FB0` (4 callers, all unreachable or circular)
+
+### Chain Re-Verification
+
+EXP-106's chain from `0x804FA1FE0` → `0x804F9FA80` → `0x804F6EC20` is **valid** (static). The weak link is `0x804F88AD0 → PLT 218 → 0x804FA1FE0` (indirect, depends on HLE). But since `0x804F88AD0` is never reached, HLE behavior is moot.
+
+### The Pattern (3rd Recurrence)
+
+1. `0x804F52820` (EXP-104/105) — registered, never invoked
+2. `0x804FA1FE0` (EXP-106) — registered, never invoked
+3. `0x804F88AD0` (EXP-107/108) — 0 callers, never reached
+
+This suggests a **missing dispatcher/scheduler** that should iterate and invoke registered callbacks.
+
+### Next EXP-109
+
+Search for a callback dispatcher/scheduler loop. Check `0x804F760B0` (18 callers, most reachable path).

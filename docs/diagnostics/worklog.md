@@ -3190,3 +3190,31 @@ Stage Summary:
 - The callback invocation chain (0x804F88AD0 → 0x804FA84E0 → PLT 218) is completely unreachable.
 - The gap is upstream: nothing triggers the callback invoker 0x804F88AD0.
 - Next EXP-108: find what should call 0x804F88AD0.
+
+
+---
+Task ID: EXP-108
+Agent: main (Super Z)
+Task: Find what should call 0x804F88AD0 (callback invoker). Re-verify EXP-106's chain.
+
+Work Log:
+- Verified git state: HEAD = origin/master = 296f851.
+- Re-verified EXP-106's chain: 0x804FA1FE0 → 0x804F9FA80 → 0x804F6EC20 IS valid (static).
+- Weak link: 0x804F88AD0 → PLT 218 → 0x804FA1FE0 (indirect, depends on HLE). Moot since 0x804F88AD0 never reached.
+- Exhaustive search for callers of 0x804F88AD0: 0 direct, 0 LEA, 0 stored qwords.
+- Only entry: trampoline 0x804FA1FB0 (4 callers):
+  1. 0x804F52820 (callback, 0 callers — CIRCULAR)
+  2. 0x804F6FDC0 ← 0x806A44D14 (indirect, data segment)
+  3. 0x804F76530 ← 4 callers (0x804F6F960: 0 callers DEAD, 0x804F760B0: 18 callers LIVE, 0x804F76190: 2 callers, 0x804F78580: 0 callers DEAD)
+  4. 0x804F77EA0 ← 0x804ECFCFA in 0x804ECFCC0 (1 caller)
+- None of these functions appear in runtime logs.
+- 3rd recurrence of "registered but never invoked" pattern identified.
+- Suggests missing dispatcher/scheduler loop as the actual root cause.
+- 0x804F760B0 (18 callers) is most promising path for next investigation.
+- Wrote EXP-108.md report.
+
+Stage Summary:
+- EXP-108: 0x804F88AD0 completely unreachable (0 callers). Invocation path dead.
+- Chain re-verified: 0x804FA1FE0 → 0x804F6EC20 IS valid.
+- Pattern: 3rd "registered but never invoked" — suggests missing dispatcher.
+- Next EXP-109: search for callback dispatcher/scheduler, trace 0x804F760B0.
