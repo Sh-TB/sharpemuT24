@@ -2758,6 +2758,11 @@ public sealed partial class DirectExecutionBackend
                                     // 0x804F51020 (working once-init) and 0x804FA20E0 (dead registration)
                                     Exp098PatchRegistrationTracers();
 
+                                    // EXP-099: Install INT3 at once-init primitive call sites
+                                    // Dead path: 0x804F88A00 (call 0x804FC33B0) + return 0x804F88A05
+                                    // Working path: 0x804FBF799 (call 0x804FC3750) + return 0x804FBF79E
+                                    Exp099PatchOnceInitTracers();
+
                                     // EXP-080 (2026-07-31): The 11-byte NOP bypass at 0x800AA0207 from
                                     // EXP-072/073 has been REMOVED. It was a diagnostic patch that masked
                                     // the symptom (workers spinning on unsignaled 0x5C) without addressing

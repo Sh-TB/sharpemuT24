@@ -207,6 +207,23 @@ public sealed partial class DirectExecutionBackend
                         {
                                 return -1;
                         }
+                        // EXP-099: Handle INT3 from once-init primitive tracers
+                        if (exceptionCode == 2147483651u && Exp099TryHandleDeadCallInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        if (exceptionCode == 2147483651u && Exp099TryHandleDeadRetInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        if (exceptionCode == 2147483651u && Exp099TryHandleWorkCallInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
+                        if (exceptionCode == 2147483651u && Exp099TryHandleWorkRetInt3(contextRecord, rip))
+                        {
+                                return -1;
+                        }
                         // EXP-036: Handle INT3 from il2cpp_init (traces ENTER).
                         // Must be checked before EXP-035 since both use SIGTRAP.
                         if (exceptionCode == 2147483651u && Exp036TryHandleIl2cppInitInt3(contextRecord, rip))

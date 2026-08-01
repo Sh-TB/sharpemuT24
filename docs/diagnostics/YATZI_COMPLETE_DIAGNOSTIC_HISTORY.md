@@ -1378,3 +1378,18 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — EXP-097 corrected
 - **Related:** EXP-095, EXP-096, EXP-097, EXP-099
 - **Impact:** Major correction — the registration path IS reached, the issue is whether the registration helper succeeds. EXP-097's "dead code" conclusion was wrong due to a Golden Rule 8 violation (function boundary not verified).
+
+
+---
+
+## EXP-099 (added 2026-08-02)
+
+### EXP-099 — Once-Init Primitive SUCCEEDS (eax=0) — Registration Works — Hypothesis REJECTED
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-099.md]
+- **Question:** Does the once-init primitive 0x804FC33B0 succeed or fail?
+- **Hypothesis:** 0x804FC33B0 returns failure, causing registration to be skipped.
+- **Finding:** HYPOTHESIS REJECTED. 0x804FC33B0 SUCCEEDS (eax=0). Registration is NOT skipped. The callback IS registered. After registration, an unresolved import fires (nid=J3edELK4FvM at ret=0x804FC1635), then the same deadlock.
+- **Status:** CONFIRMED — hypothesis rejected
+- **Related:** EXP-098, EXP-100
+- **Impact:** The registration mechanism works correctly. The issue is downstream — an unresolved HLE import may prevent the IL2CPP runtime from reaching work submission.

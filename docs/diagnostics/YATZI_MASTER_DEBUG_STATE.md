@@ -1114,3 +1114,40 @@ PRX DT_INIT_ARRAYSZ = 0 (0 entries). No constructors. The "37 more semaphores" f
 ### Next EXP-099
 
 Trace `0x804F889D0` to check return value of `0x804FC33B0`. Does the once-init primitive succeed or fail?
+
+
+---
+
+## EXP-099: Once-Init Primitive SUCCEEDS — Registration Works — Hypothesis REJECTED (2026-08-02)
+
+### Hypothesis REJECTED
+
+The once-init primitive `0x804FC33B0` **SUCCEEDS** (`eax=0`). The registration is NOT skipped.
+
+### Runtime Evidence
+
+```
+[EXP099-DEAD-CALL] rdi(once_init_ptr)=0x6FFFF01FB968
+[EXP099-DEAD-RET] eax(return)=0x0  *** SUCCESS ***
+```
+
+After success, the registration continues:
+1. `call 0x804FA8490` — stores the callback
+2. GC thread created
+3. **`Import#84004 unresolved: nid=J3edELK4FvM`** at `ret=0x804FC1635`
+4. Same deadlock on `WaitSema(0xA6)`
+
+### Two Different Once-Init Primitives
+
+| Working Path | Dead-Code Path |
+|-------------|----------------|
+| `0x804FC3750` (GOT 0x808924598) | `0x804FC33B0` (GOT 0x8089243C8) |
+| No shared call targets | Both are PLT stubs |
+
+### New Lead: Unresolved Import `J3edELK4FvM`
+
+After registration succeeds, an unresolved import fires: `nid=J3edELK4FvM` at `ret=0x804FC1635`. This is the new lead — the missing HLE function may prevent the IL2CPP runtime from reaching work submission.
+
+### Next EXP-100
+
+Investigate `nid=J3edELK4FvM` at `ret=0x804FC1635`. What PLT stub? What library? Is it in SharpEmu's NID catalog?
