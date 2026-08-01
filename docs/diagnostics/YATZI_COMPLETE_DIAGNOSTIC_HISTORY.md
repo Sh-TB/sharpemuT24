@@ -1355,7 +1355,7 @@ The investigation was NOT wasted:
 
 ### EXP-111 — UD2 Instructions Are Noreturn Markers, NOT Function Entry Stubs — Hypothesis REJECTED
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-111.md]
+- **Commit:** [c36ecdd](https://github.com/Sh-TB/sharpemuT24/commit/c36ecdd)
 - **Configuration:** Static analysis only
 - **Question:** Are the UD2 instructions at 0x801832489 and 0x8007F9093 function-entry stubs that fail because patching skips the prologue?
 - **Hypothesis:** UD2 stubs at function entry fail because patching skips the original function prologue. A trampoline that preserves the function entry/prologue semantics may allow execution to continue.
