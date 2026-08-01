@@ -1177,3 +1177,55 @@ If ANY returns non-zero, the callback storage at `0x804F88A76: xchg [r14], rax` 
 ### Next EXP-101
 
 Trace all 5 PLT stub return values. If any returns non-zero, that's the blocker.
+
+
+---
+
+## Knowledge Backup Status (2026-08-02)
+
+### Archives Created
+
+**1. SharpEmuT24-KNOWLEDGE-COMPLETE.zip**
+- Path: `/home/z/my-project/download/SharpEmuT24-KNOWLEDGE-COMPLETE.zip`
+- Size: 388,105 bytes (379 KB)
+- Files: 93 (all docs/diagnostics/ markdown files)
+- SHA256: `93db3ef2fb969ec0060a27c3bac37014be2f1a380b35e535777d3bcb5b7daf45`
+- Contents: ALL EXP reports (EXP-026 through EXP-100 + EXP-111), YATZI master files, worklog, diagnostic history, investigation notes
+
+**2. SharpEmuT24-SOURCE-WITH-COMMENTS.zip**
+- Path: `/home/z/my-project/download/SharpEmuT24-SOURCE-WITH-COMMENTS.zip`
+- Size: 2,608,236 bytes (2.5 MB)
+- Files: 580 (src/ + docs/ + scripts/ + config files)
+- SHA256: `2293f8e2e71d27ba8c1d7f785634f3426856cde2de6e52242e42157ab3287278`
+- Contents: All C# source with comments, all tracer files, all scripts, all documentation
+- No binaries, no .exe, no .dll, no .so, no build output
+
+### GitHub Verification
+
+All important files verified HTTP 200 on GitHub:
+- EXP-095.md through EXP-100.md: ✓
+- EXP-111.md: ✓
+- YATZI_MASTER_DEBUG_STATE.md: ✓
+- YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md: ✓
+- YATZI_EXP_INDEX.md: ✓
+- YATZI_KNOWLEDGE_BASE.md: ✓
+- worklog.md: ✓
+- All 5 latest tracer source files (_Exp095..099): ✓
+
+### Backup Date
+- Date: 2026-08-02
+- Commit: `48b57a2`
+- origin/master HEAD: `48b57a2`
+
+### EXP-101 Starting Point
+
+EXP-101 will trace 5 PLT stub return values inside the registration helper:
+1. `0x804FC36F0` (in 0x804FA8490, called at 0x804FA84B2)
+2. `0x804FC3700` (in 0x804FA8490, called at 0x804FA84C3)
+3. `0x804FC33C0` (in 0x804F889D0, called at 0x804F88A3F)
+4. `0x804FC33D0` (in 0x804F889D0, called at 0x804F88A55)
+5. `0x804FC33E0` (in 0x804F889D0, called at 0x804F88A67)
+
+Also resolve NIDs for each PLT stub (same approach as EXP-100).
+If any returns non-zero, callback storage at `0x804F88A76: xchg [r14], rax` is skipped.
+If all return 0, callback IS stored — investigation shifts to "callback stored but never invoked."
