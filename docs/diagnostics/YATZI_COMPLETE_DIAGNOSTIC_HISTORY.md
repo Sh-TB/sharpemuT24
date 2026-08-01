@@ -1401,7 +1401,7 @@ The investigation was NOT wasted:
 
 ### EXP-100 — Unresolved NID J3edELK4FvM Is NOT the Blocker — Code Handles 0 Return
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-100.md]
+- **Commit:** [e8f4039](https://github.com/Sh-TB/sharpemuT24/commit/e8f4039)
 - **Question:** What is the unresolved import nid=J3edELK4FvM, and does implementing it unblock the ThreadPool?
 - **Hypothesis:** The missing HLE function blocks the IL2CPP runtime before work submission.
 - **Finding:** HYPOTHESIS REJECTED. NID J3edELK4FvM is unknown (not in ps5_names.txt). SharpEmu returns 0 for unresolved imports. The calling code checks cmp eax, 0x80020003 (SCE error) — since 0 ≠ 0x80020003, the code continues. The unresolved import is in a different function (0x804FC1590, a loop) than the registration path (0x804F889D0). Not on the critical path.
