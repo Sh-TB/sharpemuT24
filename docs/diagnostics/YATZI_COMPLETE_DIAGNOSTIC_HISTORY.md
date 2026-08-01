@@ -1518,7 +1518,7 @@ The investigation was NOT wasted:
 
 ### EXP-108 — 0x804F88AD0 Has 0 Direct Callers — Invocation Path Completely Unreachable
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-108.md]
+- **Commit:** [1c4fd6d](https://github.com/Sh-TB/sharpemuT24/commit/1c4fd6d)
 - **Question:** What should call 0x804F88AD0, and why doesn't it execute?
 - **Finding:** 0x804F88AD0 has 0 direct callers, 0 LEA refs, 0 stored qwords. Only entry: trampoline 0x804FA1FB0 (4 callers — all circular, dead-code, or unreachable). Chain from 0x804FA1FE0 to 0x804F6EC20 re-verified as valid. Pattern identified: 3rd recurrence of "registered but never invoked." Suggests missing dispatcher/scheduler.
 - **Status:** CONFIRMED
