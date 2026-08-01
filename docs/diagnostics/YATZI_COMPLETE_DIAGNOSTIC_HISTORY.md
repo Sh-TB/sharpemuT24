@@ -1489,7 +1489,7 @@ The investigation was NOT wasted:
 
 ### EXP-106 — 0x804FA1FE0 Registered but Never Invoked — HLE at PLT 218 Is the Missing Link
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-106.md]
+- **Commit:** [e32733d](https://github.com/Sh-TB/sharpemuT24/commit/e32733d)
 - **Question:** Why is the work-submission function 0x804F6EC20 never reached?
 - **Finding:** 0x804FA1FE0 (registered callback) contains call to 0x804F9FA80 at 0x804FA2089, which calls 0x804F6EC20. But 0x804FA1FE0 has 0 direct callers and is never invoked. The invoker 0x804F88AD0 calls 0x804FA84E0 (PLT stub → 0x804FC3720 → GOT 0x808924580, PLT index 218). This HLE function receives callback data ([struct+0x00]) but doesn't invoke the callback function ([struct+0x10] = 0x804FA1FE0). This is the SharpEmu HLE implementation gap.
 - **Status:** CONFIRMED — root cause chain complete
