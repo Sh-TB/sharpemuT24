@@ -1467,3 +1467,17 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED
 - **Related:** EXP-096, EXP-103, EXP-105
 - **Impact:** The callback structure and ThreadPool are connected, but the invocation mechanism is missing. The callback function 0x804F52820 has 0 direct callers and is only reachable via indirect dispatch that never fires.
+
+
+---
+
+## EXP-105 (added 2026-08-02)
+
+### EXP-105 — 0x804F528B0 Is Dead Code — Real Invocation via 0x804F88AD0
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-105.md]
+- **Question:** Is 0x804F528B0 genuinely shutdown-only? What is the real callback invocation path?
+- **Finding:** 0x804F528B0 IS dead code — caller chain (0x804F7E850 → 0x804F06070 → 0x804F528B0) has 0 callers at top. EXP-104's "connects to ThreadPool" was based on dead-code shutdown path. Real invocation is via 0x804F88AD0, which reads [rbx] (stored callback) and calls 0x804FA84E0. The dispatch is self-referential (callback calls 0x804FA1FB0 → 0x804F88AD0 → reads [rbx] → calls 0x804FA84E0). External invoker for 0x804F52820 is still missing.
+- **Status:** CONFIRMED — EXP-104 corrected
+- **Related:** EXP-096, EXP-104, EXP-106
+- **Impact:** The "ThreadPool connection" from EXP-104 was a dead-code artifact. The real invocation mechanism (0x804F88AD0) is identified but the external trigger that starts the chain is still missing.

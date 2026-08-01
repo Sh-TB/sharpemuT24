@@ -1350,3 +1350,42 @@ Work-submission `0x804F6EC20` reads `[entry+0x88]` and `[entry+0x90]` — differ
 ### Next EXP-105
 
 Find what code reads the stored callback from the registration context and invokes `0x804F52820`.
+
+
+---
+
+## EXP-105: 0x804F528B0 Is Dead Code — Real Invocation via 0x804F88AD0 (2026-08-02)
+
+### EXP-104 Correction
+
+EXP-104's "0x804FA2130 connects callback to ThreadPool" was based on a **dead-code shutdown path**:
+```
+0x804F528B0 ← 0x804F06070 ← 0x804F7E850 (0 callers — DEAD CODE)
+```
+
+The reviewer's concern was correct — structurally similar to EXP-075/076's CLEAR misidentification.
+
+### Real Invocation Path
+
+`0x804F88AD0` is the real invocation function:
+```asm
+mov rbx, rdi               ; save inner pointer (from [struct+8])
+call 0x804FC33F0            ; PLT call
+mov rcx, [rbx]              ; load stored callback pointer
+cmp rax, rcx                ; verify
+jne skip
+mov rdi, [rbx]              ; load callback
+call 0x804FA84E0            ; *** INVOKE CALLBACK ***
+```
+
+### Self-Referential Dispatch
+
+The callback `0x804F52820` calls `0x804FA1FB0` → `0x804F88AD0`, which reads `[rbx]` and calls `0x804FA84E0`. This is re-entrant — the callback invokes itself through the registration structure.
+
+### Missing Piece
+
+Something external must first invoke `0x804F52820` to start the chain. That external invoker is the missing piece.
+
+### Next EXP-106
+
+Find what externally invokes callback `0x804F52820` or calls `0x804F88AD0` with the registration context.

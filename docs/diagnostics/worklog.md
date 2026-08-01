@@ -3110,3 +3110,29 @@ Stage Summary:
 - But callback function 0x804F52820 has 0 direct callers — never invoked.
 - The invocation mechanism (what reads the stored callback and calls it) is still missing.
 - Next EXP-105: find what reads the stored callback from registration context and invokes 0x804F52820.
+
+
+---
+Task ID: EXP-105
+Agent: main (Super Z)
+Task: Verify whether 0x804F528B0 is shutdown-only. Find real callback invocation path for 0x804F52820.
+
+Work Log:
+- Verified git state: HEAD = origin/master = 9601cf8.
+- Traced caller chain of 0x804F528B0: 0x804F528B0 ← 0x804F06070 ← 0x804F7E850 (0 callers — DEAD CODE).
+- 0x804F06070 is a separate function (preceded by INT3 at 0x804F0606F).
+- 0x804F7E850 has 0 direct callers and 0 LEA references — confirmed dead code.
+- EXP-104's "0x804FA2130 connects to ThreadPool" was based on this dead-code path. CORRECTED.
+- Reviewer's concern validated: structurally similar to EXP-075/076 CLEAR misidentification.
+- Found real invocation: 0x804FA1FB0 loads [struct+8], jumps to 0x804F88AD0.
+- 0x804F88AD0 reads [rbx]=stored callback pointer, calls 0x804FA84E0 to invoke.
+- Dispatch is self-referential: callback 0x804F52820 → 0x804FA1FB0 → 0x804F88AD0 → reads [rbx] → calls 0x804FA84E0.
+- External invoker for 0x804F52820 is still missing — something must start the chain.
+- Callback 0x804F52820 has only 1 LEA ref (registration at 0x804F527E1), 0 stored qwords.
+- Wrote EXP-105.md report.
+
+Stage Summary:
+- EXP-105: 0x804F528B0 IS dead code. EXP-104 "ThreadPool connection" corrected.
+- Real invocation via 0x804F88AD0 identified, but self-referential.
+- External invoker for callback 0x804F52820 is the missing piece.
+- Next EXP-106: find what externally invokes 0x804F52820 or calls 0x804F88AD0.
