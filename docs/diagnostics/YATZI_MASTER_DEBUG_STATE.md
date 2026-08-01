@@ -1151,3 +1151,29 @@ After registration succeeds, an unresolved import fires: `nid=J3edELK4FvM` at `r
 ### Next EXP-100
 
 Investigate `nid=J3edELK4FvM` at `ret=0x804FC1635`. What PLT stub? What library? Is it in SharpEmu's NID catalog?
+
+
+---
+
+## EXP-100: Unresolved NID J3edELK4FvM Is NOT the Blocker — Code Handles 0 Return (2026-08-02)
+
+### Hypothesis REJECTED
+
+NID `J3edELK4FvM` is unknown (not in ps5_names.txt — 154,457 entries, no match). It fires through PLT `0x804FC38C0` → GOT `0x808924650`. SharpEmu returns 0 for unresolved imports. The calling code checks `cmp eax, 0x80020003; je skip` — since 0 ≠ 0x80020003, the code CONTINUES. The unresolved import is NOT on the critical path.
+
+### Key Static Analysis
+
+The calling function `0x804FC1590` is a **loop** (up to 0x100 entries). The unresolved import fires inside this loop, but the 0 return is treated as "success" (not error). The loop continues processing.
+
+The registration helper `0x804F889D0` and callback storage `0x804FA8490` call **5 additional PLT stubs**:
+- `0x804FC36F0` (in 0x804FA8490)
+- `0x804FC3700` (in 0x804FA8490)
+- `0x804FC33C0` (in 0x804F889D0)
+- `0x804FC33D0` (in 0x804F889D0)
+- `0x804FC33E0` (in 0x804F889D0)
+
+If ANY returns non-zero, the callback storage at `0x804F88A76: xchg [r14], rax` is skipped.
+
+### Next EXP-101
+
+Trace all 5 PLT stub return values. If any returns non-zero, that's the blocker.

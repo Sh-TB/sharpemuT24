@@ -1393,3 +1393,18 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — hypothesis rejected
 - **Related:** EXP-098, EXP-100
 - **Impact:** The registration mechanism works correctly. The issue is downstream — an unresolved HLE import may prevent the IL2CPP runtime from reaching work submission.
+
+
+---
+
+## EXP-100 (added 2026-08-02)
+
+### EXP-100 — Unresolved NID J3edELK4FvM Is NOT the Blocker — Code Handles 0 Return
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-100.md]
+- **Question:** What is the unresolved import nid=J3edELK4FvM, and does implementing it unblock the ThreadPool?
+- **Hypothesis:** The missing HLE function blocks the IL2CPP runtime before work submission.
+- **Finding:** HYPOTHESIS REJECTED. NID J3edELK4FvM is unknown (not in ps5_names.txt). SharpEmu returns 0 for unresolved imports. The calling code checks cmp eax, 0x80020003 (SCE error) — since 0 ≠ 0x80020003, the code continues. The unresolved import is in a different function (0x804FC1590, a loop) than the registration path (0x804F889D0). Not on the critical path.
+- **Status:** CONFIRMED — hypothesis rejected
+- **Related:** EXP-099, EXP-101
+- **Impact:** The unresolved import is a red herring. The real question is whether the 5 PLT stubs inside the registration helper (0x804FC36F0, 0x804FC3700, 0x804FC33C0, 0x804FC33D0, 0x804FC33E0) all return 0. If any returns non-zero, callback storage is skipped.
