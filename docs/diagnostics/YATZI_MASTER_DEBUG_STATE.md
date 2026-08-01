@@ -1320,3 +1320,33 @@ The reviewer correctly flagged the contamination risk ("crash prevented normal c
 ### Next EXP-104
 
 Search for readers of the structure at `0x20337660`. The callback is stored at `[struct+0]`, and `[struct+0x10]` = `0x804FA1FE0`. Find what code reads these fields to invoke the callback.
+
+
+---
+
+## EXP-104: Callback Structure Connected to ThreadPool — Invocation Is Indirect-Only (2026-08-02)
+
+### Structure Identified
+
+The 0x28-byte callback structure (allocated by `0x804F527C0`, stored at global `0x808B54898`):
+- `[+0x00]` = callback data (stored by xchg)
+- `[+0x08]` = inner pointer (registration context)
+- `[+0x10]` = `0x804FA1FE0` (callback function)
+- `[+0x18]` = next pointer
+- `[+0x20]` = handle/ID
+
+### Connection to ThreadPool
+
+`0x804FA2130` reads `[struct+0x10]` and calls `0x804F6E510` (ThreadPool dispatch from EXP-088). This connects the callback structure to the ThreadPool. But `0x804FA2130` is called from the shutdown path (`0x804F528B0`), not during normal operation.
+
+### Callback Function `0x804F52820`
+
+Registered via `lea rsi, [0x804F52820]` at `0x804F527E1`. Has **0 direct callers** — only reachable via indirect callback mechanism. Never invoked during the emulator run.
+
+### Cross-Reference with EXP-096
+
+Work-submission `0x804F6EC20` reads `[entry+0x88]` and `[entry+0x90]` — different offsets than the callback structure. Not directly connected, but linked via `0x804FA2130` → `0x804F6E510`.
+
+### Next EXP-105
+
+Find what code reads the stored callback from the registration context and invokes `0x804F52820`.

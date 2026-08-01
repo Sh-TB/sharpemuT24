@@ -1453,3 +1453,17 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — EXP-102 corrected, tracer bug identified
 - **Related:** EXP-101, EXP-102, EXP-104
 - **Impact:** The callback registration works correctly end-to-end. The callback IS stored at a valid address. The mystery remains: the callback is stored but never invoked. Golden Rule 9 validated — the reviewer's contamination warning was correct.
+
+
+---
+
+## EXP-104 (added 2026-08-02)
+
+### EXP-104 — Callback Structure Connected to ThreadPool — Invocation Is Indirect-Only
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-104.md]
+- **Question:** What structure is at 0x20337660, and what code reads it to invoke the callback?
+- **Finding:** Structure is 0x28 bytes, allocated by 0x804F527C0, stored at global 0x808B54898. Callback function is 0x804F52820 (0 direct callers). Two readers: 0x804FA1FB0 (reads [+8], dispatches) and 0x804FA2130 (reads [+0x10], calls 0x804F6E510 = ThreadPool dispatch). The callback IS connected to ThreadPool via 0x804FA2130, but that path is in shutdown code, not normal operation. Callback never invoked.
+- **Status:** CONFIRMED
+- **Related:** EXP-096, EXP-103, EXP-105
+- **Impact:** The callback structure and ThreadPool are connected, but the invocation mechanism is missing. The callback function 0x804F52820 has 0 direct callers and is only reachable via indirect dispatch that never fires.

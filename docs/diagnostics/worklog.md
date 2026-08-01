@@ -3082,3 +3082,31 @@ Stage Summary:
 - Mystery remains: callback stored but never invoked.
 - Golden Rule 9 validated: reviewer's contamination warning was correct.
 - Next EXP-104: search for readers of the structure at 0x20337660.
+
+
+---
+Task ID: EXP-104
+Agent: main (Super Z)
+Task: Find all readers/invokers of the callback storage structure. Identify allocation, layout, and invocation path.
+
+Work Log:
+- Verified git state: HEAD = origin/master = 4874718.
+- Static analysis: 0x804F527C0 allocates 0x28-byte struct via 0x804FC2CB0, initializes via 0x804FA1600.
+- Structure stored at global 0x808B54898.
+- Callback function 0x804F52820 registered via lea rsi at 0x804F527E1.
+- 3 readers of global 0x808B54898 found, all in function 0x804F527C0:
+  1. 0x804F52834 (in callback 0x804F52820): loads struct, calls 0x804FA1FB0 (reads [+8], dispatches)
+  2. 0x804F528D0 (in shutdown 0x804F528B0): loads struct, calls 0x804FA2130
+  3. 0x804F528DC (in shutdown): loads struct, frees it
+- KEY FINDING: 0x804FA2130 reads [struct+0x10] = 0x804FA1FE0, calls 0x804F6E510 (ThreadPool dispatch!)
+- This connects the callback structure to the ThreadPool (EXP-088's WaitSema function).
+- But 0x804FA2130 is called from shutdown path (0x804F528B0), not normal operation.
+- Callback 0x804F52820 has 0 direct callers — only reachable via indirect mechanism.
+- Cross-ref with EXP-096: 0x804F6EC20 reads [+0x88]/[+0x90] — different structure, not directly connected.
+- Wrote EXP-104.md report.
+
+Stage Summary:
+- EXP-104: Callback structure connected to ThreadPool via 0x804FA2130 → 0x804F6E510.
+- But callback function 0x804F52820 has 0 direct callers — never invoked.
+- The invocation mechanism (what reads the stored callback and calls it) is still missing.
+- Next EXP-105: find what reads the stored callback from registration context and invokes 0x804F52820.
