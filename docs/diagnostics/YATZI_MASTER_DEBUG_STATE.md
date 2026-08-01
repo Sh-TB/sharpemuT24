@@ -1389,3 +1389,28 @@ Something external must first invoke `0x804F52820` to start the chain. That exte
 ### Next EXP-106
 
 Find what externally invokes callback `0x804F52820` or calls `0x804F88AD0` with the registration context.
+
+
+---
+
+## EXP-TEST-ThreadPool-Validation: External Claim REJECTED (2026-08-02)
+
+### Verdict: B) "ThreadPool initializes but work execution path is still blocked."
+
+### External Claims Rejected
+
+1. "ThreadPool is working" — REJECTED. Workers created but work submission (0x804F6EC20) NEVER reached. SignalSema NEVER called. All threads deadlock on WaitSema(0xA6).
+2. "First frame is blocked by missing game data files" — REJECTED. Game data files ARE present. Blocker is ThreadPool deadlock.
+
+### Critical Finding: EXP-102..105 Investigated Wrong Subsystem
+
+Static analysis confirms the callback registration chain (EXP-102..105) is **INDEPENDENT** from the work-submission function (EXP-096):
+- `0x804F6EC20` does NOT reference the callback structure global (`0x808B54898`)
+- The 3 callers of `0x804F6EC20` do NOT reference the callback global
+- `0x804FA84E0` (callback invoker) does NOT call `0x804F6EC20`
+
+EXP-102..105 investigated a parallel IL2CPP registration mechanism, not the ThreadPool work-submission path. EXP-096's original finding stands: the work-submission function and its callers are unreachable.
+
+### Investigation Pivot
+
+Future EXPs should return to EXP-096's original dead functions (`0x804F456E0`, `0x804F9FA80`, `0x804FA1440`) and find what indirect mechanism should reach them — NOT the callback chain.
