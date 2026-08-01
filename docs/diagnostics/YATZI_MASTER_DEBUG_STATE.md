@@ -1256,3 +1256,33 @@ The callback EXISTS and IS STORED. The issue is now purely:
 ### Next EXP-102
 
 Trace where the callback pointer is stored (what address `r14` points to) and find what code should read it to invoke the callback.
+
+
+---
+
+## EXP-102: r14 = NULL at Callback Storage — Callback Stored at Address 0 (2026-08-02)
+
+### ROOT CAUSE FOUND
+
+At `0x804F88A76: xchg [r14], rax`, **r14 = 0** (NULL). The callback pointer is stored at address 0 — a NULL pointer dereference. The callback is never invoked because it's stored at NULL.
+
+Additionally, `r12` (IL2CPP context from `[0x808923D88]`) is also **0** at this point.
+
+### Static Chain
+
+```
+0x804FA20E0 receives rdi (registration context)
+  → rbx = rdi (saved)
+  → rdi = [rbx + 8] (passed to 0x804F889D0)
+  → r14 = rdi = [rbx + 8] in 0x804F889D0
+  → xchg [r14], rax stores callback at [rbx + 8]
+  → [rbx + 8] = 0 (NULL!) → callback stored at address 0
+```
+
+### Why Previous Hypothesis Was Wrong
+
+EXP-101 concluded "callback IS stored correctly" — but only checked that PLT stubs returned 0 (no error branch). Didn't check WHERE the callback was stored. The `xchg` executes, but writes to NULL.
+
+### Next EXP-103
+
+Trace what `rbx` is (original `rdi` to `0x804FA20E0`) and why `[rbx + 8]` is NULL. What should set this field?

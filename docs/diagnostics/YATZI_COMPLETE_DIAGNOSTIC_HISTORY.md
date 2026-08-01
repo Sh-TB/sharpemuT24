@@ -1423,3 +1423,18 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — Case B, hypothesis rejected
 - **Related:** EXP-098, EXP-099, EXP-100, EXP-102
 - **Impact:** The registration mechanism works completely. The callback is stored. The remaining mystery is why the callback is never invoked — the work-submission path (0x804F6EC20) is still unreachable.
+
+
+---
+
+## EXP-102 (added 2026-08-02)
+
+### EXP-102 — r14 = NULL at Callback Storage — Callback Stored at Address 0
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-102.md]
+- **Question:** Where is the callback pointer stored, and what code should read it?
+- **Hypothesis:** The callback is stored at a valid address inside an IL2CPP context structure.
+- **Finding:** HYPOTHESIS REJECTED. r14 = 0 (NULL) at xchg [r14], rax. Callback stored at address 0. r12 (IL2CPP context) also 0. The registration context's [+8] field is NULL. This is the root cause — callback is stored at NULL and never invoked.
+- **Status:** CONFIRMED — root cause found
+- **Related:** EXP-098, EXP-099, EXP-100, EXP-101, EXP-103
+- **Impact:** The callback registration succeeds (all PLT stubs return 0) but the storage target is NULL. The callback pointer is written to address 0 instead of a valid structure field. This is why the callback is never invoked — no code reads from address 0 to find it.

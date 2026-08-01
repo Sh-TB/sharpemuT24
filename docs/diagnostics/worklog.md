@@ -3028,3 +3028,28 @@ Stage Summary:
 - The registration mechanism works end-to-end: once-init succeeds, PLT stubs succeed, callback stored via xchg.
 - The remaining mystery: the callback is stored at [r14] but never invoked.
 - Next EXP-102: trace where callback pointer is stored and find what should read it to invoke.
+
+
+---
+Task ID: EXP-102
+Agent: main (Super Z)
+Task: Trace callback storage address at xchg [r14], rax (0x804F88A76). Find what r14 points to and what should read it.
+
+Work Log:
+- Verified git state: HEAD = origin/master = 0632172.
+- Static analysis: r14 = rdi = [rbx + 8] (from 0x804FA20E0). rbx = original rdi arg.
+- Built _Exp102CallbackStorageTracer.cs: INT3 at 0x804F88A76, captures r14, rax, r12, surrounding memory.
+- Fixed build error (ambiguous operator on ulong + int → cast to ulong).
+- Ran emulator. Exit code 134 (SIGABRT — tracer crash reading [r14] when r14=0).
+- KEY FINDING: r14 = 0x0000000000000000 (NULL!). r12 (IL2CPP context) = 0.
+- The callback pointer (rax=0x7FE77CFC0450) is stored at address 0 — NULL pointer dereference.
+- This is the root cause: callback stored at NULL, never invoked.
+- EXP-101 conclusion "callback IS stored" was partially wrong: xchg executes but writes to NULL.
+- Wrote EXP-102.md report.
+- Updated YATZI_MASTER_DEBUG_STATE.md, YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md, YATZI_EXP_INDEX.md, worklog.md.
+
+Stage Summary:
+- EXP-102 ROOT CAUSE FOUND: r14 = NULL at callback storage. Callback stored at address 0.
+- The registration context's [+8] field is NULL — this field should point to the callback storage location.
+- The IL2CPP context [0x808923D88] is also NULL at this point.
+- Next EXP-103: trace what rbx is and why [rbx+8] is NULL. What should set this field?

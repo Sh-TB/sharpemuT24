@@ -2768,6 +2768,10 @@ public sealed partial class DirectExecutionBackend
                                     // Captures return values to determine if callback storage is skipped.
                                     Exp101PatchPLTTracers();
 
+                                    // EXP-102: Install INT3 at xchg [r14], rax (0x804F88A76)
+                                    // to capture the callback storage address.
+                                    Exp102PatchXchgTracer();
+
                                     // EXP-080 (2026-07-31): The 11-byte NOP bypass at 0x800AA0207 from
                                     // EXP-072/073 has been REMOVED. It was a diagnostic patch that masked
                                     // the symptom (workers spinning on unsignaled 0x5C) without addressing
