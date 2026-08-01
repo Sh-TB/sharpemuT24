@@ -1050,3 +1050,51 @@ The UD2 trampoline hypothesis is irrelevant:
 4. The function was never called during any emulator run
 
 The actual blocker remains the ThreadPool deadlock from EXP-096/097 (work-submission call chain is dead code).
+
+
+---
+
+## EXP-098: Registration Function IS Reached — EXP-097 Corrected (2026-08-02)
+
+### EXP-097 CORRECTED
+
+EXP-097 claimed the registration function `0x804FA20E0` was "dead code" (never called). **WRONG.** Runtime INT3 tracing proves it IS reached.
+
+### Runtime Evidence
+
+```
+Line 8451: [EXP098-WORKING-INIT-ENTER] caller=0x804F04C75 — 0x804F51020 IS reached
+Line 8492: [EXP098-DEAD-REG-ENTER] *** 0x804FA20E0 REACHED! *** caller=0x804F527F9
+```
+
+The registration function `0x804FA20E0` fires AFTER the _ThreadPoolWaitCallback lookup. Its caller `0x804F527F9` is inside function `0x804F527C0`, called from real_init at `0x804F0590B` (offset +0xD6B).
+
+### Two Registration Systems
+
+| Working (7 globals) | Dead-Code Path |
+|---------------------|----------------|
+| `0x804F51020` → `0x804FBF780` | `0x804FA20E0` → `0x804F889D0` → `0x804FC33B0` |
+| SUCCEEDS (globals populated) | UNKNOWN (guard still 0xFFFF...) |
+
+### How the 7 Working Globals Are Populated (Template)
+
+`0x804F51020` (once-init, called from real_init):
+1. Loads 7 function pointers via LEA
+2. Calls registration helpers (0x804FBF780, 0x804FBFC20, etc.)
+3. Each helper stores function pointer to a global (e.g., `mov [0x808B41900], rbx`)
+
+### The Missing Piece
+
+`0x804FA20E0` tail-jumps to `0x804F889D0`, which calls `0x804FC33B0` (once-init primitive). If `0x804FC33B0` returns failure, the callback is never registered.
+
+### EXP-097 Golden Rule 8 Violation
+
+EXP-097 assumed `0x804FA1FE0` was "self-registering" because LEA at `0x804FA210F` loads `0x804FA1FE0`. But the LEA is inside function `0x804FA20E0` (a DIFFERENT function), not inside `0x804FA1FE0`. Function boundary was not verified.
+
+### DT_INIT_ARRAY Is Empty
+
+PRX DT_INIT_ARRAYSZ = 0 (0 entries). No constructors. The "37 more semaphores" from EXP-092 came from module_start (DT_INIT), not init_array.
+
+### Next EXP-099
+
+Trace `0x804F889D0` to check return value of `0x804FC33B0`. Does the once-init primitive succeed or fail?

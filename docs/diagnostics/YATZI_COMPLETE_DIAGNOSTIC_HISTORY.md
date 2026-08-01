@@ -1,8 +1,8 @@
 # Yatzi Complete Diagnostic History
 
 **Single source of truth for all Yatzi (PPSA17697) debugging experiments.**
-**Coverage: EXP-026 through EXP-111 (69 experiments — note: EXP-098..110 not created)**
-**Last updated: 2026-08-02 (EXP-111)**
+**Coverage: EXP-026 through EXP-111 (70 experiments — note: EXP-099..110 not created)**
+**Last updated: 2026-08-02 (EXP-098)**
 
 This file consolidates ALL diagnostic knowledge from every EXP report, git commit, and worklog entry. Future debugging MUST start from this file.
 
@@ -1363,3 +1363,18 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — hypothesis REJECTED
 - **Related:** EXP-096, EXP-097
 - **Impact:** The UD2 trampoline experiment is irrelevant to the current blocker (ThreadPool deadlock). The UD2 instructions are in error/panic paths that were never reached. The actual blocker remains the work-submission call chain being dead code (EXP-096/097).
+
+
+---
+
+## EXP-098 (added 2026-08-02)
+
+### EXP-098 — Registration Function IS Reached — EXP-097 Corrected — Registration Helper May Fail
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-098.md]
+- **Question:** Why is the IL2CPP ThreadPool initialization path never started?
+- **Hypothesis:** The registration function 0x804FA20E0 (which registers callback 0x804FA1FE0) is never called — it's dead code.
+- **Finding:** HYPOTHESIS REJECTED. 0x804FA20E0 IS REACHED at runtime. INT3 tracer fired at line 8492, caller=0x804F527F9 (inside 0x804F527C0, called from real_init at 0x804F0590B). The registration path IS executed AFTER the _ThreadPoolWaitCallback lookup. The deadlock persists because the registration helper 0x804F889D0 calls 0x804FC33B0 (once-init primitive) which may return failure.
+- **Status:** CONFIRMED — EXP-097 corrected
+- **Related:** EXP-095, EXP-096, EXP-097, EXP-099
+- **Impact:** Major correction — the registration path IS reached, the issue is whether the registration helper succeeds. EXP-097's "dead code" conclusion was wrong due to a Golden Rule 8 violation (function boundary not verified).
