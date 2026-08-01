@@ -3136,3 +3136,31 @@ Stage Summary:
 - Real invocation via 0x804F88AD0 identified, but self-referential.
 - External invoker for callback 0x804F52820 is the missing piece.
 - Next EXP-106: find what externally invokes 0x804F52820 or calls 0x804F88AD0.
+
+
+---
+Task ID: EXP-106
+Agent: main (Super Z)
+Task: Find why work-submission function 0x804F6EC20 is never reached. Trace indirect mechanism.
+
+Work Log:
+- Verified git state: HEAD = origin/master = a99fad8.
+- Followed reviewer's advice: checked if 0x804FA1FE0 (confirmed reached via registration) leads to 0x804F9FA80.
+- Disassembled 0x804FA1FE0 fully: YES, it calls 0x804F9FA80 at 0x804FA2089 (which calls 0x804F6EC20).
+- But 0x804FA1FE0 has 0 direct E8 callers and only 1 LEA reference (registration at 0x804FA210F).
+- 0x804FA1FE0 is registered as a callback but NEVER INVOKED.
+- Traced invocation chain: 0x804F88AD0 → 0x804FA84E0 → jmp 0x804FC3720 (PLT stub, PLT 218, GOT 0x808924580).
+- 0x804FA84E0 is a 1-instruction trampoline to PLT 218.
+- 0x804F88AD0 calls 0x804FA84E0 with rdi = [rbx] = callback DATA (struct+0x00), not the callback FUNCTION (struct+0x10).
+- The HLE function at PLT 218 receives callback data but doesn't invoke the callback function 0x804FA1FE0.
+- THIS IS THE SHARPEMU HLE IMPLEMENTATION GAP.
+- Root cause chain complete: PLT 218 HLE → doesn't invoke 0x804FA1FE0 → 0x804F9FA80 never called → 0x804F6EC20 never called → SignalSema never called → WaitSema(0xA6) deadlock.
+- Wrote EXP-106.md report with full chain.
+- Updated YATZI_MASTER_DEBUG_STATE.md, YATZI_COMPLETE_DIAGNOSTIC_HISTORY.md, YATZI_EXP_INDEX.md, worklog.md.
+
+Stage Summary:
+- EXP-106 ROOT CAUSE CHAIN COMPLETE: 0x804FA1FE0 registered but never invoked.
+- HLE function at PLT 218 (GOT 0x808924580) is the missing link.
+- It receives callback data but doesn't invoke the callback function.
+- The callback function 0x804FA1FE0 is at [struct+0x10], but HLE receives [struct+0x00].
+- Next EXP-107: identify PLT 218's NID and check if SharpEmu implements it.

@@ -1481,3 +1481,17 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED — EXP-104 corrected
 - **Related:** EXP-096, EXP-104, EXP-106
 - **Impact:** The "ThreadPool connection" from EXP-104 was a dead-code artifact. The real invocation mechanism (0x804F88AD0) is identified but the external trigger that starts the chain is still missing.
+
+
+---
+
+## EXP-106 (added 2026-08-02)
+
+### EXP-106 — 0x804FA1FE0 Registered but Never Invoked — HLE at PLT 218 Is the Missing Link
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-106.md]
+- **Question:** Why is the work-submission function 0x804F6EC20 never reached?
+- **Finding:** 0x804FA1FE0 (registered callback) contains call to 0x804F9FA80 at 0x804FA2089, which calls 0x804F6EC20. But 0x804FA1FE0 has 0 direct callers and is never invoked. The invoker 0x804F88AD0 calls 0x804FA84E0 (PLT stub → 0x804FC3720 → GOT 0x808924580, PLT index 218). This HLE function receives callback data ([struct+0x00]) but doesn't invoke the callback function ([struct+0x10] = 0x804FA1FE0). This is the SharpEmu HLE implementation gap.
+- **Status:** CONFIRMED — root cause chain complete
+- **Related:** EXP-096, EXP-098, EXP-101, EXP-103, EXP-105, EXP-107
+- **Impact:** The entire work-submission chain is blocked because the HLE function at PLT 218 doesn't invoke the registered callback. This connects EXP-096 (work submission never reached) to EXP-098..101 (registration succeeds) in one coherent chain.

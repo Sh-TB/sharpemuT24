@@ -1414,3 +1414,33 @@ EXP-102..105 investigated a parallel IL2CPP registration mechanism, not the Thre
 ### Investigation Pivot
 
 Future EXPs should return to EXP-096's original dead functions (`0x804F456E0`, `0x804F9FA80`, `0x804FA1440`) and find what indirect mechanism should reach them — NOT the callback chain.
+
+
+---
+
+## EXP-106: 0x804FA1FE0 Registered but Never Invoked — HLE at PLT 218 Is the Missing Link (2026-08-02)
+
+### Root Cause Chain (Complete)
+
+```
+0x804F6EC20 (work submission — SignalSema caller)
+  ← 0x804F9FAAA in 0x804F9FA80 (call site #2 from EXP-096)
+    ← 0x804FA2089 in 0x804FA1FE0 (call at offset +0xA9)
+      ← 0x804FA1FE0 registered as callback (EXP-098: registration succeeds)
+        ← BUT 0x804FA1FE0 is NEVER INVOKED
+          ← 0x804F88AD0 calls 0x804FA84E0 (PLT stub → 0x804FC3720 → GOT 0x808924580)
+            ← HLE function at PLT 218 receives callback DATA but doesn't invoke callback FUNCTION
+              ← Callback function is at [struct+0x10], HLE receives [struct+0x00]
+```
+
+### What SharpEmu Is Missing
+
+The HLE function at PLT 218 (GOT `0x808924580`, NID unknown) should:
+1. Receive the callback data structure (rdi = [struct+0x00])
+2. Read [struct+0x10] to find the callback function (0x804FA1FE0)
+3. Call 0x804FA1FE0 with appropriate arguments
+4. 0x804FA1FE0 then calls 0x804F9FA80 → 0x804F6EC20 (work submission)
+
+### Next EXP-107
+
+Identify the HLE function at PLT 218 (GOT 0x808924580). What NID? Is it implemented in SharpEmu?
