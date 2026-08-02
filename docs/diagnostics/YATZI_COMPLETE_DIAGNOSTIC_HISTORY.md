@@ -1532,7 +1532,7 @@ The investigation was NOT wasted:
 
 ### EXP-109 — 0x804F760B0 All 18 Callers Have 0 Callers — Entire Subtree Dead
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-109.md]
+- **Commit:** [82fc94f](https://github.com/Sh-TB/sharpemuT24/commit/82fc94f)
 - **Question:** Where does 0x804F760B0 sit relative to real_init's call sequence?
 - **Finding:** 0x804F760B0 is NOT called from real_init or 0x804F527C0. All 18 callers have 0 direct callers — entire subtree is dead code. 4th recurrence of "registered but never invoked." This is a missing indirect call mechanism, not a missing dispatcher.
 - **Status:** CONFIRMED — EXP-108 validated
