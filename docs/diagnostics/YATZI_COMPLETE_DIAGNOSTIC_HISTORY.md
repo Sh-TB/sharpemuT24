@@ -1553,7 +1553,7 @@ All external claims (Minimax EXP-005 style) REJECTED:
 
 ### EXP-110 — Dispatch Is Through [struct+0x08] Not [struct+0x10] — 31 Indirect Call Sites Found
 - **Date:** 2026-08-02
-- **Commit:** [see git log for EXP-110.md]
+- **Commit:** [c959bab](https://github.com/Sh-TB/sharpemuT24/commit/c959bab)
 - **Question:** Where is the indirect dispatch mechanism that invokes registered callbacks?
 - **Finding:** The actual dispatch in 0x804FA1FE0 uses [struct+0x08] (call r12 where r12=[rbx+8]), NOT [struct+0x10]. Found 31 call [reg+0x08] sites in PRX. Previous assumption that [+0x10] was the dispatch offset was wrong.
 - **Status:** CONFIRMED — offset corrected, pattern search done
