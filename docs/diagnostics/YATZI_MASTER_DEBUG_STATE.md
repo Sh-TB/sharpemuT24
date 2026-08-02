@@ -1529,3 +1529,39 @@ External claims (Minimax EXP-005 style) ALL REJECTED:
 ### Next EXP-110
 
 Shift from "find what calls X" to "what HLE function should perform the indirect dispatch." The IL2CPP runtime expects callbacks to be invoked via a dispatch mechanism that SharpEmu doesn't implement.
+
+
+---
+
+## EXP-110: Dispatch Is Through [struct+0x08] Not [struct+0x10] — 31 Indirect Call Sites Found (2026-08-02)
+
+### Key Correction
+
+The actual dispatch in `0x804FA1FE0` is through `[struct+0x08]`, NOT `[struct+0x10]`:
+```asm
+mov r12, [rbx + 8]    ; load function pointer from +0x08
+call r12               ; dispatch through the loaded pointer
+```
+
+Struct layout corrected:
+- `[+0x00]` = callback data
+- `[+0x08]` = **actual function pointer called** (the dispatch target)
+- `[+0x10]` = 0x804FA1FE0 (metadata, not call target)
+
+### Pattern Search Results
+
+- `call [reg+0x10]`: 31 sites (wrong offset)
+- `call [reg+0x08]`: 31 sites (correct offset — next investigation target)
+
+### Developer Opinion Validation
+
+All developer opinion claims match existing evidence:
+- "ThreadPool working" → REJECTED ✓
+- "Asset loading blocker" → REJECTED ✓
+- "PLT218 missing link" → REJECTED ✓
+- "Callback invocation works" → REJECTED ✓
+- "Callback registration broken" → REJECTED (registration works) ✓
+
+### Next EXP-111
+
+Add INT3 tracers at the 31 `call [reg+0x08]` sites and check runtime reachability.

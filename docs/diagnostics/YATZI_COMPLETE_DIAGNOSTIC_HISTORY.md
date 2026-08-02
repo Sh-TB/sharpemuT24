@@ -1545,3 +1545,17 @@ All external claims (Minimax EXP-005 style) REJECTED:
 - ThreadPool working: REJECTED (0x804F6EC20 never reached)
 - PLT218 missing link: REJECTED (0 INT3 hits)
 - Callback invocation: REJECTED (0 hits on all addresses)
+
+
+---
+
+## EXP-110 (added 2026-08-02)
+
+### EXP-110 — Dispatch Is Through [struct+0x08] Not [struct+0x10] — 31 Indirect Call Sites Found
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-110.md]
+- **Question:** Where is the indirect dispatch mechanism that invokes registered callbacks?
+- **Finding:** The actual dispatch in 0x804FA1FE0 uses [struct+0x08] (call r12 where r12=[rbx+8]), NOT [struct+0x10]. Found 31 call [reg+0x08] sites in PRX. Previous assumption that [+0x10] was the dispatch offset was wrong.
+- **Status:** CONFIRMED — offset corrected, pattern search done
+- **Related:** EXP-102, EXP-103, EXP-106, EXP-109
+- **Impact:** The search for the missing dispatcher should focus on call [reg+0x08] sites, not call [reg+0x10]. The 31 sites need runtime verification.
