@@ -1524,3 +1524,24 @@ The investigation was NOT wasted:
 - **Status:** CONFIRMED
 - **Related:** EXP-096, EXP-106, EXP-107, EXP-109
 - **Impact:** The callback invocation mechanism is structurally unreachable. The actual missing piece is likely a shared dispatcher/scheduler loop that should iterate and invoke registered callbacks.
+
+
+---
+
+## EXP-109 (added 2026-08-02)
+
+### EXP-109 — 0x804F760B0 All 18 Callers Have 0 Callers — Entire Subtree Dead
+- **Date:** 2026-08-02
+- **Commit:** [see git log for EXP-109.md]
+- **Question:** Where does 0x804F760B0 sit relative to real_init's call sequence?
+- **Finding:** 0x804F760B0 is NOT called from real_init or 0x804F527C0. All 18 callers have 0 direct callers — entire subtree is dead code. 4th recurrence of "registered but never invoked." This is a missing indirect call mechanism, not a missing dispatcher.
+- **Status:** CONFIRMED — EXP-108 validated
+- **Related:** EXP-096, EXP-106, EXP-107, EXP-108
+- **Impact:** The investigation should shift from "find what calls X" to "what HLE function should perform the indirect dispatch."
+
+### Independent Validation Report
+All external claims (Minimax EXP-005 style) REJECTED:
+- Asset loading: REJECTED (files present, deadlock is ThreadPool)
+- ThreadPool working: REJECTED (0x804F6EC20 never reached)
+- PLT218 missing link: REJECTED (0 INT3 hits)
+- Callback invocation: REJECTED (0 hits on all addresses)

@@ -1498,3 +1498,34 @@ This suggests a **missing dispatcher/scheduler** that should iterate and invoke 
 ### Next EXP-109
 
 Search for a callback dispatcher/scheduler loop. Check `0x804F760B0` (18 callers, most reachable path).
+
+
+---
+
+## EXP-109: 0x804F760B0 All 18 Callers Have 0 Callers — Entire Subtree Dead (2026-08-02)
+
+### EXP-108 Confirmed
+
+`0x804F760B0` is NOT called from real_init or `0x804F527C0`. All 18 callers have 0 direct callers — the entire subtree is dead code. This is the 4th recurrence of "registered but never invoked."
+
+### Key Insight
+
+The investigation has now traced 4 functions that are all "registered but never invoked":
+1. `0x804F52820` (EXP-104/105) — callback, 0 callers
+2. `0x804FA1FE0` (EXP-106) — callback, 0 callers
+3. `0x804F88AD0` (EXP-107/108) — invoker, 0 callers
+4. `0x804F760B0` (EXP-109) — 18 callers, ALL with 0 callers
+
+This is NOT a missing dispatcher — it's a **missing indirect call mechanism**. The IL2CPP runtime expects function pointers to be called via vtable/delegate dispatch, but SharpEmu's HLE doesn't implement the dispatch layer.
+
+### Independent Validation Report
+
+External claims (Minimax EXP-005 style) ALL REJECTED:
+- "Asset loading was the blocker" — REJECTED (files present, deadlock is ThreadPool)
+- "ThreadPool is working" — REJECTED (0x804F6EC20 never reached)
+- "PLT218 is the missing link" — REJECTED (0 INT3 hits, never reached)
+- "Callback invocation works" — REJECTED (0 hits on all invocation addresses)
+
+### Next EXP-110
+
+Shift from "find what calls X" to "what HLE function should perform the indirect dispatch." The IL2CPP runtime expects callbacks to be invoked via a dispatch mechanism that SharpEmu doesn't implement.
