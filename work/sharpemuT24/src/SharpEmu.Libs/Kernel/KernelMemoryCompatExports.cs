@@ -1940,6 +1940,16 @@ public static partial class KernelMemoryCompatExports
         }
 
         var hostPath = ResolveGuestPath(guestPath);
+        // EXP-144: Always log mkdir path for debugging
+        Console.Error.WriteLine($"[EXP-144-MKDIR] guest='{guestPath}' host='{hostPath}' writableApp0={_writableApp0} isReadOnly={IsReadOnlyGuestMutationPath(guestPath)}");
+        // EXP-144: /devlog is a PS5 system directory — return ALREADY_EXISTS
+        if (string.Equals(guestPath, "/devlog", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(guestPath, "/devlog/", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.Error.WriteLine($"[EXP-144-MKDIR] /devlog → ALREADY_EXISTS (PS5 system directory)");
+            ctx[CpuRegister.Rax] = 0;
+            return (int)OrbisGen2Result.ORBIS_GEN2_ERROR_ALREADY_EXISTS;
+        }
         if (IsReadOnlyGuestMutationPath(guestPath))
         {
             LogOpenTrace($"mkdir readonly path='{guestPath}' host='{hostPath}'");
