@@ -3449,3 +3449,49 @@ Artifacts:
 
 Commit: pending
 STOP — awaiting user review. Static analysis exhausted.
+
+---
+Task ID: 136
+Agent: main agent (Super Z)
+Task: EXP-136 — Full investigation reassessment (EXP-000 → EXP-135). Find earliest missing event before WaitSema(0x81) deadlock. Multi-hypothesis investigation across HLE audit, Dreaming Sarah baseline comparison, full runtime event timeline reconstruction, and recheck of prior false leads.
+
+Work Log:
+- Read all 69 surviving EXP reports (EXP-035..EXP-135) and extracted CONFIRMED/REJECTED/SUPERSEDED/PARTIAL/UNKNOWN status for each.
+- Read worklog narrative for EXP-079..EXP-110 (no .md reports survived — findings were embedded only in worklog).
+- Read CHECKPOINT_v0.0.11.md (1,344 lines) for prior synthesis: confirmed Dreaming Sarah baseline metrics, Windows-vs-Linux comparison, and prior rejected hypotheses.
+- Audited ALL priority HLE export files (KernelSemaphoreCompatExports.cs, KernelPthreadCompatExports.cs, KernelPthreadExtendedCompatExports.cs, C11SyncExports.cs, KernelEventFlagCompatExports.cs, KernelEventQueueCompatExports.cs, KernelSyncOnAddressCompatExports.cs, FiberExports.cs, SystemServiceExports.cs, KernelExports.cs) — found multiple stubs but cross-check against Yatzi imports eliminated all of them.
+- Compared Dreaming Sarah (working, native C++, 138 frames, 167 colors) vs Yatzi (broken, Unity IL2CPP) boot timelines. First divergence: Dreaming Sarah has no IL2CPP runtime so never calls arch_init_gc; Yatzi calls it and gets NOT_FOUND.
+- Reversed prior false leads — confirmed several were partially correct (EXP-089 "missing trigger" was right in principle, just lacked binary evidence).
+- Wrote Python script /home/z/my-project/scripts/exp136_resolve_nids.py to reverse-resolve opaque NIDs in Yatzi runtime log via SharpEmu's Ps5Nid.cs SHA1+salt algorithm.
+- Verified script against 3 known NIDs (sceKernelWaitSema=Zxa0VhQVTsk, sceKernelCreateSema=188x57JYp0g, sceKernelAllocateDirectMemory=rTXw65xmLIA) — all matched.
+- Reverse-resolved 4 unresolved NIDs in exp118_run.log:
+  - XAKDgxcra6k = 'arch_init_gc' (IL2CPP GC architecture initializer)
+  - J3edELK4FvM = 'arch_raise_user' (IL2CPP abort/exception mechanism)
+  - 1D0H2KNjshE = 'powf' (math)
+  - hsi9drzHR2k = 'log2f' (math)
+- Cross-checked: arch_init_gc IS in aerolib names DB (line 116729); arch_init_gc is imported by both Il2cppUserAssemblies.prx AND PS5Util.prx.
+- Cross-checked: arch_init_gc has ZERO implementations anywhere in SharpEmu src/.
+- Reconstructed full runtime event timeline from exp118_run.log:
+  Line 537-8310: imports resolved, IL2CPP metadata bootstrap runs (multiple posix-signal recoveries)
+  Line 8313: sceKernelAllocateDirectMemory called (Unity starts GPU memory alloc)
+  Line 8315: *** arch_init_gc called → returns 0x80020002 NOT_FOUND ***
+  Line 8317: GC scavenger thread scheduled at 0x804F88AA0 (proceeds despite GC init failure)
+  Line 8319: *** arch_raise_user called — IL2CPP abort mechanism triggered ***
+  Line 8320+: stall, deadlock, system goes silent
+  Line 8559: Stall detected — 13 workers blocked on WaitSema(0x5C..0x74), main thread on WaitSema(0x81), GC on WaitSema(0x83)
+- Wrote EXP-136.md (826 lines) with full hypothesis management log (H1-H8), evidence table, root cause ranking.
+- Created scripts/exp136/ directory with EXP-136.md, exp136_resolve_nids.py, exp136_check_nid_imports.py.
+- Committed and pushed to GitHub:
+  - Commit: d465cd54b6fe464cbf68b55ac85bbe5417c56d21
+  - Branch: main
+  - URL: https://github.com/Sh-TB/sharpemuT24/blob/main/exp-reports/EXP-136.md
+  - HTTP 200 verified
+
+Stage Summary:
+- BREAKTHROUGH: Earliest missing event identified as arch_init_gc returning NOT_FOUND at exp118_run.log line 8315.
+- Root cause hypothesis: arch_init_gc (NID XAKDgxcra6k) is unimplemented in SharpEmu. Unity IL2CPP calls it during GC architecture initialization; SharpEmu returns 0x80020002 (NOT_FOUND); IL2CPP immediately invokes arch_raise_user (also unimplemented); abort cascade silently terminates the bootstrap-job-submission path before it can signal semaphore 0x81.
+- This is the answer to the question every EXP-127..EXP-135 has been circling: "Why is the bootstrap job never submitted?"
+- Confidence: 70% (would be higher but cannot runtime-verify the fix without dotnet SDK to rebuild SharpEmu).
+- The EXP-113 trajectory concern ("EXP-089 ≈ EXP-112") was correct in spirit — both arrived at "missing trigger" but neither had the binary evidence. EXP-136 has that evidence.
+- Fix path: implement arch_init_gc (and arch_raise_user) in SharpEmu. Re-run Yatzi with FAST_PATH=0. Predict: bootstrap job submitted → semaphore 0x81 signaled → workers receive tasks → first frame eventually rendered.
+- Lesson documented in EXP-136: when auditing runtime logs, never trust [DIAG-VERIFY] "OK" messages — always cross-check return values. And always reverse-resolve NIDs to human-readable names.
