@@ -9,6 +9,22 @@ Release:    v0.0.9
 Date:       2026-07-24
 ```
 
+### v0.0.12 Update (2026-08-04)
+
+```
+Tag:        v0.0.12
+Commit:     11f667a
+Release:    v0.0.12
+Date:       2026-08-04
+```
+
+**v0.0.12 confirms Golden Test still PASS with EXP-138 patch applied:**
+- Frame 1: 23 colors (matches v0.0.9)
+- Frame 70: 23 colors (matches v0.0.9)
+- Frame 138: 228 colors (exceeds v0.0.9 baseline of 167+)
+- Backend: VulkanVideoPresenter
+- 139 framebuffer dumps, 0 crashes
+
 ## Golden Test Game
 
 ```
@@ -41,7 +57,85 @@ Required:   100+ framebuffer dumps with 50+ distinct colors
 ./tests/golden/run-golden-tests.sh
 ```
 
-## Game Status Matrix (as of v0.0.9)
+## Required Golden Test Environment (v0.0.12+)
+
+**NEVER run with `SHARPEMU_HEADLESS=1` for visual Golden Tests.**
+
+`SHARPEMU_HEADLESS=1` forces `HeadlessVideoPresenter`, which is a stub that allocates a framebuffer but never executes draw commands. This produces empty (all-zero) frames and false "RENDERING BLOCKED" results.
+
+### Correct Environment
+
+```
+Xvfb (virtual X11 display on :99)
+    +
+Lavapipe (software Vulkan, from mesa-vulkan-drivers)
+    +
+VulkanVideoPresenter (auto-selected when GPU detected)
+    +
+GLFW X11 backend (from libglfw3)
+    +
+SHARPEMU_HEADLESS unset (CRITICAL)
+```
+
+### Setup Commands
+
+```bash
+# 1. Start Xvfb
+pkill -9 Xvfb 2>/dev/null; sleep 1
+rm -f /tmp/.X99-lock /tmp/.X11-unix/X99
+mkdir -p /tmp/.X11-unix /tmp/xdg; chmod 1777 /tmp/.X11-unix /tmp/xdg
+nohup setsid Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp -ac -noreset > /tmp/xvfb.log 2>&1 < /dev/null &
+disown; sleep 3
+
+# 2. Set environment
+export DISPLAY=:99
+export XDG_RUNTIME_DIR=/tmp/xdg
+export VK_ICD_FILENAMES=/path/to/lvp_icd.json
+export LD_LIBRARY_PATH=/path/to/glfw/lib:/path/to/vulkan/lib:$BIN_DIR
+export SHARPEMU_TRACE_GUEST_IMAGES=present
+export SHARPEMU_GUEST_IMAGE_DUMP_DIR=/tmp/golden-framebuffers
+export SHARPEMU_GUEST_IMAGE_DUMP_CONTINUOUS=1
+unset SHARPEMU_HEADLESS      # CRITICAL — do NOT set this
+unset SHARPEMU_SEMA_FAST_PATH
+```
+
+### Installing Lavapipe + GLFW (without root)
+
+```bash
+cd /tmp
+apt-get download mesa-vulkan-drivers libglfw3
+mkdir -p mesa-vulkan-extract glfw-extract
+dpkg -x mesa-vulkan-drivers_*.deb mesa-vulkan-extract/
+dpkg -x libglfw3_*.deb glfw-extract/
+# Lavapipe ICD: mesa-vulkan-extract/usr/share/vulkan/icd.d/lvp_icd.json
+# Lavapipe lib: mesa-vulkan-extract/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+# GLFW lib:     glfw-extract/usr/lib/x86_64-linux-gnu/libglfw.so.3
+```
+
+## Mandatory Evidence (v0.0.12+)
+
+Every Golden Test MUST upload:
+
+1. **PNG frame** (at least frame 1 and frame 138)
+2. **Frame metrics** (color count, non-zero pixel count)
+3. **Color count** (must be ≥ 50 for at least one frame)
+4. **Non-zero pixel count** (must be > 0%)
+5. **Log file** (execution log showing "GLFW windowing platform in use: X11" and "Vulkan VideoOut ready")
+6. **Commit hash** (the exact commit tested)
+
+**No exception.** A game running without visible framebuffer is NOT a Golden Test PASS.
+
+### Success Criteria
+
+```
+Execution:  PASS (game boots, no crash)
+Rendering:  PASS (PNG has real content, colors ≥ 50, framebuffer non-zero)
+Evidence:   PASS (PNG uploaded, metrics recorded, log saved)
+```
+
+All three must be PASS for a Golden Test PASS.
+
+## Game Status Matrix (as of v0.0.12)
 
 | # | Game | Engine | Status | Blocker |
 |---|------|--------|--------|---------|
