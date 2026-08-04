@@ -1,0 +1,39 @@
+﻿{
+  "frameNumber": 1,
+  "timestamp": "2026-08-04T14:57:49.5398814Z",
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "format": "RGBA8",
+  "gpuStats": {
+    "drawCalls": 0,
+    "texturesUploaded": 0,
+    "commandBuffersSubmitted": 0,
+    "activeShaders": 0,
+    "triangleCount": 0
+  },
+  "flipInfo": {
+    "lastFlipAddress": "0x0000000001260000",
+    "lastFlipSize": "3840x2160",
+    "totalFlips": 1
+  },
+  "timelineEvents": [
+    {
+      "timestamp": 0.0032097,
+      "eventType": "PresenterInit",
+      "description": "Headless Presenter initialized"
+    },
+    {
+      "timestamp": 0.0032801,
+      "eventType": "DeviceCreate",
+      "description": "Virtual Device created"
+    },
+    {
+      "timestamp": 1.3339341,
+      "eventType": "FirstPresent",
+      "description": "First flip: frame #1"
+    }
+  ],
+  "sessionElapsed": 1.3389413
+}
