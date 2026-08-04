@@ -2376,8 +2376,13 @@ public sealed partial class DirectExecutionBackend
 
                 // Call the REAL resolver at 0x804ED9B90 via TryCallGuestFunction
                 // This preserves behavior — the real resolver runs and returns in RAX
+                // EXP-139.1: Experiment D — Skip nested TryCallGuestFunction to avoid .NET 10
+                // "Invalid Program" crash. This means the resolver returns 0 for ALL symbols
+                // (same as EXP-026 "232 NULL returns"). This is NOT a fix — it's a diagnostic
+                // to see if Yatzi can progress past the crash point.
                 var scheduler = GuestThreadExecution.Scheduler;
-                if (scheduler != null)
+                bool skipNestedResolverCall = true;  // EXP-139.1: diagnostic
+                if (!skipNestedResolverCall && scheduler != null)
                 {
                         try
                         {

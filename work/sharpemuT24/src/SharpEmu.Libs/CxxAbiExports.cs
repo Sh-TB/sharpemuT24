@@ -213,7 +213,16 @@ public static class CxaGuardExports
 
         // Try to call the guest callback via the scheduler
         var scheduler = GuestThreadExecution.Scheduler;
-        if (scheduler is not null && callbackAddress != 0)
+        // EXP-139.1: Experiment D — Skip nested TryCallGuestFunction to avoid .NET 10
+        // "Invalid Program" crash. The nested CallNativeEntry (via TryCallGuestFunction →
+        // ExecuteGuestThreadEntry → CallNativeEntry) corrupts .NET 10's managed/native
+        // transition state, causing the NEXT CallNativeEntry from the outer ExecuteEntry
+        // to fail. By skipping the nested call, we avoid the corruption.
+        // The once_flag is marked complete (value=2) so the guest's static initialization
+        // is considered done. The actual init code will run later when the guest naturally
+        // reaches it (or the init was already done by the time ExecuteOnce is called).
+        bool skipNestedCall = true;  // EXP-139.1: set to false to restore original behavior
+        if (!skipNestedCall && scheduler is not null && callbackAddress != 0)
         {
             // Mark as in-progress
             _ = ctx.TryWriteInt32(onceAddress, 1);

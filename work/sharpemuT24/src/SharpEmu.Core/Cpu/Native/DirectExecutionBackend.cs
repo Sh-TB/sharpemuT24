@@ -871,11 +871,9 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                 return *(ulong*)((byte*)contextRecord + offset);
         }
 
-        // EXP-138: CallNativeEntry returns int (original signature) because .NET 10
-        // does not allow delegate* unmanaged[Cdecl]<ulong> to be called from managed
-        // code (throws "Invalid Program: attempted to call a UnmanagedCallersOnly
-        // method from managed code"). Instead, the full 64-bit RAX is captured by
-        // the thunk sentinel writing to a memory location (see ExecuteGuestThreadEntry).
+        // EXP-139.1: Experiment B REJECTED — [UnmanagedCallersOnly] cannot be called
+        // directly from managed code (CS8901). Reverted to original signature.
+        // The fix must be elsewhere — see Experiment C/D.
         private unsafe static int CallNativeEntry(void* entry)
         {
                 var nativeEntry = (delegate* unmanaged[Cdecl]<int>)entry;
