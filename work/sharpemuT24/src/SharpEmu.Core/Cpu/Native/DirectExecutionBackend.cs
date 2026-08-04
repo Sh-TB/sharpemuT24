@@ -5054,7 +5054,13 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         ActiveGuestThreadYieldReason = null;
                         try
                         {
-                                var nativeReturn = CallNativeEntry(ptr);
+                                // EXP-139.2: Use RunGuestEntryStub (native worker thread) instead of
+                                // CallNativeEntry to avoid .NET 10 "Invalid Program" crash from nested
+                                // managed→native→managed→native transitions.
+                                // The native worker thread has NO managed frames, so the GC and CLR
+                                // transition tracking never need to traverse guest stubs.
+                                var workerHostRspSlot = (ulong)hostRspStorage;
+                                var nativeReturn = RunGuestEntryStub(ptr, workerHostRspSlot);
                                 // EXP-138: Read the full 64-bit RAX from the raxCaptureSlot
                                 // (written by the thunk sentinel before returning to managed code).
                                 // CallNativeEntry returns int (32-bit) due to .NET 10 ABI constraint,

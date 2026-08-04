@@ -49,6 +49,17 @@ public sealed partial class DirectExecutionBackend
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern uint WaitForSingleObject(nint hHandle, uint dwMilliseconds);
 
+        // EXP-139.2: POSIX thread creation (pthread_create)
+        [DllImport("libc", EntryPoint = "pthread_create", SetLastError = true)]
+        private static extern int PosixCreateThread(
+                out nint threadHandle,
+                nint threadAttributes,
+                nint startAddress,
+                nint parameter);
+
+        [DllImport("libc")]
+        private static extern int pthread_exit(nint retVal);
+
         // Runs an emitted guest entry stub. Preferred path is a pooled native worker
         // thread; falls back to the historical inline calli (guest frames above this
         // thread's managed frames) when workers are disabled or unavailable.
@@ -92,10 +103,11 @@ public sealed partial class DirectExecutionBackend
 
         private NativeGuestExecutor? RentNativeGuestExecutor()
         {
-                // NativeGuestExecutor emits a Win32 wait loop and creates it with
-                // kernel32!CreateThread. POSIX hosts use the established inline entry
-                // path until the worker loop has a pthread/eventfd implementation.
-                if (!OperatingSystem.IsWindows() || NativeGuestWorkersDisabled)
+                // EXP-139.2: Enable NativeGuestExecutor on Linux (POSIX) to avoid .NET 10
+                // "Invalid Program" crash from nested CallNativeEntry calls.
+                // The POSIX semaphore path (PosixHostStubs.CreateWorkerEvent etc.) is
+                // already implemented; only the Windows-only guard prevented its use.
+                if (NativeGuestWorkersDisabled)
                 {
                         return null;
                 }
@@ -268,6 +280,22 @@ public sealed partial class DirectExecutionBackend
                         {
                                 return _waitForSingleObjectAddress != 0 && _setEventAddress != 0;
                         }
+                        // EXP-139.2: On POSIX (Linux/macOS), resolve POSIX equivalents instead of kernel32.
+                        // We need Win64→SysV thunks because the loop stub passes args in Win64 ABI (rcx),
+                        // but sem_wait/sem_post expect SysV ABI (rdi).
+                        if (!OperatingSystem.IsWindows())
+                        {
+                                var libc = NativeLibrary.Load(OperatingSystem.IsMacOS() ? "libSystem.dylib" : "libc.so.6");
+                                var semWait = NativeLibrary.GetExport(libc, "sem_wait");
+                                var semPost = NativeLibrary.GetExport(libc, "sem_post");
+                                var pthreadExit = NativeLibrary.GetExport(libc, "pthread_exit");
+                                // Create Win64→SysV thunks for sem_wait (1 arg: rcx→rdi) and
+                                // sem_post (1 arg: rcx→rdi). pthread_exit also takes 1 arg (rcx→rdi).
+                                _waitForSingleObjectAddress = PosixHostStubs.CreateWin64ToSysVThunk(semWait);
+                                _setEventAddress = PosixHostStubs.CreateWin64ToSysVThunk(semPost);
+                                _exitThreadAddress = PosixHostStubs.CreateWin64ToSysVThunk(pthreadExit);
+                                return _waitForSingleObjectAddress != 0 && _setEventAddress != 0 && _exitThreadAddress != 0;
+                        }
                         nint kernel32 = GetModuleHandle("kernel32.dll");
                         if (kernel32 == 0)
                         {
@@ -400,13 +428,35 @@ public sealed partial class DirectExecutionBackend
                                 return false;
                         }
                         FlushInstructionCache(GetCurrentProcess(), _loopStub, LoopStubSize);
-                        _threadHandle = CreateThread(
-                                0,
-                                WorkerStackReservation,
-                                (nint)_loopStub,
-                                0,
-                                StackSizeParamIsAReservation,
-                                out _nativeThreadId);
+                        // EXP-139.2: Use pthread_create on POSIX, CreateThread on Windows
+                        if (OperatingSystem.IsWindows())
+                        {
+                                _threadHandle = CreateThread(
+                                        0,
+                                        WorkerStackReservation,
+                                        (nint)_loopStub,
+                                        0,
+                                        StackSizeParamIsAReservation,
+                                        out _nativeThreadId);
+                        }
+                        else
+                        {
+                                // POSIX: pthread_create(pthread_t*, attr, start_routine, arg)
+                                // The loop stub uses Win64 ABI (rcx/rdx/r8/r9); the POSIX thunks
+                                // (created above) convert Win64→SysV for prologue/epilogue calls.
+                                // But the loop entry itself is raw x86-64 — pthread_create calls
+                                // it directly (no managed frame involved).
+                                var result = PosixCreateThread(
+                                        out _threadHandle,
+                                        0,  // default attributes
+                                        (nint)_loopStub,
+                                        0);  // no arg
+                                if (result != 0)
+                                {
+                                        _threadHandle = 0;
+                                }
+                                _nativeThreadId = PosixHostStubs.GetCurrentThreadId();
+                        }
                         if (_threadHandle == 0)
                         {
                                 return false;
