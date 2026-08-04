@@ -1,0 +1,1734 @@
+[DEBUG] SharpEmu starting with 1 args
+[INFO][SharpEmu.Diagnostics] DiagnosticEngine.cs:83 DiagnosticEngine initialized: /tmp/SharpEmu/diagnostics/sessions/eboot-20260804_152845
+[DIAG-HOOKS] Diagnostics activated in DirectExecutionBackend
+[DIAG] Intelligence Engine activated: profile=Compatibility
+[DIAG] Subsystems: CPU Trace, Crash Writer, Memory Map, GPU State, Thread Debug, Syscall, File IO, HLE Quality
+[DIAGNOSTICS] Engine initialized: /tmp/SharpEmu/diagnostics/sessions/eboot-20260804_152845
+[DIAGNOSTICS] Live session: /tmp/SharpEmu/diagnostics/live/session.json
+[INFO][SharpEmu.CLI] Program.cs:281 SharpEmu UNOFFICIAL — https://github.com/sharpemu/sharpemu
+
+Local build (not produced by CI).
+[INFO][SharpEmu.CLI] Program.cs:282 Host hardware: CPU: 2 logical processors; GPU: unknown; RAM: unknown.
+[DEBUG] Full path: /tmp/my-project/upload/PPSA02929/PPSA02929-app0/eboot.bin
+[DEBUG] Creating runtime...
+[LOADER][INFO] Kernel TSC frequency: 3200008295 Hz (calibrated-rdtsc)
+[HLE] Warmed 3632 type initializers (1 threw) + JIT-compiled 21602 methods (113 skipped) across 13 HLE assemblies, plus 3165 framework type initializers.
+[INFO][Aerolib] Aerolib.cs:150 Loaded 154457 NID entries from binary resource
+[DEBUG] Running: /tmp/my-project/upload/PPSA02929/PPSA02929-app0/eboot.bin
+[RUNTIME] Loading: /tmp/my-project/upload/PPSA02929/PPSA02929-app0/eboot.bin
+
+========== Boot Dependency Report ==========
+App0 root       : /tmp/my-project/upload/PPSA02929/PPSA02929-app0
+Engine          : Native C/C++
+Engine detail   : Native C/C++
+Coverage        : 75.0% (3/4 required files present)
+Critical miss   : 0
+Critical encrypt: 0
+Can boot        : YES
+
+Required files:
+
+  [★★★★★] eboot.bin
+      Path       : eboot.bin
+      Description: Main executable
+      Exists     : YES
+      Size       : 7.4 MB
+      Magic      : 0x4F153D1D
+      Format     : SELF(fSELF)
+      Encrypted  : NO
+      Loadable   : YES
+      Priority   : Critical
+      Status     : OK (7.4 MB)
+
+  [★★☆☆☆] sce_sys/about/right.sprx
+      Path       : sce_sys/about/right.sprx
+      Description: About page module
+      Exists     : YES
+      Size       : 12.2 KB
+      Magic      : 0x4F153D1D
+      Format     : SELF(fSELF)
+      Encrypted  : NO
+      Loadable   : YES
+      Priority   : Low
+      Status     : OK (0.0 MB)
+
+  [★★☆☆☆] sce_module/libc.prx
+      Path       : sce_module/libc.prx
+      Description: C runtime (OPTIONAL — SharpEmu has built-in HLE for libc)
+      Exists     : YES
+      Size       : 1.2 MB
+      Magic      : 0x4F153D1D
+      Format     : SELF(fSELF)
+      Encrypted  : NO
+      Loadable   : YES
+      Priority   : Low
+      Status     : OK (1.2 MB)
+
+  [★★☆☆☆] sce_module/libSceNpCppWebApi.prx
+      Path       : sce_module/libSceNpCppWebApi.prx
+      Description: PlayStation Network WebApi (if game uses PSN)
+      Exists     : NO
+      Priority   : Low
+      Status     : MISSING
+
+
+Recommendations:
+  • 1 non-critical file(s) missing — game may boot but be incomplete. Upload 'sce_module/libSceNpCppWebApi.prx' to improve coverage.
+
+Next required file to upload: sce_module/libSceNpCppWebApi.prx
+============================================
+
+[FORMAT] eboot.bin magic=0x4F153D1D SELF(fSELF) Decrypted Ready (fSELF)
+[LOADER] Loading param.json at /tmp/my-project/upload/PPSA02929/PPSA02929-app0/sce_sys/param.json
+[LOADER] Title: Dreaming Sarah, TitleId: PPSA02929, Version: 01.000.000
+[LOADER][TLS] load_start clear=True next=1 assigned=1 has_pt_tls=True
+Total image size needed: 0x790E70 (7933552 bytes)
+[LOADER] Segment 0: VAddr=0x0000000800000000, FileSize=0x2E70BC, MemSize=0x2E70BC, Align=0x4000
+[LOADER] Segment 1: VAddr=0x00000008002E8000, FileSize=0x8B1C1, MemSize=0x8B1C1, Align=0x4000
+[LOADER] Segment 2: VAddr=0x0000000800374000, FileSize=0x121380, MemSize=0x121380, Align=0x4000
+[LOADER] Segment 4: VAddr=0x0000000800498000, FileSize=0x8200, MemSize=0x2EE48, Align=0x4000
+[LOADER] Segment 9: VAddr=0x00000008004C6E50, FileSize=0x2CA020, MemSize=0x2CA020, Align=0x4000
+[LOADER][TLS] Module 1 TLS template: memsz=0x1868 filesz=0x0 align=0x10 static_offset=0x1870 total_static=0x1870
+[LOADER] TryLoadTableBytes: trying location=0x790790, size=0x6E0, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x800790790
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x800790790
+[LOADER] Dynamic Info: StrTab=0x4C6E50, StrTabSize=0x2189
+[LOADER] Dynamic Info: SymTab=0x4C8FE0, SymTabSize=0x2D90
+[LOADER] Dynamic Info: Rela=0x4CE6F8, RelaSize=0x2C1138
+[LOADER] Dynamic Info: JmpRel=0x4CBD70, JmpRelSize=0x2988
+[LOADER] Dynamic Info: PltGot=0x4943C8
+[LOADER] TLS module id: 1
+[LOADER] HasImportMetadata: True
+[LOADER] TryLoadTableBytes: trying location=0x4CE6F8, size=0x2C1138, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8004CE6F8
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8004CE6F8
+[LOADER] TryLoadTableBytes: trying location=0x4CBD70, size=0x2988, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8004CBD70
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8004CBD70
+[LOADER] ImageBase runtime: 0x0000000800000000
+[LOADER] Processing 120776 relocations...
+[LOADER] TryLoadTableBytes: trying location=0x4C6E50, size=0x2189, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8004C6E50
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8004C6E50
+[LOADER] TryLoadTableBytes: trying location=0x4C8FE0, size=0x2D90, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8004C8FE0
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8004C8FE0
+[LOADER] Found 484 unique NIDs, 120776 descriptors
+[LOADER] CreateImportStubMapping: nids=484, required=0x1E40, map_size=0x2000
+[LOADER] Created 484 import stubs
+[LOADER] TryLoadTableBytes: trying location=0x790790, size=0x6E0, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x800790790
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x800790790
+[LOADER] TryLoadTableBytes: trying location=0x4C6E50, size=0x2189, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8004C6E50
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8004C6E50
+[LOADER] TryLoadTableBytes: trying location=0x4C8FE0, size=0x2D90, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8004C8FE0
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8004C8FE0
+[LOADER] TryLoadTableBytes: trying location=0x790790, size=0x6E0, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x800790790
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x800790790
+[LOADER][TEST] ResolveMappedAddressOrFallback addr=0x10 imageBase=0x0000000800000000
+[LOADER][TEST] -> resolved raw 0x0000000800000010
+[LOADER][TEST] ResolveMappedAddressOrFallback addr=0x10 imageBase=0x0000000800000000
+[LOADER][TEST] -> resolved raw 0x0000000800000010
+[LOADER] Initializers discovered: preinit=0, init=1
+[LOADER] ELF e_entry: 0x0000000000000070
+[LOADER] Generation: Gen5 (PS5)
+[LOADER] Using image base: 0x0000000800000000
+[LOADER] Final entry point: 0x0000000800000070
+[LOADER] ProcParam: 0x0000000800495318
+[LOADER] PH[0]: type=Load, vaddr=0x0000000000000000 -> 0x0000000800000000, memsz=0x2E70BC
+[LOADER] PH[1]: type=Load, vaddr=0x00000000002E8000 -> 0x00000008002E8000, memsz=0x8B1C1
+[LOADER] PH[2]: type=Load, vaddr=0x0000000000374000 -> 0x0000000800374000, memsz=0x121380
+[LOADER][TLS] load_done assigned=1 next=2
+[RUNTIME] Registered module handle=1 name=eboot.bin base=0x0000000800000000 size=0x0000000000790E70
+[RUNTIME] Entry: 0x0000000800000070
+[RUNTIME] Module search directories: /tmp/my-project/upload/PPSA02929/PPSA02929-app0/sce_module
+[RUNTIME] Loading 1 module(s)...
+[FORMAT] libc.prx magic=0x4F153D1D SELF(fSELF) Decrypted Ready (fSELF)
+[LOADER][TLS] load_start clear=False next=2 assigned=2 has_pt_tls=True
+Total image size needed: 0x142208 (1319432 bytes)
+[LOADER] Segment 0: VAddr=0x0000000804000000, FileSize=0xC8092, MemSize=0xC8092, Align=0x4000
+[LOADER] Segment 1: VAddr=0x00000008040CC000, FileSize=0x3DF80, MemSize=0x3DF80, Align=0x4000
+[LOADER] Segment 2: VAddr=0x000000080410C000, FileSize=0x3EA0, MemSize=0x3EA0, Align=0x4000
+[LOADER] Segment 4: VAddr=0x0000000804110000, FileSize=0x3B78, MemSize=0x7808, Align=0x4000
+[LOADER] Segment 9: VAddr=0x0000000804117810, FileSize=0x2A9F8, MemSize=0x2A9F8, Align=0x4000
+[LOADER][TLS] Module 2 TLS template: memsz=0x468 filesz=0x180 align=0x10 static_offset=0x1CE0 total_static=0x1CE0
+[LOADER] TryLoadTableBytes: trying location=0x141F48, size=0x2C0, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x804141F48
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x804141F48
+[LOADER] Dynamic Info: StrTab=0x117810, StrTabSize=0xA7A3
+[LOADER] Dynamic Info: SymTab=0x121FB8, SymTabSize=0xFA38
+[LOADER] Dynamic Info: Rela=0x132350, RelaSize=0xA860
+[LOADER] Dynamic Info: JmpRel=0x1319F0, JmpRelSize=0x960
+[LOADER] Dynamic Info: PltGot=0x10F870
+[LOADER] TLS module id: 2
+[LOADER] HasImportMetadata: True
+[LOADER] TryLoadTableBytes: trying location=0x132350, size=0xA860, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x804132350
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x804132350
+[LOADER] TryLoadTableBytes: trying location=0x1319F0, size=0x960, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8041319F0
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8041319F0
+[LOADER] ImageBase runtime: 0x0000000804000000
+[LOADER] Processing 1896 relocations...
+[LOADER] TryLoadTableBytes: trying location=0x117810, size=0xA7A3, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x804117810
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x804117810
+[LOADER] TryLoadTableBytes: trying location=0x121FB8, size=0xFA38, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x804121FB8
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x804121FB8
+[LOADER] Found 102 unique NIDs, 1896 descriptors
+[LOADER] CreateImportStubMapping: nids=102, required=0x660, map_size=0x1000
+[LOADER] Created 102 import stubs
+[LOADER][TLS] Patching DTPMOD64 at 0x80410F818 with module id 0x2
+[LOADER][TLS] Patching DTPMOD64 at 0x80410F828 with module id 0x2
+[LOADER][TLS] Patching DTPMOD64 at 0x80410F838 with module id 0x2
+[LOADER] TryLoadTableBytes: trying location=0x141F48, size=0x2C0, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x804141F48
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x804141F48
+[LOADER] TryLoadTableBytes: trying location=0x117810, size=0xA7A3, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x804117810
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x804117810
+[LOADER] TryLoadTableBytes: trying location=0x121FB8, size=0xFA38, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x804121FB8
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x804121FB8
+[LOADER] Runtime symbol index populated: section=0, dynamic=2565, total=5130
+[LOADER] TryLoadTableBytes: trying location=0x141F48, size=0x2C0, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x804141F48
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x804141F48
+[LOADER][TEST] ResolveMappedAddressOrFallback addr=0x10 imageBase=0x0000000804000000
+[LOADER][TEST] -> resolved raw 0x0000000804000010
+[LOADER] TryLoadTableBytes: trying location=0x10FCE0, size=0x8, imageBase=0x804000000
+[LOADER] TryLoadTableBytes: trying guest address 0x80410FCE0
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x80410FCE0
+[LOADER][TEST] ResolveMappedAddressOrFallback addr=0x804000100 imageBase=0x0000000804000000
+[LOADER][TEST] -> resolved raw 0x0000000804000100
+[LOADER][TEST] ResolveMappedAddressOrFallback addr=0x10 imageBase=0x0000000804000000
+[LOADER][TEST] -> resolved raw 0x0000000804000010
+[LOADER] Initializers discovered: preinit=1, init=1
+[LOADER] ELF e_entry: 0x0000000000000000
+[LOADER] Generation: Gen5 (PS5)
+[LOADER] Using image base: 0x0000000804000000
+[LOADER] Final entry point: 0x0000000804000000
+[LOADER] PH[0]: type=Load, vaddr=0x0000000000000000 -> 0x0000000804000000, memsz=0xC8092
+[LOADER] PH[1]: type=Load, vaddr=0x00000000000CC000 -> 0x00000008040CC000, memsz=0x3DF80
+[LOADER] PH[2]: type=Load, vaddr=0x000000000010C000 -> 0x000000080410C000, memsz=0x3EA0
+[LOADER][TLS] load_done assigned=2 next=3
+[RUNTIME] Registered module handle=2 name=libc.prx base=0x0000000804000000 size=0x0000000000142208
+[RUNTIME] Loaded module libc.prx: entry=0x0000000804000000, imports=102, symbols=5130
+[RUNTIME] Module preload summary: loaded=1, failed=0, merged_imports=102, merged_symbols=5129
+[RUNTIME] Imported data rebind: rebound=357, unresolved=0
+[RUNTIME] Starting module libc.prx: dt_init=0x0000000804000010
+[DISPATCHER] === DispatchModuleInitializer START ===
+[DISPATCHER] moduleInit=0x0000000804000010, generation=Gen5, module=libc.prx
+[DISPATCHER] DispatchEntryCore STARTING...
+[LOADER][INFO] POSIX signal exception bridge installed (SIGSEGV/SIGBUS/SIGILL)
+[LOADER][INFO] === Execute START ===
+[LOADER][INFO] EntryPoint: 0x0000000804000010, ImportStubs: 586
+[LOADER][INFO] RuntimeSymbols: 5133
+[LOADER][INFO] ExportCheck fputs: libc:fputs
+[LOADER][INFO] ExportCheck map_direct: libKernel:sceKernelMapDirectMemory
+[LOADER][INFO] Setting up 586 import stubs...
+[NID-COUNTS] 1D0H2KNjshE=0 hsi9drzHR2k=0
+[LOADER][INFO] LLE redirect: 0x0000700000000010 XwLA5cTHjt4 -> XwLA5cTHjt4@0x0000000804035170
+[LOADER][INFO] LLE redirect: 0x0000700000000020 pZ9WXcClPO8 -> pZ9WXcClPO8@0x000000080410D718
+[LOADER][INFO] LLE redirect: 0x0000700000000030 byV+FWlAnB4 -> byV+FWlAnB4@0x000000080410D6C8
+[LOADER][INFO] LLE redirect: 0x0000700000000040 zr094EQ39Ww -> zr094EQ39Ww@0x0000000804037C80
+[LOADER][INFO] LLE redirect: 0x0000700000000050 7P1Wm-5KgAY -> 7P1Wm-5KgAY@0x0000000804014850
+[LOADER][INFO] LLE redirect: 0x0000700000000060 5BIbzIuDxTQ -> 5BIbzIuDxTQ@0x000000080410C2D8
+[LOADER][INFO] LLE redirect: 0x0000700000000070 oAidKrxuUv0 -> oAidKrxuUv0@0x000000080410C2A8
+[LOADER][INFO] LLE redirect: 0x0000700000000080 udTM6Nxx-Ng -> udTM6Nxx-Ng@0x000000080410C230
+[LOADER][INFO] LLE redirect: 0x0000700000000090 9ByRMdo7ywg -> 9ByRMdo7ywg@0x000000080410D780
+[LOADER][INFO] LLE redirect: 0x00007000000000A0 N2f485TmJms -> N2f485TmJms@0x00000008040B3C60
+[LOADER][INFO] LLE redirect: 0x00007000000000B0 tyHd3P7oDrU -> tyHd3P7oDrU@0x00000008040146B0
+[LOADER][INFO] LLE redirect: 0x00007000000000C0 47RvLSo2HN8 -> 47RvLSo2HN8@0x0000000804082B60
+[LOADER][INFO] LLE redirect: 0x00007000000000D0 oQDS9nX05Qg -> oQDS9nX05Qg@0x0000000804014850
+[LOADER][INFO] LLE redirect: 0x00007000000000E0 Kcb+MNSzZcc -> Kcb+MNSzZcc@0x0000000804014850
+[LOADER][INFO] LLE redirect: 0x00007000000000F0 H8AprKeZtNg -> H8AprKeZtNg@0x0000000804110480
+[LOADER][INFO] LLE redirect: 0x0000700000000100 BJCgW9-OxLA -> BJCgW9-OxLA@0x000000080410F190
+[LOADER][INFO] LLE redirect: 0x0000700000000110 Qoo175Ig+-k -> Qoo175Ig+-k@0x0000000804116C10
+[LOADER][INFO] LLE redirect: 0x0000700000000120 sBCTjFk7Gi4 -> sBCTjFk7Gi4@0x000000080410F118
+[LOADER][INFO] LLE redirect: 0x0000700000000130 yLE5H3058Ao -> yLE5H3058Ao@0x000000080410F130
+[LOADER][INFO] LLE redirect: 0x0000700000000140 Bq8m04PN1zw -> Bq8m04PN1zw@0x000000080410C200
+[LOADER][INFO] LLE redirect: 0x0000700000000150 bLPn1gfqSW8 -> bLPn1gfqSW8@0x000000080410C3C8
+[LOADER][INFO] LLE redirect: 0x0000700000000160 -L+-8F0+gBc -> -L+-8F0+gBc@0x000000080410C278
+[LOADER][INFO] LLE redirect: 0x0000700000000170 Cv+zC4EjGMA -> Cv+zC4EjGMA@0x00000008041163D0
+[LOADER][INFO] LLE redirect: 0x0000700000000180 qOD-ksTkE08 -> qOD-ksTkE08@0x000000080410DE10
+[LOADER][INFO] LLE redirect: 0x0000700000000190 H4fcpQOpc08 -> H4fcpQOpc08@0x00000008041163C8
+[LOADER][INFO] LLE redirect: 0x00007000000001A0 tVHE+C8vGXk -> tVHE+C8vGXk@0x000000080410DE28
+[LOADER][INFO] LLE redirect: 0x00007000000001B0 FQ9NFbBHb5Y -> FQ9NFbBHb5Y@0x00000008040E2618
+[LOADER][INFO] LLE redirect: 0x00007000000001C0 wiR+rIcbnlc -> wiR+rIcbnlc@0x0000000804116CB8
+[LOADER][INFO] LLE redirect: 0x00007000000001D0 XZzWt0ygWdw -> XZzWt0ygWdw@0x000000080410C320
+[LOADER][INFO] LLE redirect: 0x00007000000001E0 keXoyW-rV-0 -> keXoyW-rV-0@0x000000080410C2F0
+[LOADER][INFO] LLE redirect: 0x00007000000001F0 dKjhNUf9FBc -> dKjhNUf9FBc@0x000000080410C3B0
+[LOADER][INFO] LLE redirect: 0x0000700000000200 n+aUKkC-3sI -> n+aUKkC-3sI@0x000000080410C380
+[LOADER][INFO] LLE redirect: 0x0000700000000210 E14mW8pVpoE -> E14mW8pVpoE@0x0000000804116B68
+[LOADER][INFO] LLE redirect: 0x0000700000000220 1kZFcktOm+s -> 1kZFcktOm+s@0x000000080410E828
+[LOADER][INFO] LLE redirect: 0x0000700000000230 VmqsS6auJzo -> VmqsS6auJzo@0x00000008041163D8
+[LOADER][INFO] LLE redirect: 0x0000700000000240 irGo1yaJ-vM -> irGo1yaJ-vM@0x0000000804116B80
+[LOADER][INFO] LLE redirect: 0x0000700000000250 n2kx+OmFUis -> n2kx+OmFUis@0x000000080410C130
+[LOADER][INFO] LLE redirect: 0x0000700000000260 dCzeFfg9WWI -> dCzeFfg9WWI@0x000000080410C178
+[LOADER][INFO] LLE redirect: 0x0000700000000270 2sWzhYqFH4E -> 2sWzhYqFH4E@0x00000008041102B8
+[LOADER][INFO] LLE redirect: 0x0000700000000540 Q3VBxCXhUHs -> Q3VBxCXhUHs@0x0000000804003890
+[LOADER][INFO] LLE redirect: 0x0000700000000D60 8zTFvBIAIN8 -> 8zTFvBIAIN8@0x000000080400FDD0
+[LOADER][INFO] LLE redirect: 0x0000700000000F90 DfivPArhucg -> DfivPArhucg@0x0000000804034FC0
+[LOADER][INFO] LLE redirect: 0x0000700000000FC0 wuAQt-j+p4o -> wuAQt-j+p4o@0x0000000804049000
+[LOADER][INFO] LLE redirect: 0x0000700000000FD0 DDHG1a6+3q0 -> DDHG1a6+3q0@0x000000080404E6E0
+[LOADER][INFO] LLE redirect: 0x0000700000000FE0 nlaojL9hDtA -> nlaojL9hDtA@0x000000080404E640
+[LOADER][INFO] LLE redirect: 0x0000700000000FF0 kn0yiYeExgA -> kn0yiYeExgA@0x000000080404C240
+[LOADER][INFO] LLE redirect: 0x0000700000001000 +P6FRGH4LfA -> +P6FRGH4LfA@0x0000000804003850
+[LOADER][INFO] LLE redirect: 0x0000700000001140 Ujf3KzMvRmI -> Ujf3KzMvRmI@0x0000000804005C20
+[INTRINSIC-CHECK] strcmp stub at 0x0000700000001300 -> intrinsic 0x00007F08101EF000
+[LOADER][INFO] Setup 586/586 import stubs (direct bridge, lle_redirects=133)
+[LOADER][INFO] TLS handler at 0x0000000805000000
+[LOADER][INFO] Patched 0 TLS loads, 161 TLS stores, 0 stack-canary accesses, 0 SSE4a EXTRQ blends
+[LOADER][INFO] ExecuteEntry starting at 0x0000000804000010
+[LOADER][INFO] RSP=0x00006FFFF01FFFD8, RDI=0x0000000000000000
+[LOADER][INFO] StackTop: 0x00006FFFF01FFFD8
+[LOADER][INFO] Calling guest entry...
+[LOADER][TRACE] Import#1: libKernel:_sceKernelSetThreadDtors (rNhWz+lvOMU)
+[LOADER][TRACE] Import#2: libKernel:_sceKernelSetThreadAtexitCount (pB-yGZ2nQ9o)
+[LOADER][TRACE] Import#3: libKernel:_sceKernelSetThreadAtexitReport (WhCc1w3EhSI)
+[LOADER][TRACE] Import#4: libKernel:sceKernelGetProcParam (959qrazPIrg)
+[LOADER][TRACE] Import#5: libKernel:_sceKernelRtldSetApplicationHeapAPI (p5EcQeEeJAE)
+[LOADER][TRACE] Import#6: libKernel:sceKernelGetSanitizerNewReplaceExternal (bnZxYgAFeA0)
+[LOADER][TRACE] Import#7: libKernel:sceKernelGetSanitizerNewReplaceExternal (bnZxYgAFeA0)
+[LOADER][TRACE] Import#8: libKernel:sceKernelGetProcParam (959qrazPIrg)
+[LOADER][TRACE] Import#9: LibcInternalExt:sceLibcHeapGetTraceInfo (NWtTN10cJzE)
+[LOADER][TRACE] Import#10: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#11: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#12: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#13: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#14: libKernel:sceKernelGetProcParam (959qrazPIrg)
+[LOADER][TRACE] Import#15: libKernel:sceKernelGetProcParam (959qrazPIrg)
+[LOADER][TRACE] Import#16: libKernel:sceKernelGetProcParam (959qrazPIrg)
+[LOADER][TRACE] Import#17: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#18: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#19: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#20: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#21: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#22: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#23: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#24: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#25: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#26: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#27: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#28: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#29: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#30: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#31: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#32: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#33: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#34: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#35: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#36: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#37: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#38: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#39: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#40: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#41: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#42: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#43: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#44: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#45: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#46: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#47: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#48: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#49: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#50: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#51: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#52: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#53: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#54: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#55: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#56: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#57: libKernel:scePthreadMutexattrInit (F8bUHwAG284)
+[LOADER][TRACE] Import#58: libKernel:scePthreadMutexattrSettype (iMp8QpE+XO4)
+[LOADER][TRACE] Import#59: libKernel:scePthreadMutexInit (cmo1RIYva9o)
+[LOADER][TRACE] Import#60: libKernel:scePthreadMutexattrDestroy (smWEktiyyG0)
+[LOADER][TRACE] Import#61: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#62: libKernel:pthread_mutex_lock (7H0iTOciTLo)
+[LOADER][TRACE] Import#64: libKernel:pthread_mutex_lock (7H0iTOciTLo)
+[LOADER][TRACE] Import#66: libKernel:pthread_cond_broadcast (mkx2fVhNMsg)
+[LOADER][TRACE] Import#67: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#69: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#71: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#73: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#75: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#77: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#79: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#81: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#83: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#85: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#87: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#89: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#91: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#93: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#95: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#97: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#99: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#101: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#103: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#105: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#107: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#109: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#111: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#113: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#115: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#117: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#119: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#121: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#123: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#125: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#127: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][INFO] Guest returned: 0x0000000000000000
+[LOADER][INFO] === Execute END (LastError: null) ===
+[RUNTIME] Dispatching, gen: Gen5
+[RUNTIME] About to call DispatchEntry with entryPoint=0x0000000800000070
+[DISPATCHER] === DispatchEntry START ===
+[DISPATCHER] entryPoint=0x0000000800000070, generation=Gen5
+[DISPATCHER] DispatchEntryCore STARTING...
+[LOADER][INFO] === Execute START ===
+[LOADER][INFO] EntryPoint: 0x0000000800000070, ImportStubs: 586
+[LOADER][INFO] RuntimeSymbols: 5133
+[LOADER][INFO] ExportCheck fputs: libc:fputs
+[LOADER][INFO] ExportCheck map_direct: libKernel:sceKernelMapDirectMemory
+[LOADER][INFO] Setting up 586 import stubs...
+[LOADER][INFO] LLE redirect: 0x0000700000000010 XwLA5cTHjt4 -> XwLA5cTHjt4@0x0000000804035170
+[LOADER][INFO] LLE redirect: 0x0000700000000020 pZ9WXcClPO8 -> pZ9WXcClPO8@0x000000080410D718
+[LOADER][INFO] LLE redirect: 0x0000700000000030 byV+FWlAnB4 -> byV+FWlAnB4@0x000000080410D6C8
+[LOADER][INFO] LLE redirect: 0x0000700000000040 zr094EQ39Ww -> zr094EQ39Ww@0x0000000804037C80
+[LOADER][INFO] LLE redirect: 0x0000700000000050 7P1Wm-5KgAY -> 7P1Wm-5KgAY@0x0000000804014850
+[LOADER][INFO] LLE redirect: 0x0000700000000060 5BIbzIuDxTQ -> 5BIbzIuDxTQ@0x000000080410C2D8
+[LOADER][INFO] LLE redirect: 0x0000700000000070 oAidKrxuUv0 -> oAidKrxuUv0@0x000000080410C2A8
+[LOADER][INFO] LLE redirect: 0x0000700000000080 udTM6Nxx-Ng -> udTM6Nxx-Ng@0x000000080410C230
+[LOADER][INFO] LLE redirect: 0x0000700000000090 9ByRMdo7ywg -> 9ByRMdo7ywg@0x000000080410D780
+[LOADER][INFO] LLE redirect: 0x00007000000000A0 N2f485TmJms -> N2f485TmJms@0x00000008040B3C60
+[LOADER][INFO] LLE redirect: 0x00007000000000B0 tyHd3P7oDrU -> tyHd3P7oDrU@0x00000008040146B0
+[LOADER][INFO] LLE redirect: 0x00007000000000C0 47RvLSo2HN8 -> 47RvLSo2HN8@0x0000000804082B60
+[LOADER][INFO] LLE redirect: 0x00007000000000D0 oQDS9nX05Qg -> oQDS9nX05Qg@0x0000000804014850
+[LOADER][INFO] LLE redirect: 0x00007000000000E0 Kcb+MNSzZcc -> Kcb+MNSzZcc@0x0000000804014850
+[LOADER][INFO] LLE redirect: 0x00007000000000F0 H8AprKeZtNg -> H8AprKeZtNg@0x0000000804110480
+[LOADER][INFO] LLE redirect: 0x0000700000000100 BJCgW9-OxLA -> BJCgW9-OxLA@0x000000080410F190
+[LOADER][INFO] LLE redirect: 0x0000700000000110 Qoo175Ig+-k -> Qoo175Ig+-k@0x0000000804116C10
+[LOADER][INFO] LLE redirect: 0x0000700000000120 sBCTjFk7Gi4 -> sBCTjFk7Gi4@0x000000080410F118
+[LOADER][INFO] LLE redirect: 0x0000700000000130 yLE5H3058Ao -> yLE5H3058Ao@0x000000080410F130
+[LOADER][INFO] LLE redirect: 0x0000700000000140 Bq8m04PN1zw -> Bq8m04PN1zw@0x000000080410C200
+[LOADER][INFO] LLE redirect: 0x0000700000000150 bLPn1gfqSW8 -> bLPn1gfqSW8@0x000000080410C3C8
+[LOADER][INFO] LLE redirect: 0x0000700000000160 -L+-8F0+gBc -> -L+-8F0+gBc@0x000000080410C278
+[LOADER][INFO] LLE redirect: 0x0000700000000170 Cv+zC4EjGMA -> Cv+zC4EjGMA@0x00000008041163D0
+[LOADER][INFO] LLE redirect: 0x0000700000000180 qOD-ksTkE08 -> qOD-ksTkE08@0x000000080410DE10
+[LOADER][INFO] LLE redirect: 0x0000700000000190 H4fcpQOpc08 -> H4fcpQOpc08@0x00000008041163C8
+[LOADER][INFO] LLE redirect: 0x00007000000001A0 tVHE+C8vGXk -> tVHE+C8vGXk@0x000000080410DE28
+[LOADER][INFO] LLE redirect: 0x00007000000001B0 FQ9NFbBHb5Y -> FQ9NFbBHb5Y@0x00000008040E2618
+[LOADER][INFO] LLE redirect: 0x00007000000001C0 wiR+rIcbnlc -> wiR+rIcbnlc@0x0000000804116CB8
+[LOADER][INFO] LLE redirect: 0x00007000000001D0 XZzWt0ygWdw -> XZzWt0ygWdw@0x000000080410C320
+[LOADER][INFO] LLE redirect: 0x00007000000001E0 keXoyW-rV-0 -> keXoyW-rV-0@0x000000080410C2F0
+[LOADER][INFO] LLE redirect: 0x00007000000001F0 dKjhNUf9FBc -> dKjhNUf9FBc@0x000000080410C3B0
+[LOADER][INFO] LLE redirect: 0x0000700000000200 n+aUKkC-3sI -> n+aUKkC-3sI@0x000000080410C380
+[LOADER][INFO] LLE redirect: 0x0000700000000210 E14mW8pVpoE -> E14mW8pVpoE@0x0000000804116B68
+[LOADER][INFO] LLE redirect: 0x0000700000000220 1kZFcktOm+s -> 1kZFcktOm+s@0x000000080410E828
+[LOADER][INFO] LLE redirect: 0x0000700000000230 VmqsS6auJzo -> VmqsS6auJzo@0x00000008041163D8
+[LOADER][INFO] LLE redirect: 0x0000700000000240 irGo1yaJ-vM -> irGo1yaJ-vM@0x0000000804116B80
+[LOADER][INFO] LLE redirect: 0x0000700000000250 n2kx+OmFUis -> n2kx+OmFUis@0x000000080410C130
+[LOADER][INFO] LLE redirect: 0x0000700000000260 dCzeFfg9WWI -> dCzeFfg9WWI@0x000000080410C178
+[LOADER][INFO] LLE redirect: 0x0000700000000270 2sWzhYqFH4E -> 2sWzhYqFH4E@0x00000008041102B8
+[LOADER][INFO] LLE redirect: 0x0000700000000540 Q3VBxCXhUHs -> Q3VBxCXhUHs@0x0000000804003890
+[LOADER][INFO] LLE redirect: 0x0000700000000D60 8zTFvBIAIN8 -> 8zTFvBIAIN8@0x000000080400FDD0
+[LOADER][INFO] LLE redirect: 0x0000700000000F90 DfivPArhucg -> DfivPArhucg@0x0000000804034FC0
+[LOADER][INFO] LLE redirect: 0x0000700000000FC0 wuAQt-j+p4o -> wuAQt-j+p4o@0x0000000804049000
+[LOADER][INFO] LLE redirect: 0x0000700000000FD0 DDHG1a6+3q0 -> DDHG1a6+3q0@0x000000080404E6E0
+[LOADER][INFO] LLE redirect: 0x0000700000000FE0 nlaojL9hDtA -> nlaojL9hDtA@0x000000080404E640
+[LOADER][INFO] LLE redirect: 0x0000700000000FF0 kn0yiYeExgA -> kn0yiYeExgA@0x000000080404C240
+[LOADER][INFO] LLE redirect: 0x0000700000001000 +P6FRGH4LfA -> +P6FRGH4LfA@0x0000000804003850
+[LOADER][INFO] LLE redirect: 0x0000700000001140 Ujf3KzMvRmI -> Ujf3KzMvRmI@0x0000000804005C20
+[INTRINSIC-CHECK] strcmp stub at 0x0000700000001300 -> intrinsic 0x00007F08101F3000
+[LOADER][INFO] Setup 586/586 import stubs (direct bridge, lle_redirects=133)
+[LOADER][INFO] TLS handler at 0x0000000801000000
+[LOADER][INFO] Patched 730 TLS loads, 0 TLS stores, 0 stack-canary accesses, 0 SSE4a EXTRQ blends
+[LOADER][INFO] ExecuteEntry starting at 0x0000000800000070
+[LOADER][INFO] RSP=0x00006FFFF01FFF98, RDI=0x00006FFFF01FFFA0
+[LOADER][INFO] StackTop: 0x00006FFFF01FFF98
+[LOADER][INFO] Calling guest entry...
+[LOADER][TRACE] Import#240: libc:_init_env (bzQExy189ZI)
+[LOADER][TRACE] bzQExy189ZI#240: rdi=0x00006FFFF01FFFA0 rsi=0x00006FFDD0000000 rdx=0x0000000000000000 ret=0x0000000800000089
+[LOADER][TRACE] Import#241: libc:atexit (8G2LB+A3rzg)
+[LOADER][TRACE] 8G2LB+A3rzg#241: rdi=0x00006FFDD0000000 rsi=0x00006FFDD0000000 rdx=0x0000000000000000 ret=0x0000000800000091
+[LOADER][TRACE] Import#242: libc:atexit (8G2LB+A3rzg)
+[LOADER][TRACE] 8G2LB+A3rzg#242: rdi=0x00000008002E7070 rsi=0x00006FFDD0000000 rdx=0x0000000000000000 ret=0x000000080000009D
+[LOADER][TRACE] Import#243: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#244: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#245: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#246: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#247: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#248: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#249: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#250: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#251: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#252: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#253: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#254: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#255: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#256: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#257: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#258: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#259: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#260: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#261: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#262: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#263: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#264: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#265: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#266: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#267: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#268: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#269: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#270: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#271: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#272: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#273: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#274: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#275: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#276: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#277: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#278: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#279: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#280: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#281: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#282: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#283: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#284: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#285: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#286: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#287: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#288: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#289: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#290: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#291: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#292: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#293: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#294: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#295: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#296: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#297: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#298: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#299: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#300: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#301: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#302: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#303: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#304: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#305: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#306: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#307: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#308: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#309: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#310: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#311: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#312: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#313: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#314: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#315: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#316: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#317: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#318: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#319: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#320: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#321: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#322: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#323: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#324: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#325: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#326: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#327: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#328: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#329: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#330: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#331: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#332: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#333: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#334: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#335: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#336: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#337: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#338: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#339: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#340: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#341: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#342: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#343: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#344: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#345: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#346: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#347: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#348: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#349: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#350: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#351: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#352: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#353: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#354: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#355: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#356: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#357: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#358: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#359: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#360: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#361: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#362: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#363: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#364: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#365: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#366: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#367: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#368: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#369: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#370: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#371: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#372: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#373: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#374: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#375: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#376: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#377: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#378: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#379: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#380: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#381: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#382: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#383: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#384: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#385: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#386: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#387: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#388: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#389: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#390: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#391: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#392: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#393: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#394: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#395: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#396: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#397: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#398: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#399: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#400: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][INFO] Scheduled guest thread 'spi_main_thread' handle=0x00007F0814F48B00 entry=0x00000008002E53F0 arg=0x00000000001A00D0 priority=701 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Keyboard controls: Arrow keys = D-pad, WASD = left stick, IJKL = right stick, Z/Enter = Cross, X/Esc = Circle, C = Square, V = Triangle, Q = L1, E = R1, R = L2, F = R2, Tab/Backspace = Options. A DualSense or Xbox controller will be used automatically when plugged in.
+Mount requested: 0
+UnMount requested: 0
+
+[VIDEOOUT] ============================================
+[VIDEOOUT] Backend Selection:
+[VIDEOOUT] ============================================
+[VIDEOOUT]     GPU Available: True
+[VIDEOOUT]     Forced Headless: True
+[VIDEOOUT]     Reason: Forced by SHARPEMU_HEADLESS=1
+
+[VIDEOOUT] Using:
+[VIDEOOUT]   HeadlessVideoPresenter
+[VIDEOOUT] ============================================
+
+[INFO][SharpEmu.VideoOutManager] VideoOutManager.cs:139 Backend selected: HeadlessVideoPresenter (reason: Forced by SHARPEMU_HEADLESS=1)
+[VIDEOOUT][HEADLESS] Initializing Headless Presenter...
+[VIDEOOUT][HEADLESS] Resolution: 1920x1080
+[VIDEOOUT][HEADLESS] Output Directory: /tmp/ds-evidence
+[VIDEOOUT][HEADLESS] ==========================================
+[VIDEOOUT][HEADLESS] No physical GPU detected
+[VIDEOOUT][HEADLESS] Switching to Virtual Presenter
+[VIDEOOUT][HEADLESS] Mode: HEADLESS_FRAMEBUFFER
+[VIDEOOUT][HEADLESS] Resolution: 1920x1080
+[VIDEOOUT][HEADLESS] Format: RGBA8
+[VIDEOOUT][HEADLESS] Frame Capture: enabled
+[VIDEOOUT][HEADLESS] Output: /tmp/ds-evidence
+[VIDEOOUT][HEADLESS] ==========================================
+[INFO][SharpEmu.HeadlessVideo] HeadlessVideoPresenter.cs:114 HeadlessVideoPresenter initialized: 1920x1080
+[INFO][SharpEmu.HeadlessVideo] HeadlessVideoPresenter.cs:142 [HEADLESS] Virtual device created successfully
+[INFO][SharpEmu.VideoOutManager] VideoOutManager.cs:165 VideoOutManager initialized in HEADLESS mode: 1920x1080
+[VIDEOOUT][HEADLESS] ✓ Headless Presenter initialized successfully
+[VIDEOOUT][INTEGRATION] sceVideoOutOpen → Headless mode, using fake display
+[VIDEOOUT][FAKE] Display handle allocated: 1001
+[INFO][SharpEmu.VideoOutManager] VideoOutManager.cs:237 Fake display handle allocated: 1001
+[LOADER][INFO] Scheduled guest thread 'AudioOutThread' handle=0x00007F07F800E530 entry=0x00000008002E2990 arg=0x00000008004C6B60 priority=700 host_priority=Normal affinity=0x7F
+[LOADER][TRACE] Import#640: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+Initializing Achievements
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM default
+[LOADER][WARN] AudioOut host backend unavailable: snd_pcm_open("default") failed: No such file or directory (-2).
+[LOADER][INFO] AudioOut port 1: 48000 Hz, 2 ch, float32, 256 frames, backend=silent
+[LOADER][INFO] Scheduled guest thread 'TrophyManager thread' handle=0x00007F07F8010590 entry=0x00000008002DA250 arg=0x00000000054C0400 priority=700 host_priority=Normal affinity=0x7F
+[DEBUG][PRINF] Audio out started (port#1,256[samples],48000[Hz],2[ch])
+[DEBUG][PRINF]   Buffer[0] : 0x6FFFDF1FEF90
+[DEBUG][PRINF]   Buffer[1] : 0x6FFFDF1FF790
+[LOADER][INFO] Scheduled guest thread 'saveThreadProc' handle=0x00007F07F80124B0 entry=0x00000008002E53F0 arg=0x00000000001A3040 priority=700 host_priority=Normal affinity=0x7F
+[LOADER][TRACE] Import#1025: libKernel:sceKernelWaitSema (Zxa0VhQVTsk)
+[LOADER][TRACE] ImportCtx#1025: nid=Zxa0VhQVTsk ret=0x00000008002DA2B3 rdi=0x0000000000000002 rsi=0x0000000000000001 rdx=0x0000000000000000 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1025: rbx=0x00007F08323B19F8 rbp=0x00006FFFDE1FFFC0 r12=0x0000000000000000 r13=0x00000000054C0428 r14=0x00000000054C0400 r15=0x00007F08323B1970
+[LOADER][TRACE] ImportStackHead#1025: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA2B3 [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1025: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA2B3 [8]=0x0000000000000000 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1025: nid=Zxa0VhQVTsk result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1026: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] ImportCtx#1026: nid=9UK1vLZQft4 ret=0x00000008002DA2C2 rdi=0x00000000054C0A30 rsi=0x0000000000000001 rdx=0x0000000000000000 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1026: rbx=0x00007F08323B19F8 rbp=0x00006FFFDE1FFFC0 r12=0x0000000000000000 r13=0x00000000054C0428 r14=0x00000000054C0400 r15=0x00000000054C0A30
+[LOADER][TRACE] ImportStackHead#1026: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA2C2 [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1026: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA2C2 [8]=0x0000000000000000 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1026: nid=9UK1vLZQft4 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1028: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] ImportCtx#1028: nid=9UK1vLZQft4 ret=0x00000008002DA33A rdi=0x00000000054C0420 rsi=0x0000000010000000 rdx=0x0000000000000000 rcx=0x00000008002F2D54
+[LOADER][TRACE] ImportNV#1028: rbx=0x0000000000000001 rbp=0x00006FFFDE1FFFC0 r12=0x0000000000000000 r13=0x00000000054C0428 r14=0x00000000054C0400 r15=0x00000000054C0A30
+[LOADER][TRACE] ImportStackHead#1028: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA33A [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1028: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA33A [8]=0x0000000000000000 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1028: nid=9UK1vLZQft4 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1029: libSceNpUniversalDataSystem:sceNpUniversalDataSystemCreateHandle (hT0IAEvN+M0)
+[LOADER][TRACE] ImportCtx#1029: nid=hT0IAEvN+M0 ret=0x00000008002DA4EA rdi=0x00006FFFDE1FFEB0 rsi=0x0000000010000000 rdx=0x0000000000000000 rcx=0x00000008002F2D54
+[LOADER][TRACE] ImportNV#1029: rbx=0x0000000000000000 rbp=0x00006FFFDE1FFFC0 r12=0x00000000054D0108 r13=0x00000000054D0110 r14=0x00000000054C0400 r15=0x0000000000000000
+[LOADER][TRACE] ImportStackHead#1029: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA4EA [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1029: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA4EA [8]=0x00000000FFFFFFFF [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1029: nid=hT0IAEvN+M0 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1030: libSceNpUniversalDataSystem:sceNpUniversalDataSystemCreateContext (5zBnau1uIEo)
+[LOADER][TRACE] ImportCtx#1030: nid=5zBnau1uIEo ret=0x00000008002DA500 rdi=0x00000000054D0114 rsi=0x0000000010000000 rdx=0x0000000000000000 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1030: rbx=0x0000000000000000 rbp=0x00006FFFDE1FFFC0 r12=0x00000000054D0108 r13=0x00000000054D0110 r14=0x00000000054C0400 r15=0x0000000000000000
+[LOADER][TRACE] ImportStackHead#1030: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA500 [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1030: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA500 [8]=0x0000000000000002 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1030: nid=5zBnau1uIEo result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1031: libSceNpUniversalDataSystem:sceNpUniversalDataSystemRegisterContext (tpFJ8LIKvPw)
+[LOADER][TRACE] ImportCtx#1031: nid=tpFJ8LIKvPw ret=0x00000008002DA512 rdi=0x0000000000000001 rsi=0x0000000000000002 rdx=0x0000000000000000 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1031: rbx=0x0000000000000000 rbp=0x00006FFFDE1FFFC0 r12=0x00000000054D0108 r13=0x00000000054D0110 r14=0x00000000054C0400 r15=0x0000000000000000
+[LOADER][TRACE] ImportStackHead#1031: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA512 [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1031: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA512 [8]=0x0000000000000002 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1031: nid=tpFJ8LIKvPw result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1032: libSceNpUniversalDataSystem:sceNpUniversalDataSystemDestroyHandle (AUIHb7jUX3I)
+[LOADER][TRACE] ImportCtx#1032: nid=AUIHb7jUX3I ret=0x00000008002DA522 rdi=0x0000000000000002 rsi=0x0000000000000002 rdx=0x0000000000000000 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1032: rbx=0x0000000000000000 rbp=0x00006FFFDE1FFFC0 r12=0x00000000054D0108 r13=0x00000000054D0110 r14=0x00000000054C0400 r15=0x0000000000000000
+[LOADER][TRACE] ImportStackHead#1032: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA522 [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1032: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA522 [8]=0x0000000000000002 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1032: nid=AUIHb7jUX3I result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1034: libSceNpTrophy2:sceNpTrophy2RegisterUnlockCallback (sUXGfNMalIo)
+[LOADER][TRACE] ImportCtx#1034: nid=sUXGfNMalIo ret=0x00000008002DA551 rdi=0x00000008002D9D80 rsi=0x0000000000000000 rdx=0x0000000000000000 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1034: rbx=0x00000000054D0108 rbp=0x00006FFFDE1FFFC0 r12=0x00000000054D0108 r13=0x00000000054C0428 r14=0x00000000054C0400 r15=0x0000000000000000
+[LOADER][TRACE] ImportStackHead#1034: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA551 [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1034: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA551 [8]=0x0000000000000002 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1034: nid=sUXGfNMalIo result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1035: libSceNpTrophy2:sceNpTrophy2CreateContext (Bagshr7OQ6Q)
+[LOADER][TRACE] ImportCtx#1035: nid=Bagshr7OQ6Q ret=0x00000008002DA568 rdi=0x00000000054D0118 rsi=0x0000000010000000 rdx=0x0000000000000000 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1035: rbx=0x00000000054D0108 rbp=0x00006FFFDE1FFFC0 r12=0x00000000054D0108 r13=0x00000000054C0428 r14=0x00000000054C0400 r15=0x0000000000000000
+[LOADER][TRACE] ImportStackHead#1035: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA568 [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1035: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA568 [8]=0x0000000000000002 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1035: nid=Bagshr7OQ6Q result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1036: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] ImportCtx#1036: nid=9UK1vLZQft4 ret=0x00000008002DA576 rdi=0x00000000054D0120 rsi=0x0000000010000000 rdx=0x0000000000000000 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1036: rbx=0x00000000054D0108 rbp=0x00006FFFDE1FFFC0 r12=0x00000000054D0108 r13=0x00000000054C0428 r14=0x00000000054C0400 r15=0x0000000000000000
+[LOADER][TRACE] ImportStackHead#1036: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA576 [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1036: rsp=0x00006FFFDE1FFEA8 [0]=0x00000008002DA576 [8]=0x0000000000000002 [10]=0x0000000000000000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1036: nid=9UK1vLZQft4 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1037: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] ImportCtx#1037: nid=pO96TwzOm5E ret=0x00000008002E13F2 rdi=0x0000000000010000 rsi=0x0000000000010000 rdx=0x0000000000000001 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1037: rbx=0x0000000000010000 rbp=0x00006FFFDE1FFD60 r12=0x0000000000010000 r13=0x00007F0814ED93B0 r14=0x0000000000010000 r15=0x0000000000000001
+[LOADER][TRACE] ImportStackHead#1037: rsp=0x00006FFFDE1FFD18 [0]=0x00000008002E13F2 [20]=0x00000008004C2210 [40]=0x0000000000000840
+[LOADER][TRACE] ImportStack#1037: rsp=0x00006FFFDE1FFD18 [0]=0x00000008002E13F2 [8]=0x0000000000000000 [10]=0x0000000000000000 [18]=0xC0DEC0DECAFEBA00 [20]=0x00000008004C2210 [28]=0x0000000000000000 [30]=0x00006FFDFCFFEAA8 [38]=0x00000008004C2200 [40]=0x0000000000000840
+[LOADER][TRACE] ImportRet#1037: nid=pO96TwzOm5E result=ORBIS_GEN2_OK rax=0x0000000400000000
+[LOADER][TRACE] Import#1038: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] ImportCtx#1038: nid=rTXw65xmLIA ret=0x00000008002E140C rdi=0x0000000000000000 rsi=0x0000000400000000 rdx=0x0000000000010000 rcx=0x0000000000010000
+[LOADER][TRACE] ImportNV#1038: rbx=0x0000000000010000 rbp=0x00006FFFDE1FFD60 r12=0x0000000000010000 r13=0x00007F0814ED93B0 r14=0x0000000000010000 r15=0x0000000000000001
+[LOADER][TRACE] ImportStackHead#1038: rsp=0x00006FFFDE1FFD18 [0]=0x00000008002E140C [20]=0x00000008004C2210 [40]=0x0000000000000840
+[LOADER][TRACE] ImportStack#1038: rsp=0x00006FFFDE1FFD18 [0]=0x00000008002E140C [8]=0x0000000000000000 [10]=0x0000000000000000 [18]=0xC0DEC0DECAFEBA00 [20]=0x00000008004C2210 [28]=0x0000000000000000 [30]=0x00006FFDFCFFEAA8 [38]=0x00000008004C2200 [40]=0x0000000000000840
+[LOADER][TRACE] ImportRet#1038: nid=rTXw65xmLIA result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1039: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] ImportCtx#1039: nid=L-Q3LEjIbgA ret=0x00000008002E1435 rdi=0x00006FFFDE1FFD20 rsi=0x0000000000010000 rdx=0x0000000000000033 rcx=0x0000000000400000
+[LOADER][TRACE] ImportNV#1039: rbx=0x0000000000010000 rbp=0x00006FFFDE1FFD60 r12=0x0000000000010000 r13=0x00007F0814ED93B0 r14=0x0000000000010000 r15=0x0000000000000001
+[LOADER][TRACE] ImportStackHead#1039: rsp=0x00006FFFDE1FFD18 [0]=0x00000008002E1435 [20]=0x00000008004C2210 [40]=0x0000000000000840
+[LOADER][TRACE] ImportStack#1039: rsp=0x00006FFFDE1FFD18 [0]=0x00000008002E1435 [8]=0x0000000000000000 [10]=0x00000000054E0000 [18]=0xC0DEC0DECAFEBA00 [20]=0x00000008004C2210 [28]=0x0000000000000000 [30]=0x00006FFDFCFFEAA8 [38]=0x00000008004C2200 [40]=0x0000000000000840
+[LOADER][TRACE] ImportRet#1039: nid=L-Q3LEjIbgA result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1040: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] ImportCtx#1040: nid=pO96TwzOm5E ret=0x00000008002E13F2 rdi=0x0000000000010000 rsi=0x0000000000010000 rdx=0x0000000000000001 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1040: rbx=0x0000000000010000 rbp=0x00006FFFDE1FFD60 r12=0x0000000000010000 r13=0x00007F0814ED93B0 r14=0x0000000000010000 r15=0x0000000000000001
+[LOADER][TRACE] ImportStackHead#1040: rsp=0x00006FFFDE1FFD18 [0]=0x00000008002E13F2 [20]=0x00000008004C2290 [40]=0x00000000000008C0
+[LOADER][TRACE] ImportStack#1040: rsp=0x00006FFFDE1FFD18 [0]=0x00000008002E13F2 [8]=0x00000000054E0000 [10]=0x0000000000000000 [18]=0xC0DEC0DECAFEBA00 [20]=0x00000008004C2290 [28]=0x0000000000000000 [30]=0x00006FFDFCFFEAD8 [38]=0x00000008004C2280 [40]=0x00000000000008C0
+[LOADER][TRACE] ImportRet#1040: nid=pO96TwzOm5E result=ORBIS_GEN2_OK rax=0x0000000400000000
+[LOADER][TRACE] Import#1041: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1042: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1043: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1044: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1045: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1046: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1047: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1048: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1049: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1050: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1051: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1052: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1053: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1054: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1055: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1056: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1057: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1059: libKernel:sceKernelWaitSema (Zxa0VhQVTsk)
+[EXP-018] sceKernelWaitSema handle=0x00000002 need=1 waiters=1 READY=0 RUNNING=4 BLOCKED=0 (after Pump)
+[LOADER][TRACE] Import#1281: libKernel:scePthreadAttrInit (nsYoNRywwNg)
+[LOADER][TRACE] Import#1282: libKernel:scePthreadAttrGet (x1X76arYMxU)
+[LOADER][TRACE] Import#1283: libKernel:scePthreadAttrGetstack (-quPa4SEJUw)
+[LOADER][TRACE] Import#1284: libKernel:scePthreadAttrDestroy (62KCwEMmzcM)
+[LOADER][TRACE] Import#1285: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#1287: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#1289: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#1291: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#1293: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#1295: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#1297: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+[LOADER][TRACE] Import#1299: libKernel:scePthreadMutexLock (9UK1vLZQft4)
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[LOADER][ERROR] Vulkan VideoOut presenter failed: Silk.NET.GLFW.GlfwException: GLFW Init failed, 65550: Failed to detect any supported platform
+   at Silk.NET.GLFW.GlfwProvider.GetGlfw()
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+   at System.Lazy`1.ExecutionAndPublication(LazyHelper executionAndPublication, Boolean useDefaultConstructor)
+   at System.Lazy`1.CreateValue()
+   at Silk.NET.Windowing.Glfw.GlfwWindow..ctor(WindowOptions optionsCache, GlfwWindow parent, GlfwMonitor monitor)
+   at Silk.NET.Windowing.Glfw.GlfwPlatform.CreateWindow(WindowOptions options)
+   at Silk.NET.Windowing.Window.Create(WindowOptions options)
+   at SharpEmu.Libs.VideoOut.VulkanVideoPresenter.Presenter..ctor(UInt32 width, UInt32 height)
+   at SharpEmu.Libs.VideoOut.VulkanVideoPresenter.Run()
+[DIAG-VERIFY] Import #1000 OK: libc::libc:strcasecmp ret=0xFFFFFFFFFFFFFFFF
+[DIAG-VERIFY] Import #2000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #3000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #4000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #5000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #6000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #7000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #8000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #9000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #10000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #11000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #12000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #13000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #14000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #15000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #16000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #17000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #18000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #19000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #20000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #21000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #22000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #23000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #24000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #25000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #26000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #27000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #28000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #29000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #30000 OK: libc::libc:strcasecmp ret=0x0000000000000000
+[DIAG-VERIFY] Import #31000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #32000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #33000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #34000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #35000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #36000 OK: libc::libc:strcasecmp ret=0xFFFFFFFFFFFFFFF3
+[DIAG-VERIFY] Import #37000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #38000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #39000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #40000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #41000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #42000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #43000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #44000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #45000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #46000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #47000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #48000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #49000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #50000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #51000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #52000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #53000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #54000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #55000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #56000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #57000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #58000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #59000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #60000 OK: libc::libc:strcasecmp ret=0x000000000000000F
+[DIAG-VERIFY] Import #61000 OK: libc::libc:strcasecmp ret=0x0000000000000000
+[DIAG-VERIFY] Import #62000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #63000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #64000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #65000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #66000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #67000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #68000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #69000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #70000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #71000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #72000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #73000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #74000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #75000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #76000 OK: libc::libc:strcasecmp ret=0x0000000000000000
+[DIAG-VERIFY] Import #77000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #78000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #79000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #80000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #81000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #82000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #83000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #84000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #85000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #86000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #87000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #88000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #89000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #90000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #91000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #92000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #93000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #94000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #95000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #96000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #97000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #98000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[LOADER][TRACE] Import#100000: libc:_Getptolower (1uJgoVq3bQU)
+[DIAG-VERIFY] Import #99000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #100000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #101000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #102000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #103000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #104000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #105000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #106000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #107000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #108000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #109000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #110000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #111000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #112000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #113000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #114000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #115000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #116000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #117000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #118000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #119000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #120000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #121000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #122000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #123000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #124000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #125000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #126000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #127000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #128000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #129000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #130000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #131000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #132000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #133000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #134000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #135000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #136000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #137000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #138000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #139000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #140000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #141000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #142000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #143000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #144000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #145000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #146000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #147000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F8014D70 entry=0x00000008002E53F0 arg=0x00000000001A3790 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F80173A0 entry=0x00000008002E53F0 arg=0x00000000001A4A80 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F8019C90 entry=0x00000008002E53F0 arg=0x00000000001A4AB0 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F801C580 entry=0x00000008002E53F0 arg=0x00000000001A4AE0 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F801EE70 entry=0x00000008002E53F0 arg=0x00000000001A4B10 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F8021760 entry=0x00000008002E53F0 arg=0x00000000001A4B40 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F8024050 entry=0x00000008002E53F0 arg=0x00000000001A4B70 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F8027950 entry=0x00000008002E53F0 arg=0x00000000001A4BA0 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F8029170 entry=0x00000008002E53F0 arg=0x00000000001A4BD0 priority=690 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'ratamedia streamer' handle=0x00007F07F802B9B0 entry=0x00000008002E53F0 arg=0x00000000001A4C00 priority=690 host_priority=Normal affinity=0x7F
+SpriteMachine LoadShader `shaders/SpriteMachine.vert` + `shaders/SpriteMachine.frag`
+[LOADER][TRACE] Import#900: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#901: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#902: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#903: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#904: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#905: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#906: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#907: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#908: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#909: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#910: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#911: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#912: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#913: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#914: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#915: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#916: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#917: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#918: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#919: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#920: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#921: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#922: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#923: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#924: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#925: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#926: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#927: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#928: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#929: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#930: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#931: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#932: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#933: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#934: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#935: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#936: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#937: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#938: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#939: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#940: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#941: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#942: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#943: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#944: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#945: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#946: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#947: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#948: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#949: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#950: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[DIAG-VERIFY] Import #148000 OK: libc::libc:fread ret=0x0000000000000BA0
+[LOADER][TRACE] Import#951: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#952: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#953: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#954: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#955: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#956: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#957: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#958: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#959: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#960: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#961: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#962: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#963: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#964: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#965: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#966: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#967: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#968: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#969: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#970: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#971: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#972: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#973: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#974: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#975: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#976: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#977: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#978: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#979: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#980: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#981: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[DIAG-VERIFY] Import #1000 OK: libKernel::libKernel:scePthreadMutexLock ret=0x0000000000000000
+[LOADER][TRACE] Import#982: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#983: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#984: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#985: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#986: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#987: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#988: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#989: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#990: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#991: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#992: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#993: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#994: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#995: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#996: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#997: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#998: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#999: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1000: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1001: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1002: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1003: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1004: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1005: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1006: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1007: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1008: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1009: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1010: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1011: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1012: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1013: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1014: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1015: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1016: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1017: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1018: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1019: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] Import#1020: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] ImportCtx#1020: nid=QOQtbeDqsT4 ret=0x00000008002E2B3D rdi=0x0000000000000001 rsi=0x00006FFFDF1FEF90 rdx=0x0000000000000100 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1020: rbx=0x0000000000000000 rbp=0x00006FFFDF1FFFC0 r12=0x00007F0814ED93B0 r13=0x00006FFFDF1FEF90 r14=0x0000000000000001 r15=0x00000008004C6B60
+[LOADER][TRACE] ImportStackHead#1020: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1020: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [8]=0x0000000000000000 [10]=0x0000800000008000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1020: nid=QOQtbeDqsT4 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1021: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] ImportCtx#1021: nid=QOQtbeDqsT4 ret=0x00000008002E2B3D rdi=0x0000000000000001 rsi=0x00006FFFDF1FF790 rdx=0x0000000000000100 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1021: rbx=0x0000000000000001 rbp=0x00006FFFDF1FFFC0 r12=0x00007F0814ED93B0 r13=0x00006FFFDF1FF790 r14=0x0000000000000001 r15=0x00000008004C6B60
+[LOADER][TRACE] ImportStackHead#1021: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1021: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [8]=0x0000000000000000 [10]=0x0000800000008000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1021: nid=QOQtbeDqsT4 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1022: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] ImportCtx#1022: nid=QOQtbeDqsT4 ret=0x00000008002E2B3D rdi=0x0000000000000001 rsi=0x00006FFFDF1FEF90 rdx=0x0000000000000100 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1022: rbx=0x0000000000000000 rbp=0x00006FFFDF1FFFC0 r12=0x00007F0814ED93B0 r13=0x00006FFFDF1FEF90 r14=0x0000000000000001 r15=0x00000008004C6B60
+[LOADER][TRACE] ImportStackHead#1022: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1022: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [8]=0x0000000000000000 [10]=0x0000800000008000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1022: nid=QOQtbeDqsT4 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1023: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] ImportCtx#1023: nid=QOQtbeDqsT4 ret=0x00000008002E2B3D rdi=0x0000000000000001 rsi=0x00006FFFDF1FF790 rdx=0x0000000000000100 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1023: rbx=0x0000000000000001 rbp=0x00006FFFDF1FFFC0 r12=0x00007F0814ED93B0 r13=0x00006FFFDF1FF790 r14=0x0000000000000001 r15=0x00000008004C6B60
+[LOADER][TRACE] ImportStackHead#1023: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1023: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [8]=0x0000000000000000 [10]=0x0000800000008000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1023: nid=QOQtbeDqsT4 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1024: libSceAudioOut:sceAudioOutOutput (QOQtbeDqsT4)
+[LOADER][TRACE] ImportCtx#1024: nid=QOQtbeDqsT4 ret=0x00000008002E2B3D rdi=0x0000000000000001 rsi=0x00006FFFDF1FEF90 rdx=0x0000000000000100 rcx=0x0000000000000000
+[LOADER][TRACE] ImportNV#1024: rbx=0x0000000000000000 rbp=0x00006FFFDF1FFFC0 r12=0x00007F0814ED93B0 r13=0x00006FFFDF1FEF90 r14=0x0000000000000001 r15=0x00000008004C6B60
+[LOADER][TRACE] ImportStackHead#1024: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [20]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportStack#1024: rsp=0x00006FFFDF1FEF78 [0]=0x00000008002E2B3D [8]=0x0000000000000000 [10]=0x0000800000008000 [18]=0x0000000000000000 [20]=0x0000000000000000 [28]=0x0000000000000000 [30]=0x0000000000000000 [38]=0x0000000000000000 [40]=0x0000000000000000
+[LOADER][TRACE] ImportRet#1024: nid=QOQtbeDqsT4 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[NID-COUNTS] 1D0H2KNjshE=0 hsi9drzHR2k=0
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+
+========== Framebuffer Analysis ==========
+Frame file        : frame000001.ppm
+Resolution        : 1920x1080
+Format            : RGBA8
+Pixel count       : 2,073,600
+Distinct colors   : 1
+Dominant color    : RGB(0,0,0) α=0
+Dominant coverage : 100.00%
+Classification    : Empty Frame
+
+Frame Valid       : NO
+Scene Loaded      : NO
+
+Top colors:
+  RGB(  0,  0,  0) α=  0  100.00%  (50,576 samples)
+
+Conclusion        : Frame data is too small to analyze.
+
+Next steps:
+  • Verify the frame was written correctly
+==========================================
+
+[VIDEOOUT][HEADLESS] Flip #1: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=1.93s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#1
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #2: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=1.97s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#2
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #3: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=1.99s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#3
+[LOADER][INFO] Scheduled guest thread 'run_c2init' handle=0x00007F07F803BF20 entry=0x00000008002E53F0 arg=0x00000000001A4C90 priority=700 host_priority=Normal affinity=0x7F
+----BEGIN C2 BOOT---- (1785857330.07)
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #4: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.02s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#4
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 0' handle=0x0000558DD1B70400 entry=0x00000008002E53F0 arg=0x00000000001A8350 priority=710 host_priority=Normal affinity=0x7F
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 1' handle=0x0000558DD1B72590 entry=0x00000008002E53F0 arg=0x00000000001A8380 priority=710 host_priority=Normal affinity=0x7F
+[VIDEOOUT][HEADLESS] Flip #5: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.05s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#5
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 2' handle=0x0000558DD1B74FF0 entry=0x00000008002E53F0 arg=0x00000000001A83B0 priority=710 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 3' handle=0x0000558DD1B851E0 entry=0x00000008002E53F0 arg=0x00000000001A83E0 priority=710 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 4' handle=0x0000558DD1B87370 entry=0x00000008002E53F0 arg=0x00000000001A8410 priority=710 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 5' handle=0x0000558DD1B88380 entry=0x00000008002E53F0 arg=0x00000000001A8440 priority=710 host_priority=Normal affinity=0x7F
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 6' handle=0x0000558DD1B8ABC0 entry=0x00000008002E53F0 arg=0x00000000001A8470 priority=710 host_priority=Normal affinity=0x7F
+[VIDEOOUT][HEADLESS] Flip #6: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.11s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#6
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 7' handle=0x0000558DD1B8D5F0 entry=0x00000008002E53F0 arg=0x00000000001A84A0 priority=710 host_priority=Normal affinity=0x7F
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 8' handle=0x0000558DD1B90040 entry=0x00000008002E53F0 arg=0x00000000001A84D0 priority=710 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 9' handle=0x0000558DD1B92AE0 entry=0x00000008002E53F0 arg=0x00000000001A8500 priority=710 host_priority=Normal affinity=0x7F
+[VIDEOOUT][HEADLESS] Flip #7: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.14s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#7
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 10' handle=0x0000558DD1B95580 entry=0x00000008002E53F0 arg=0x00000000001A8530 priority=710 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 11' handle=0x0000558DD1B98020 entry=0x00000008002E53F0 arg=0x00000000001A8560 priority=710 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 12' handle=0x0000558DD1B99080 entry=0x00000008002E53F0 arg=0x00000000001A8590 priority=710 host_priority=Normal affinity=0x7F
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 13' handle=0x0000558DD1B9BB00 entry=0x00000008002E53F0 arg=0x00000000001A85C0 priority=710 host_priority=Normal affinity=0x7F
+[VIDEOOUT][HEADLESS] Flip #8: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.16s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#8
+[LOADER][INFO] Scheduled guest thread '(BackgroundLoader) P.Worker 14' handle=0x0000558DD1B9E5A0 entry=0x00000008002E53F0 arg=0x00000000001A85F0 priority=710 host_priority=Normal affinity=0x7F
+[LOADER][INFO] Scheduled guest thread 'background loader' handle=0x0000558DD1BA1040 entry=0x00000008002E53F0 arg=0x00000000001A8620 priority=690 host_priority=Normal affinity=0x7F
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #1000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #2000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #9: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.20s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#9
+[DIAG-VERIFY] Import #3000 OK: libc::libc:memchr ret=0x0000000000000000
+[DIAG-VERIFY] Import #4000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #5000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #6000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #7000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #8000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #9000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #10: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.24s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#10
+[DIAG-VERIFY] Import #10000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #11000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #12000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #13000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #14000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #11: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.30s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#11
+[DIAG-VERIFY] Import #15000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #16000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #17000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #18000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #12: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.32s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#12
+[DIAG-VERIFY] Import #19000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #20000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #21000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #13: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.35s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#13
+[DIAG-VERIFY] Import #149000 OK: libSceAgc::libSceAgc:sceAgcSuspendPoint ret=0x0000000000000000
+[DIAG-VERIFY] Import #22000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #23000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #24000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #25000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #26000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #14: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.40s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#14
+[DIAG-VERIFY] Import #27000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #28000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #29000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #30000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #15: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.42s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#15
+[DIAG-VERIFY] Import #31000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #32000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #33000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #34000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #35000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #36000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #37000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #38000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #39000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[LOADER][TRACE] Import#200000: libKernel:__error (9BcDykPmo1I)
+[VIDEOOUT][HEADLESS] Flip #16: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.45s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#16
+[DIAG-VERIFY] Import #40000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #41000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #42000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #43000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #44000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #45000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #46000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #47000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #17: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.50s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#17
+[DIAG-VERIFY] Import #48000 OK: libc::libc:memchr ret=0x0000000000000000
+[DIAG-VERIFY] Import #49000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #50000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #51000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #52000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #53000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #54000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #55000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #18: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.52s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#18
+[DIAG-VERIFY] Import #56000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #57000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #58000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #59000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #60000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #61000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #62000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #19: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.53s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#19
+[DIAG-VERIFY] Import #63000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #64000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #65000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #66000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #67000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #68000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #20: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.55s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#20
+[DIAG-VERIFY] Import #69000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #70000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #71000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #72000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #73000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #74000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #75000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #76000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #21: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.59s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#21
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #77000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #78000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #79000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #80000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #81000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #82000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #83000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #22: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.62s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#22
+[DIAG-VERIFY] Import #84000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #85000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #86000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #87000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #88000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #89000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #90000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #91000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #92000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #93000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #94000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #95000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #96000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #97000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #23: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.68s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#23
+[DIAG-VERIFY] Import #98000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #99000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #100000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #101000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #102000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #103000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #104000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #105000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #106000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #107000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #108000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #109000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #110000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #111000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #112000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #113000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #114000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #115000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #116000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #117000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #118000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #119000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #120000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #121000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #122000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #123000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #124000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #125000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #126000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #127000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #128000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #129000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #130000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #131000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #24: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.74s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#24
+[DIAG-VERIFY] Import #132000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #133000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #134000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #135000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #136000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #137000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #138000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[LOADER][TRACE] Import#300000: libKernel:__error (9BcDykPmo1I)
+[DIAG-VERIFY] Import #139000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #140000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #141000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #142000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #143000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #144000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #145000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #146000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #147000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #148000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #25: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.79s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#25
+[DIAG-VERIFY] Import #149000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #150000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #151000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #152000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #153000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #154000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #155000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #156000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #157000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #26: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.81s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#26
+[DIAG-VERIFY] Import #158000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #159000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #160000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #161000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #162000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #163000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #164000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #165000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #166000 OK: libc::libc:memchr ret=0x0000000000000000
+[DIAG-VERIFY] Import #167000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #168000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #169000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #170000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #27: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.83s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#27
+[DIAG-VERIFY] Import #171000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #172000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #173000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #174000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #175000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #176000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #177000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #28: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.85s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#28
+[DIAG-VERIFY] Import #178000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #179000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #180000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #181000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #182000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #2000 OK: libKernel::libKernel:scePthreadMutexLock ret=0x0000000000000000
+[DIAG-VERIFY] Import #183000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #184000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #185000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #186000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #187000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #188000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #189000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #190000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #191000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #192000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #193000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #194000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #195000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #196000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #197000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #198000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #199000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #200000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #201000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #29: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=2.91s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#29
+[DIAG-VERIFY] Import #202000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #203000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #204000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #205000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #206000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #207000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #208000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #209000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #210000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #211000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #212000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #213000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #214000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #215000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #216000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #217000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #218000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #219000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #220000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #30: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=2.95s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#30
+[DIAG-VERIFY] Import #221000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #222000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #223000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #224000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #225000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #226000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #227000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #228000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #229000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #230000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #231000 OK: libc::libc:memchr ret=0x0000000000000000
+[DIAG-VERIFY] Import #232000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #233000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #234000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #31: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.00s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#31
+[DIAG-VERIFY] Import #235000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #236000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #237000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[LOADER][TRACE] Import#400000: libKernel:__error (9BcDykPmo1I)
+[VIDEOOUT][HEADLESS] Flip #32: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.02s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#32
+[DIAG-VERIFY] Import #238000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #239000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #240000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #241000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #242000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #243000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #244000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #245000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #246000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #247000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #248000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #249000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #250000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #33: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.04s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#33
+[DIAG-VERIFY] Import #150000 OK: libSceAgc::libSceAgc:sceAgcSetUcRegIndirectPatchAddRegisters ret=0x0000000000000000
+[DIAG-VERIFY] Import #251000 OK: libc::libc:memchr ret=0x0000000000000000
+[DIAG-VERIFY] Import #252000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #253000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #254000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #255000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #256000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #257000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #258000 OK: libKernel::libKernel:sceKernelGetDirectMemorySize ret=0x0000000400000000
+[DIAG-VERIFY] Import #259000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #260000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #261000 OK: libc::libc:memchr ret=0x00000000062F7B06
+[VIDEOOUT][HEADLESS] Flip #34: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.09s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#34
+[DIAG-VERIFY] Import #262000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #263000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #264000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #265000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #266000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #267000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #268000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #269000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #270000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #35: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.10s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#35
+[DIAG-VERIFY] Import #271000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #272000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #273000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #274000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #275000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #276000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #277000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #278000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #279000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #280000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #36: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.13s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#36
+[DIAG-VERIFY] Import #281000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #282000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #283000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #284000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #285000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #286000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #287000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #288000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #289000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #290000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #291000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #37: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.15s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#37
+[DIAG-VERIFY] Import #292000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #293000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #294000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #295000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #296000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #297000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #298000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][HEADLESS] Flip #38: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.19s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#38
+[DIAG-VERIFY] Import #299000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #300000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #301000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #302000 OK: libc::libc:memchr ret=0x0000000000000000
+[DIAG-VERIFY] Import #303000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #304000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #305000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #306000 OK: libc::libc:memchr ret=0x0000000000000000
+[DIAG-VERIFY] Import #307000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #308000 OK: libc::libc:memchr ret=0x000000000632FB49
+[DIAG-VERIFY] Import #309000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #310000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #311000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #312000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #313000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #314000 OK: libc::libc:memchr ret=0x0000000000000000
+[DIAG-VERIFY] Import #315000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #316000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #317000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #318000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #319000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #320000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+[DIAG-VERIFY] Import #321000 OK: libKernel::libKernel:__error ret=0x00006FFDF1000040
+Done load & parse data payload: 1785857331.30
+[VIDEOOUT][HEADLESS] Flip #39: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.23s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#39
+[LOADER][TRACE] Import#484480: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #40: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.25s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#40
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #41: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.28s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#41
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #42: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.30s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#42
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #43: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.31s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#43
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #44: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.33s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#44
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[LOADER][TRACE] Import#484864: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[VIDEOOUT][HEADLESS] Flip #45: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.36s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#45
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #46: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.39s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#46
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #47: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.42s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#47
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #48: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.44s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#48
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #49: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.48s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#49
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #50: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.50s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#50
+[DIAG-VERIFY] Import #322000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[DIAG-VERIFY] Import #323000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[VIDEOOUT][HEADLESS] Flip #51: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.52s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#51
+[DIAG-VERIFY] Import #324000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #52: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.54s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#52
+[DIAG-VERIFY] Import #325000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #326000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #327000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #328000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #329000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #330000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #53: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.59s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#53
+[DIAG-VERIFY] Import #331000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #332000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #333000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #334000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+[DIAG-VERIFY] Import #335000 OK: libc::libc:_Getptolower ret=0x00007F07F8014740
+Loading 19 event sheets and 58 layouts: 1785857331.68
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #54: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.61s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#54
+[DIAG-VERIFY] Import #151000 OK: libSceAgc::libSceAgc:sceAgcCbSetShRegisterRangeDirect ret=0x0000000000260040
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #55: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.63s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#55
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #56: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.65s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#56
+[NID-COUNTS] 1D0H2KNjshE=0 hsi9drzHR2k=0
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #57: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.70s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#57
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #58: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.72s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#58
+[LOADER][TRACE] Import#500000: libSceAgc:sceAgcSetCxRegIndirectPatchAddRegisters (d-6uF9sZDIU)
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #59: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.74s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#59
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #60: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.78s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#60
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #61: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.80s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#61
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #62: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.83s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#62
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #63: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.85s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#63
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #64: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.88s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#64
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #65: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.91s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#65
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #66: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=3.94s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#66
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #67: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=3.98s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#67
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #68: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=4.00s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#68
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #69: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=4.02s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#69
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #70: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=4.04s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#70
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #71: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=4.11s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#71
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #72: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=4.14s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#72
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #73: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=4.22s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#73
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #74: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=4.24s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#74
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #75: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=4.28s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#75
+[DIAG-VERIFY] Import #152000 OK: libSceAgc::libSceAgc:sceAgcSetShRegIndirectPatchAddRegisters ret=0x0000000000000000
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #76: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=4.31s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#76
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000001260000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #77: handle=1001 buf=0 addr=0x0000000001260000 3840x2160 pitch=3840 t=4.33s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=0 frame=#77
+[VIDEOOUT][FB] TryRead OK for addr=0x0000000003240000 size=33177600 nonZero(first1000)=0
+[VIDEOOUT][HEADLESS] Flip #78: handle=1001 buf=1 addr=0x0000000003240000 3840x2160 pitch=3840 t=4.35s draws=0
+[VIDEOOUT][INTEGRATION] Flip → Headless: handle=1001 buf=1 frame=#78

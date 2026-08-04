@@ -1,0 +1,89 @@
+========== EXP-138 Dreaming Sarah Frame Analysis ==========
+Date: 2026-08-04
+Commit: 9cef960 (EXP-138 patch)
+Game: Dreaming Sarah (PPSA02929)
+Mode: SHARPEMU_HEADLESS=1, SHARPEMU_HEADLESS_CAPTURE=1
+
+=== Frame #1 Analysis ===
+File: dreaming-sarah-frame001.ppm
+Resolution: 1920x1080
+Format: RGBA8 (PPM P6 header, 4 bytes/pixel)
+Pixel count: 2,073,600
+Non-zero pixels: 0 (0.00%)
+Distinct colors: 1 (RGB(0,0,0) alpha=0)
+SHA256 (pixel data): 788ae0147bdf979a6575938ca2d7d4403788588f7be2010f03776c968fd1ab49
+Classification: Empty Frame
+
+=== Frame #10 Analysis ===
+File: dreaming-sarah-frame010.ppm
+Resolution: 1920x1080
+Format: RGBA8
+Pixel count: 2,073,600
+Non-zero pixels: 0 (0.00%)
+Distinct colors: 1 (RGB(0,0,0) alpha=0)
+SHA256 (pixel data): 788ae0147bdf979a6575938ca2d7d4403788588f7be2010f03776c968fd1ab49
+SHA256 difference (frame 1 vs frame 10): NONE (identical pixel data)
+Classification: Empty Frame
+
+=== Frame #50 Analysis (from previous run) ===
+File: frame000050.ppm (not saved to evidence, analyzed in place)
+Resolution: 1920x1080
+Non-zero pixels: 0 (0.00%)
+SHA256 (pixel data): 788ae0147bdf979a6575938ca2d7d4403788588f7be2010f03776c968fd1ab49
+SHA256 difference: NONE (identical to frame 1 and frame 10)
+Classification: Empty Frame
+
+=== SHA256 Difference Analysis ===
+Frame 1 SHA256:  788ae0147bdf979a6575938ca2d7d4403788588f7be2010f03776c968fd1ab49
+Frame 10 SHA256: 788ae0147bdf979a6575938ca2d7d4403788588f7be2010f03776c968fd1ab49
+Frame 50 SHA256: 788ae0147bdf979a6575938ca2d7d4403788588f7be2010f03776c968fd1ab49
+All frames: IDENTICAL pixel data (all zeros)
+
+=== Alpha Channel Analysis ===
+All alpha values: 0 (fully transparent)
+No variation across frames
+
+=== Rendering State Classification ===
+[ ] GPU Rendering Working
+[ ] Headless Frame Pipeline Working
+[x] Framebuffer Allocated But Empty
+[ ] No Rendering Backend Available
+
+=== Root Cause: Why draws=0 ===
+The draws=0 counter is OWNED by VulkanVideoPresenter._perfDrawCount
+(VideoOutExports.cs:1484-1488), NOT by HeadlessVideoPresenter.
+
+In headless mode:
+1. VideoOutManager.HasGpuSupport() returns false (no /dev/dri, /sys/class/drm, NVIDIA)
+2. HeadlessVideoPresenter is selected (no Vulkan render thread starts)
+3. AGC DCB parser runs and identifies draw packets (sceAgcDcbDrawIndexOffset, etc.)
+4. Parser routes draws to GuestGpu.Current (= VulkanGuestGpuBackend)
+5. VulkanGuestGpuBackend has no render thread → draws silently dropped
+6. _perfDrawCount never increments → draws=0
+
+The DCB parser DOES run (sceAgcDriverSubmitDcb unconditionally calls ParseSubmittedDcb).
+But its output goes only to VulkanVideoPresenter, which is not active in headless mode.
+HeadlessVideoPresenter.DrawCall() exists but is NEVER called from anywhere.
+
+=== Is this a regression from EXP-138? ===
+NO.
+
+EXP-138 only modified 2 files:
+- src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.cs
+- src/SharpEmu.Core/Cpu/Native/DirectExecutionBackend.NativeWorker.cs
+
+EXP-138 did NOT touch any GPU/AGC/VideoOut/HeadlessVideoPresenter files.
+The draws=0 and empty framebuffer are pre-existing architectural limitations
+of headless mode without a GPU backend.
+
+=== What would be needed to render in this sandbox? ===
+1. A Vulkan-capable GPU + working GLFW windowing init (not available)
+2. OR a software IGuestGpuBackend implementation (does not exist in codebase)
+3. OR wire HeadlessVideoPresenter.AgcDraw() into the AGC DCB parser
+   (would make draws= non-zero but still no pixel output)
+
+=== Conclusion ===
+EXECUTION: PASS (game boots, 78+ frames, 0 crashes, clean exit)
+RENDERING: BLOCKED (no GPU backend, framebuffer empty, draws=0)
+
+This is NOT a regression from EXP-138.
