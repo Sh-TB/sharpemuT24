@@ -1,8 +1,10 @@
 # Current State — SharpEmuT24 Investigation
 
-**Last updated:** 2026-08-04 (after EXP-138 patch applied)
-**Latest commit:** `9cef960` (EXP-138 patch)
+**Last updated:** 2026-08-04 (after AGENT_MASTER_RULES.md created)
+**Latest commit:** `1eaabb4` (EXP-138-results.md)
 **Latest EXP:** EXP-138 (TryCallGuestFunction RAX propagation fix — APPLIED, awaiting build + runtime validation)
+
+**⚠️ READ FIRST:** `docs/AGENT_MASTER_RULES.md` — the single permanent file every agent MUST read at session start.
 
 ---
 
