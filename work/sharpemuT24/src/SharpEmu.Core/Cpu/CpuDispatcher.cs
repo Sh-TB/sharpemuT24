@@ -115,7 +115,7 @@ public sealed class CpuDispatcher : ICpuDispatcher, IDisposable
 
         try
         {
-            return DispatchEntryCore(
+            var result = DispatchEntryCore(
                 entryPoint,
                 generation,
                 importStubs,
@@ -123,6 +123,16 @@ public sealed class CpuDispatcher : ICpuDispatcher, IDisposable
                 moduleName,
                 executionOptions,
                 EntryFrameKind.ModuleInitializer);
+
+            // EXP-143: After Il2cppUserAssemblies.prx module_start, install icall trace
+            if (moduleName.Contains("Il2cppUserAssemblies") &&
+                string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_TRACE_ICALL"), "1", StringComparison.Ordinal) &&
+                _nativeCpuBackend is SharpEmu.Core.Cpu.Native.DirectExecutionBackend nativeBackend)
+            {
+                nativeBackend.InstallIcallTrace(0x804ED8780);
+            }
+
+            return result;
         }
         catch (Exception ex)
         {

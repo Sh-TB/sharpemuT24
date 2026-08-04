@@ -19,6 +19,11 @@ public sealed partial class DirectExecutionBackend
         private static int _lazyCommitTraceCount;
         private static int _guestAllocatorHoleRecoveries;
         private static int _auxiliaryThreadExecuteFaultRecoveries;
+        // EXP-143: il2cpp_resolve_icall tracing via INT3 patch
+        private static ulong _icallTraceAddress;
+        private static byte _icallTraceOriginalByte;
+        private static int _icallTraceCount;
+        private static bool _icallTraceEntryMode; // true = entry (log RDI), false = return (log RAX)
 
         private unsafe void SetupExceptionHandler()
         {
@@ -150,6 +155,11 @@ public sealed partial class DirectExecutionBackend
                         if (IsBenignHostDebugException(exceptionCode))
                         {
                                 return -1;
+                        }
+                        // EXP-143: Trace il2cpp_resolve_icall via INT3 patch
+                        if (exceptionCode == 2147483651u && rip == _icallTraceAddress && _icallTraceAddress != 0)
+                        {
+                                return TryHandleIcallTrace(contextRecord, rip);
                         }
                         if (exceptionCode == MSVC_CPP_EXCEPTION)
                         {
@@ -1646,5 +1656,93 @@ public sealed partial class DirectExecutionBackend
                         return 64u;
                 }
                 return 4u;
+        }
+
+        // EXP-143: Install INT3 patch at il2cpp_resolve_icall to trace icall resolution
+        public unsafe void InstallIcallTrace(ulong resolveIcallAddress)
+        {
+                if (resolveIcallAddress == 0) return;
+                _icallTraceAddress = resolveIcallAddress;
+                _icallTraceEntryMode = true;
+                _icallTraceCount = 0;
+                // Save original byte and patch with INT3 (0xCC)
+                byte* addr = (byte*)resolveIcallAddress;
+                _icallTraceOriginalByte = *addr;
+                // Make page writable
+                uint oldProtect = 0;
+                VirtualProtect((void*)resolveIcallAddress, (nuint)1, 64u, &oldProtect);
+                *addr = 0xCC;
+                VirtualProtect((void*)resolveIcallAddress, (nuint)1, oldProtect, &oldProtect);
+                FlushInstructionCache(GetCurrentProcess(), (void*)resolveIcallAddress, (nuint)1);
+                Console.Error.WriteLine($"[ICALL-TRACE] INT3 patch installed at 0x{resolveIcallAddress:X16} (original byte=0x{_icallTraceOriginalByte:X2})");
+        }
+
+        private unsafe int TryHandleIcallTrace(void* contextRecord, ulong rip)
+        {
+                // Read registers
+                ulong rdi = ReadCtxU64(contextRecord, 128); // CTX_RDI offset
+                ulong rax = ReadCtxU64(contextRecord, 120); // CTX_RAX offset
+                ulong rsp = ReadCtxU64(contextRecord, 152); // CTX_RSP offset
+
+                if (_icallTraceEntryMode)
+                {
+                        // Entry: log icall name from RDI
+                        _icallTraceCount++;
+                        string icallName = "<unreadable>";
+                        if (rdi != 0)
+                        {
+                                try
+                                {
+                                        byte* namePtr = (byte*)rdi;
+                                        int len = 0;
+                                        while (len < 256 && namePtr[len] != 0) len++;
+                                        icallName = new string((sbyte*)namePtr, 0, len, System.Text.Encoding.UTF8);
+                                }
+                                catch { }
+                        }
+                        Console.Error.WriteLine($"[ICALL-TRACE] #{_icallTraceCount} ENTRY name='{icallName}' rdi=0x{rdi:X16}");
+
+                        // Restore original byte so the function can execute
+                        byte* addr = (byte*)_icallTraceAddress;
+                        uint oldProtect2 = 0;
+                        VirtualProtect((void*)_icallTraceAddress, (nuint)1, 64u, &oldProtect2);
+                        *addr = _icallTraceOriginalByte;
+                        VirtualProtect((void*)_icallTraceAddress, (nuint)1, oldProtect2, &oldProtect2);
+                        FlushInstructionCache(GetCurrentProcess(), (void*)_icallTraceAddress, (nuint)1);
+
+                        // Now we need to catch the RETURN from il2cpp_resolve_icall.
+                        // Read the return address from the stack [RSP]
+                        ulong returnAddress = 0;
+                        try { returnAddress = *(ulong*)rsp; } catch { }
+
+                        // Patch INT3 at the return address to catch the return value
+                        if (returnAddress != 0 && returnAddress >= 0x800000000UL)
+                        {
+                                byte* retAddr = (byte*)returnAddress;
+                                // Save the byte at return address and patch INT3
+                                // But we can't save it in a single static — use a dictionary or just
+                                // save the return address and handle it differently.
+                                // Simpler: just log on entry, don't try to catch return.
+                                // The return value (RAX) can be inferred from what happens next.
+                        }
+
+                        // Advance RIP past the INT3 (already restored original byte)
+                        // RIP is already at the function entry — just let it continue
+                        // The signal handler already set RIP correctly for INT3 recovery
+                }
+                else
+                {
+                        // Return: log RAX
+                        Console.Error.WriteLine($"[ICALL-TRACE] #{_icallTraceCount} RETURN rax=0x{rax:X16} ({(rax == 0 ? "NULL" : "non-zero")})");
+                }
+
+                // Recovery: advance RIP past INT3 (skip the 0xCC byte)
+                WriteCtxU64Icall(contextRecord, 248, rip + 1); // CTX_RIP offset = 248
+                return -1; // recovered
+        }
+
+        private static unsafe void WriteCtxU64Icall(void* contextRecord, int offset, ulong value)
+        {
+                *(ulong*)((byte*)contextRecord + offset) = value;
         }
 }
