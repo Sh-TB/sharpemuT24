@@ -3529,3 +3529,36 @@ Stage Summary:
   5. Other unknown — 5% confidence
 - Fix path identified: EXP-138 (fix TryCallGuestFunction) is the top priority. May cascade-fix IL2CPP API resolution, eliminating need for arch_init_gc HLE stub. Requires dotnet SDK to rebuild SharpEmu.
 - All findings preserved to GitHub at exp-reports/EXP-137.md (commit 8dda3ba).
+
+---
+Task ID: 138-145
+Agent: main agent (Super Z)
+Task: Create EXP-138 through EXP-145 test plan per user's detailed spec, with my additional considerations added. User emphasized: (1) EXP-138 fix is highest blast radius, regression gate (Dreaming Sarah + Arise) MANDATORY before Yatzi; (2) confidence ranking was soft, Finding 1 is proven code bug; (3) all 8 EXP placeholders must be committed to GitHub FIRST per preservation rule.
+
+Work Log:
+- Did static code analysis of DirectExecutionBackend.cs:874-878 (CallNativeEntry), :3388-3511 (TryCallGuestFunction), :4866-5071 (ExecuteGuestThreadEntry), :5170-5224 (ExecuteGuestContinuationEntry).
+- Confirmed bug: CallNativeEntry returns int (32-bit), truncates 64-bit function pointers. Even if we used nativeReturn, would lose upper 32 bits of pointers like 0x804ED9B90.
+- Confirmed asymmetry: continuation path has manual EmitMovR64Imm for Rax write-back at line 5176; bare callback path at line 4866 does NOT have this.
+- Designed 5-change patch: (1) CallNativeEntry int→ulong, (2) ExecuteGuestThreadEntry captures nativeReturn64 + writes to context.Rax, (3) same fix in ExecuteGuestContinuationEntry, (4) same fix at lines 5482/5491, (5) line 3500 no change needed (reads context.Rax correctly once #2 applied).
+- Wrote 8 EXP files (EXP-138 through EXP-145) covering all user subtests + my additional considerations:
+  - EXP-138: 5 user subtests + 5 my additions (138.13-138.20: nested call chain, exception path, call convention audit, blocking resume, multi-threaded, other callers, ABI check, synthetic unit test)
+  - EXP-139: 4 user subtests + 5 my additions (139.5-139.9: arch_init_gc real semantics, il2cpp_init return, il2cpp_runtime_invoke, metadata registration, GC state)
+  - EXP-140: 4 user subtests + 5 my additions (140.5-140.9: chicken-and-egg structure, job queue memory, producer search, Baselib Thread API, full icall inventory)
+  - EXP-141: 5 user subtests + 3 my additions (141.9-141.11: Thread-X identity, worker entry disasm, Thread-X entry disasm)
+  - EXP-142: 3 user subtests + 8 my additions (142.4-142.11: all TryCallGuestFunction callers, continuation return path, synthetic BST test, closed EXPs review)
+  - EXP-143: 7 user subtests + 4 my additions (143.8-143.11: GOT population, icall table, runtime_invoke, memory layout)
+  - EXP-144: 6 user subtests + 5 my additions (144.7-144.11: Arise GPU fault warning, Dreaming Sarah baseline, Frame #2 milestone, WaitEqueue fix, AddVblankEvent not used)
+  - EXP-145: 4 user workaround tests + 13 my additions for full HLE export sweep (145.5-145.17)
+- Copied all 8 files to scripts/expNNN/EXP-NNN.md mirrors.
+- Single batch commit (commit ed29615) pushed to GitHub main.
+- Verified HTTP 200 for all 8 EXP files via GitHub API.
+
+Stage Summary:
+- All 8 EXP files (138-145) committed and pushed to GitHub.
+- All 8 verified HTTP 200 live on GitHub.
+- Static analysis portions COMPLETE for all 8 EXPs.
+- Runtime tests PENDING — require dotnet SDK + SharpEmu rebuild (not available in sandbox).
+- Top priority: EXP-138 fix (TryCallGuestFunction RAX propagation).
+- MANDATORY regression gate: Dreaming Sarah → Arise → Yatzi (in that order, no skipping).
+- User correction acknowledged: confidence ranking was soft; Finding 1 is proven code bug.
+- All findings preserved to GitHub per mandatory preservation rule.
