@@ -56,7 +56,7 @@ public sealed partial class DirectExecutionBackend
 	// Callers set the Active* thread-statics before emitting the stub and read the
 	// yield/forced-exit flags right after this returns, so the worker outcome is
 	// copied back into this thread's statics before returning.
-	private unsafe int RunGuestEntryStub(void* entryStub, ulong hostRspSlot)
+	private unsafe ulong RunGuestEntryStub(void* entryStub, ulong hostRspSlot)
 	{
 		var worker = RentNativeGuestExecutor();
 		if (worker is null)
@@ -82,7 +82,13 @@ public sealed partial class DirectExecutionBackend
 			_activeGuestThreadYieldRequested = yieldRequested;
 			_activeGuestThreadYieldReason = yieldReason;
 			_activeForcedGuestExit = forcedExit;
-			return nativeReturn;
+			// EXP-138: Cast int -> ulong for type consistency with CallNativeEntry.
+			// NOTE: The Windows native worker stub (line ~378) currently captures
+			// eax (32-bit) not rax (64-bit), so the upper 32 bits are already lost
+			// before this cast. The native stub fix (mov edx,eax -> mov rdx,rax)
+			// is a separate follow-up for Windows correctness; on Linux the native
+			// worker path is not used (RentNativeGuestExecutor returns null).
+			return (ulong)nativeReturn;
 		}
 		finally
 		{

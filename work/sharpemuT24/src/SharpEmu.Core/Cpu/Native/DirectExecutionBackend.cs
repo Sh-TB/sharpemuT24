@@ -871,9 +871,14 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                 return *(ulong*)((byte*)contextRecord + offset);
         }
 
-        private unsafe static int CallNativeEntry(void* entry)
+        // EXP-138: Return type changed from int -> ulong to preserve full 64-bit
+        // guest function pointers (e.g. il2cpp_* resolver returns 0x804ED9B90).
+        // The previous int return truncated the upper 32 bits, and combined with
+        // the missing context.Rax write-back in the thunks below, caused every
+        // nested guest callback to return 0 to the outer guest (EXP-026/137).
+        private unsafe static ulong CallNativeEntry(void* entry)
         {
-                var nativeEntry = (delegate* unmanaged[Cdecl]<int>)entry;
+                var nativeEntry = (delegate* unmanaged[Cdecl]<ulong>)entry;
                 return nativeEntry();
         }
 
@@ -5030,6 +5035,12 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         try
                         {
                                 var nativeReturn = CallNativeEntry(ptr);
+                                // EXP-138: Write host RAX back into inner CpuContext.Rax so
+                                // TryCallGuestFunction (line ~3505) can read it. Without this
+                                // write-back, the inner context's Rax stays at its construction-
+                                // time default of 0, causing every nested guest callback to
+                                // return 0 to the outer guest (EXP-026/EXP-137 root cause).
+                                context[CpuRegister.Rax] = nativeReturn;
                                 if (ActiveGuestThreadYieldRequested)
                                 {
                                         reason = ActiveGuestThreadYieldReason ?? "guest thread blocked";
@@ -5040,7 +5051,7 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                                         reason = LastError ?? "guest thread forced exit";
                                         return GuestNativeCallExitReason.ForcedExit;
                                 }
-                                reason = $"returned 0x{nativeReturn:X8}";
+                                reason = $"returned 0x{nativeReturn:X16}";
                                 return GuestNativeCallExitReason.Returned;
                         }
                         catch (AccessViolationException ex)
@@ -5198,6 +5209,11 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         try
                         {
                                 var nativeReturn = CallNativeEntry(ptr);
+                                // EXP-138: Same Rax write-back as ExecuteGuestThreadEntry above.
+                                // The continuation path already sets Rax going IN via
+                                // EmitMovR64Imm(0x48, 0xB8, ...) at line ~5176; this captures
+                                // the new Rax value coming OUT after the continuation runs.
+                                context[CpuRegister.Rax] = nativeReturn;
                                 if (ActiveGuestThreadYieldRequested)
                                 {
                                         reason = ActiveGuestThreadYieldReason ?? "guest thread blocked";
@@ -5208,7 +5224,7 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                                         reason = LastError ?? "guest thread forced exit";
                                         return GuestNativeCallExitReason.ForcedExit;
                                 }
-                                reason = $"returned 0x{nativeReturn:X8}";
+                                reason = $"returned 0x{nativeReturn:X16}";
                                 return GuestNativeCallExitReason.Returned;
                         }
                         catch (AccessViolationException ex)
@@ -5485,11 +5501,13 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         Console.Error.WriteLine("[LOADER][INFO] Calling guest entry...");
                         StartStallWatchdog();
                         StartReadyThreadDispatcher();
-                        int num6 = -1;
+                        // EXP-138: num6 type changed int -> ulong for CallNativeEntry signature change.
+                        // Use ulong.MaxValue as the "error" sentinel (was -1 as int).
+                        ulong num6 = ulong.MaxValue;
                         try
                         {
                                 num6 = CallNativeEntry(ptr);
-                                Console.Error.WriteLine($"[LOADER][INFO] Guest returned: {num6}");
+                                Console.Error.WriteLine($"[LOADER][INFO] Guest returned: 0x{num6:X16}");
                                 PumpUntilGuestThreadsIdle(context, "entry_return");
                         }
                         catch (AccessViolationException ex)
@@ -5499,13 +5517,13 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                                 Console.Error.WriteLine("  1. Invalid memory access in guest code");
                                 Console.Error.WriteLine("  2. Unpatched import/TLS call");
                                 Console.Error.WriteLine("  3. Stack corruption");
-                                num6 = -1;
+                                num6 = ulong.MaxValue;
                         }
                         catch (Exception ex2)
                         {
                                 Console.Error.WriteLine("[LOADER][ERROR] Exception during execution: " + ex2.GetType().Name + ": " + ex2.Message);
                                 LastError = "Exception during execution: " + ex2.GetType().Name + ": " + ex2.Message;
-                                num6 = -1;
+                                num6 = ulong.MaxValue;
                         }
                         if (ActiveForcedGuestExit)
                         {
@@ -5526,7 +5544,7 @@ public sealed unsafe partial class DirectExecutionBackend : INativeCpuBackend, I
                         result = OrbisGen2Result.ORBIS_GEN2_ERROR_CPU_TRAP;
                         if (string.IsNullOrEmpty(LastError))
                         {
-                                LastError = $"Guest entry point returned non-zero: {num6}";
+                                LastError = $"Guest entry point returned non-zero: 0x{num6:X16}";
                         }
                         Console.Error.WriteLine("[LOADER][ERROR] " + LastError);
                         return false;
