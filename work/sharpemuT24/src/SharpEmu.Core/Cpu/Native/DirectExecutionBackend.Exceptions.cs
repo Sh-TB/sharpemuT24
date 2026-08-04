@@ -31,6 +31,26 @@ public sealed partial class DirectExecutionBackend
         private static byte _ripTraceOriginalByte2;
         private static ulong _ripTraceAddress3;
         private static byte _ripTraceOriginalByte3;
+        // EXP-149: Single-step re-patch state — after INT3 hit, we restore the original
+        // byte, set TF, and advance RIP by 1. The next SIGTRAP (single-step) re-patches
+        // INT3 and clears TF. This correctly handles multi-byte instructions (CALL=5, JMP=5).
+        private static bool _ripTraceSingleStepping1;
+        private static bool _ripTraceSingleStepping2;
+        private static bool _ripTraceSingleStepping3;
+        private const int CTX_EFLAGS_OFFSET = 0x44;  // Win64 CONTEXT EFLAGS offset
+        private const ulong EFLAGS_TF = 0x100;       // Trap Flag (bit 8)
+
+        // EXP-149 Step 2: Single-step trace from end of mutex init to dispatch loop entry
+        // Activated by SHARPEMU_SINGLE_STEP_TRACE=1
+        // Starts single-stepping when _singleStepStartRip is reached (or after a trigger count)
+        // Stops after _singleStepMaxSteps instructions, or when _singleStepStopRip is reached
+        private static bool _singleStepActive;
+        private static ulong _singleStepStartRip;
+        private static ulong _singleStepStopRip;
+        private static int _singleStepMaxSteps;
+        private static int _singleStepCurrentStep;
+        private static ulong _singleStepStartAfterImport;  // Start after this many imports
+        private static ulong _singleStepImportCounter;
 
         private unsafe void SetupExceptionHandler()
         {
@@ -168,12 +188,39 @@ public sealed partial class DirectExecutionBackend
                         {
                                 return TryHandleIcallTrace(contextRecord, rip);
                         }
-                        // EXP-145: Generic RIP trace via INT3 patch
+                        // EXP-145/EXP-149: Generic RIP trace via INT3 patch
+                        // FIX: Use single-step re-patch technique to handle multi-byte instructions.
+                        // Old handler advanced RIP by only 1 byte, but CALL is 5 bytes — caused SIGILL.
+                        // New technique: on INT3 hit, restore original byte, set TF, advance RIP by 1.
+                        // The next SIGTRAP (single-step) re-patches INT3 and clears TF.
                         // Note: POSIX signal handler may increment RIP before VectoredHandler sees it
                         // So we check both rip and rip-1
                         if (exceptionCode == 2147483651u)
                         {
-                                ulong checkRip = rip;
+                                // Check if this is a single-step trap from our re-patch logic
+                                if (_ripTraceSingleStepping1 && rip == _ripTraceAddress1 + 1)
+                                {
+                                        // Single-step completed for slot 1 — re-patch INT3, clear TF
+                                        RePatchInt3(_ripTraceAddress1, _ripTraceOriginalByte1);
+                                        ClearTrapFlag(contextRecord);
+                                        _ripTraceSingleStepping1 = false;
+                                        return -1;
+                                }
+                                if (_ripTraceSingleStepping2 && rip == _ripTraceAddress2 + 1)
+                                {
+                                        RePatchInt3(_ripTraceAddress2, _ripTraceOriginalByte2);
+                                        ClearTrapFlag(contextRecord);
+                                        _ripTraceSingleStepping2 = false;
+                                        return -1;
+                                }
+                                if (_ripTraceSingleStepping3 && rip == _ripTraceAddress3 + 1)
+                                {
+                                        RePatchInt3(_ripTraceAddress3, _ripTraceOriginalByte3);
+                                        ClearTrapFlag(contextRecord);
+                                        _ripTraceSingleStepping3 = false;
+                                        return -1;
+                                }
+                                // Check for INT3 hits at our patched addresses
                                 if (rip == _ripTraceAddress1 || rip - 1 == _ripTraceAddress1)
                                 {
                                         if (_ripTraceAddress1 != 0)
@@ -182,7 +229,11 @@ public sealed partial class DirectExecutionBackend
                                                 ulong t_rsi = ReadCtxU64(contextRecord, 136);
                                                 ulong t_rax = ReadCtxU64(contextRecord, 120);
                                                 Console.Error.WriteLine($"[RIP-TRACE] HIT slot=1 addr=0x{_ripTraceAddress1:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                // Restore original byte, set TF, advance RIP by 1
+                                                RestoreOriginalByte(_ripTraceAddress1, _ripTraceOriginalByte1);
+                                                SetTrapFlag(contextRecord);
                                                 WriteCtxU64Icall(contextRecord, 248, _ripTraceAddress1 + 1);
+                                                _ripTraceSingleStepping1 = true;
                                                 return -1;
                                         }
                                 }
@@ -194,7 +245,10 @@ public sealed partial class DirectExecutionBackend
                                                 ulong t_rsi = ReadCtxU64(contextRecord, 136);
                                                 ulong t_rax = ReadCtxU64(contextRecord, 120);
                                                 Console.Error.WriteLine($"[RIP-TRACE] HIT slot=2 addr=0x{_ripTraceAddress2:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                RestoreOriginalByte(_ripTraceAddress2, _ripTraceOriginalByte2);
+                                                SetTrapFlag(contextRecord);
                                                 WriteCtxU64Icall(contextRecord, 248, _ripTraceAddress2 + 1);
+                                                _ripTraceSingleStepping2 = true;
                                                 return -1;
                                         }
                                 }
@@ -206,10 +260,56 @@ public sealed partial class DirectExecutionBackend
                                                 ulong t_rsi = ReadCtxU64(contextRecord, 136);
                                                 ulong t_rax = ReadCtxU64(contextRecord, 120);
                                                 Console.Error.WriteLine($"[RIP-TRACE] HIT slot=3 addr=0x{_ripTraceAddress3:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                RestoreOriginalByte(_ripTraceAddress3, _ripTraceOriginalByte3);
+                                                SetTrapFlag(contextRecord);
                                                 WriteCtxU64Icall(contextRecord, 248, _ripTraceAddress3 + 1);
+                                                _ripTraceSingleStepping3 = true;
                                                 return -1;
                                         }
                                 }
+                        }
+                        // EXP-149 Step 2: Single-step trace handler
+                        // When _singleStepActive is true, every instruction triggers a SIGTRAP (TF).
+                        // We log the RIP and re-enable TF for the next instruction.
+                        if (exceptionCode == 2147483651u && _singleStepActive)
+                        {
+                                // Check if we should stop
+                                if (_singleStepCurrentStep >= _singleStepMaxSteps ||
+                                    (_singleStepStopRip != 0 && rip == _singleStepStopRip))
+                                {
+                                        Console.Error.WriteLine($"[STEP-TRACE] STOP at step {_singleStepCurrentStep} rip=0x{rip:X16}");
+                                        _singleStepActive = false;
+                                        ClearTrapFlag(contextRecord);
+                                        return -1;
+                                }
+                                _singleStepCurrentStep++;
+                                // Log every Nth step to avoid flooding (configurable)
+                                int logInterval = 1;
+                                if (int.TryParse(Environment.GetEnvironmentVariable("SHARPEMU_STEP_LOG_INTERVAL"), out int envInterval))
+                                        logInterval = envInterval;
+                                if (_singleStepCurrentStep <= 100 || _singleStepCurrentStep % logInterval == 0)
+                                {
+                                        ulong t_rdi = ReadCtxU64(contextRecord, 128);
+                                        ulong t_rsi = ReadCtxU64(contextRecord, 136);
+                                        ulong t_rax = ReadCtxU64(contextRecord, 120);
+                                        ulong t_rbx = ReadCtxU64(contextRecord, 144);
+                                        ulong t_r14 = ReadCtxU64(contextRecord, 232);
+                                        Console.Error.WriteLine($"[STEP-TRACE] #{_singleStepCurrentStep,5} rip=0x{rip:X16} rax=0x{t_rax:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rbx=0x{t_rbx:X16} r14=0x{t_r14:X16}");
+                                }
+                                // Re-set TF for the next instruction
+                                SetTrapFlag(contextRecord);
+                                return -1;
+                        }
+                        // EXP-149 Step 2: Activate single-step trace when trigger is armed
+                        // This catches the FIRST SIGTRAP after the trigger count is reached
+                        if (exceptionCode == 2147483651u && _singleStepTriggerArmed && !_singleStepActive)
+                        {
+                                _singleStepActive = true;
+                                _singleStepTriggerArmed = false;
+                                _singleStepCurrentStep = 0;
+                                Console.Error.WriteLine($"[STEP-TRACE] ACTIVATED at rip=0x{rip:X16} — starting trace");
+                                SetTrapFlag(contextRecord);
+                                return -1;
                         }
                         if (exceptionCode == MSVC_CPP_EXCEPTION)
                         {
@@ -1814,5 +1914,98 @@ public sealed partial class DirectExecutionBackend
         private static unsafe void WriteCtxU64Icall(void* contextRecord, int offset, ulong value)
         {
                 *(ulong*)((byte*)contextRecord + offset) = value;
+        }
+
+        // EXP-149: Helper to restore original byte at an INT3-patched address
+        private static unsafe void RestoreOriginalByte(ulong address, byte originalByte)
+        {
+                byte* addr = (byte*)address;
+                uint oldProtect = 0;
+                VirtualProtect((void*)address, (nuint)1, 64u, &oldProtect);
+                *addr = originalByte;
+                VirtualProtect((void*)address, (nuint)1, oldProtect, &oldProtect);
+                FlushInstructionCache(GetCurrentProcess(), (void*)address, (nuint)1);
+        }
+
+        // EXP-149: Helper to re-patch INT3 at an address (after single-step completes)
+        private static unsafe void RePatchInt3(ulong address, byte originalByte)
+        {
+                byte* addr = (byte*)address;
+                uint oldProtect = 0;
+                VirtualProtect((void*)address, (nuint)1, 64u, &oldProtect);
+                *addr = 0xCC;
+                VirtualProtect((void*)address, (nuint)1, oldProtect, &oldProtect);
+                FlushInstructionCache(GetCurrentProcess(), (void*)address, (nuint)1);
+        }
+
+        // EXP-149: Set Trap Flag (TF) in EFLAGS to enable single-step mode
+        private static unsafe void SetTrapFlag(void* contextRecord)
+        {
+                byte* ctx = (byte*)contextRecord;
+                // EFLAGS is a 32-bit value at offset CTX_EFLAGS_OFFSET
+                uint eflags = *(uint*)(ctx + CTX_EFLAGS_OFFSET);
+                eflags |= (uint)EFLAGS_TF;  // Set TF (bit 8)
+                *(uint*)(ctx + CTX_EFLAGS_OFFSET) = eflags;
+        }
+
+        // EXP-149: Clear Trap Flag (TF) in EFLAGS to disable single-step mode
+        private static unsafe void ClearTrapFlag(void* contextRecord)
+        {
+                byte* ctx = (byte*)contextRecord;
+                uint eflags = *(uint*)(ctx + CTX_EFLAGS_OFFSET);
+                eflags &= ~(uint)EFLAGS_TF;  // Clear TF (bit 8)
+                *(uint*)(ctx + CTX_EFLAGS_OFFSET) = eflags;
+        }
+
+        // EXP-149 Step 2: Start single-step trace from a specific RIP
+        // Call this to begin tracing every instruction from startRip until stopRip or maxSteps
+        public void StartSingleStepTrace(ulong startRip, ulong stopRip, int maxSteps)
+        {
+                _singleStepStartRip = startRip;
+                _singleStepStopRip = stopRip;
+                _singleStepMaxSteps = maxSteps;
+                _singleStepCurrentStep = 0;
+                _singleStepActive = true;
+                Console.Error.WriteLine($"[STEP-TRACE] Configured: start=0x{startRip:X16} stop=0x{stopRip:X16} maxSteps={maxSteps}");
+        }
+
+        // EXP-149 Step 2: Set the stop RIP for the single-step trace
+        public void SetSingleStepStopRip(ulong stopRip)
+        {
+                _singleStepStopRip = stopRip;
+                Console.Error.WriteLine($"[STEP-TRACE] Stop RIP set to 0x{stopRip:X16}");
+        }
+
+        // EXP-149 Step 2: Start single-step trace after N imports (counter-based trigger)
+        // When the import counter reaches importCount, an INT3 is installed at the import
+        // return address. When that INT3 hits, single-step mode is activated.
+        public void StartSingleStepTraceAfterImport(ulong importCount, int maxSteps)
+        {
+                _singleStepStartAfterImport = importCount;
+                _singleStepMaxSteps = maxSteps;
+                _singleStepCurrentStep = 0;
+                _singleStepImportCounter = 0;
+                Console.Error.WriteLine($"[STEP-TRACE] Will start after import #{importCount}, maxSteps={maxSteps}");
+        }
+
+        // EXP-149 Step 2: Called from import dispatch to count imports and activate trace
+        // When the trigger count is reached, sets a flag that the exception handler checks
+        // on the next SIGTRAP. The exception handler then activates single-step mode.
+        private static ulong _singleStepTriggerReturnAddr;
+        private static bool _singleStepTriggerArmed;
+
+        public void NotifyImportDispatch()
+        {
+                if (_singleStepStartAfterImport > 0 && !_singleStepActive && !_singleStepTriggerArmed)
+                {
+                        _singleStepImportCounter++;
+                        if (_singleStepImportCounter >= _singleStepStartAfterImport)
+                        {
+                                // Arm the trigger — the next exception handler invocation
+                                // will activate single-step mode
+                                _singleStepTriggerArmed = true;
+                                Console.Error.WriteLine($"[STEP-TRACE] TRIGGER ARMED after import #{_singleStepImportCounter} — will activate on next exception");
+                        }
+                }
         }
 }

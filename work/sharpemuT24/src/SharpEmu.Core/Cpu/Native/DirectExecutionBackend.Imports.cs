@@ -317,6 +317,13 @@ public sealed partial class DirectExecutionBackend
                 }
                 catch { }
 
+                // EXP-149 Step 2: Notify single-step trace about import count
+                try
+                {
+                    NotifyImportDispatch();
+                }
+                catch { }
+
                 var probeTarget = (_probeImportReturnAddress != 0 && num7 == _probeImportReturnAddress) ||
                         (string.Equals(importStubEntry.Nid, "2Z+PpY6CaJg", StringComparison.Ordinal) &&
                          importStackPointer >= 0x00006FFFAC1FF000UL &&

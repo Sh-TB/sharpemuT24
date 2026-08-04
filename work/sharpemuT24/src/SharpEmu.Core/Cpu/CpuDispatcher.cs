@@ -145,6 +145,26 @@ public sealed class CpuDispatcher : ICpuDispatcher, IDisposable
                 ripBackend.InstallRipTrace(3, 0x804F6E9E6);
             }
 
+            // EXP-149 Step 2: Single-step trace from end of mutex init to dispatch loop entry
+            // Activated by SHARPEMU_SINGLE_STEP_TRACE=1
+            // Starts after import #38000 (last mutex in IL2CPP type init)
+            // Stops at dispatch loop entry (0x804F6E510) or after maxSteps
+            if (moduleName.Contains("Il2cppUserAssemblies") &&
+                string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_SINGLE_STEP_TRACE"), "1", StringComparison.Ordinal) &&
+                _nativeCpuBackend is SharpEmu.Core.Cpu.Native.DirectExecutionBackend stepBackend)
+            {
+                ulong stopRip = 0x804F6E510;  // Dispatch loop function entry
+                int maxSteps = 50000;  // Safety limit
+                if (int.TryParse(Environment.GetEnvironmentVariable("SHARPEMU_STEP_MAX"), out int envMax))
+                    maxSteps = envMax;
+                ulong startAfterImport = 38000;  // After last mutex call
+                if (ulong.TryParse(Environment.GetEnvironmentVariable("SHARPEMU_STEP_START_IMPORT"), out ulong envImport))
+                    startAfterImport = envImport;
+                stepBackend.StartSingleStepTraceAfterImport(startAfterImport, maxSteps);
+                // Set the stop RIP separately
+                stepBackend.SetSingleStepStopRip(stopRip);
+            }
+
             return result;
         }
         catch (Exception ex)
