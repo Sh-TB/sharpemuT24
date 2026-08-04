@@ -1,0 +1,247 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-08-04T13:30:00Z",
+  "latest_commit": "9cef960",
+  "latest_exp": "EXP-138",
+  "experiments": [
+    {
+      "exp_id": "EXP-026",
+      "title": "BST resolver algorithm verification",
+      "status": "CLOSED",
+      "conclusion": "Algorithm correct (239 nodes, 0 violations). Root cause was elsewhere.",
+      "superseded_by": "EXP-137/138"
+    },
+    {
+      "exp_id": "EXP-027",
+      "title": "CPU instruction correctness fuzz test",
+      "status": "CLOSED",
+      "conclusion": "768/768 PASS against Unicorn gold standard."
+    },
+    {
+      "exp_id": "EXP-028",
+      "title": "Synthetic resolver test",
+      "status": "CLOSED",
+      "conclusion": "239/239 symbol resolve PASS."
+    },
+    {
+      "exp_id": "EXP-035..EXP-058",
+      "title": "IL2CPP metadata / threading / initialization arc (wrong eboot)",
+      "status": "CLOSED",
+      "conclusion": "All findings INVALID — old eboot was Dreaming Sarah, not Yatzi.",
+      "superseded_by": "EXP-061"
+    },
+    {
+      "exp_id": "EXP-060",
+      "title": "Complete dump verification",
+      "status": "CLOSED",
+      "conclusion": "26 files, 153MB verified. Real Yatzi dump present."
+    },
+    {
+      "exp_id": "EXP-061",
+      "title": "Artifact identity audit",
+      "status": "CLOSED",
+      "conclusion": "Old eboot (7.7MB) was Dreaming Sarah. Real Yatzi eboot is 32.7MB."
+    },
+    {
+      "exp_id": "EXP-062..EXP-078",
+      "title": "Semaphore stall investigation arc (FAST_PATH contaminated)",
+      "status": "CLOSED",
+      "conclusion": "SignalSema never called, 14 threads blocked. FAST_PATH=1 masks real bug.",
+      "superseded_by": "EXP-118+"
+    },
+    {
+      "exp_id": "EXP-079..EXP-110",
+      "title": "Callback dispatch / trigger hunt (worklog-only)",
+      "status": "CLOSED",
+      "conclusion": "EXP-089: 'no work submitted, missing trigger' — correct in principle, lacked binary evidence.",
+      "superseded_by": "EXP-136"
+    },
+    {
+      "exp_id": "EXP-111..EXP-117",
+      "title": "Claim validation + asset verification",
+      "status": "CLOSED",
+      "conclusion": "Real Unity resources (unity_builtin_extra 820KB) needed. FAST_PATH=1 bypasses all sema semantics."
+    },
+    {
+      "exp_id": "EXP-118",
+      "title": "Unity resource runtime validation",
+      "status": "CLOSED",
+      "conclusion": "Real unity_builtin_extra eliminates rip=0x800B28A0D abort. New stall on WaitSema."
+    },
+    {
+      "exp_id": "EXP-119",
+      "title": "FAST_PATH A/B test",
+      "status": "CLOSED",
+      "conclusion": "FAST_PATH=0 stalls (exit 4), FAST_PATH=1 crashes at NULL call (RIP=0)."
+    },
+    {
+      "exp_id": "EXP-120",
+      "title": "NULL call investigation",
+      "status": "CLOSED",
+      "conclusion": "call [rbx+0xF8] at 0x800AA01CE, [rbx+0xF8]=NULL."
+    },
+    {
+      "exp_id": "EXP-121",
+      "title": "Worker task function initialization trace",
+      "status": "CLOSED",
+      "conclusion": "[rbx+0xF8] intentionally 0 at creation. Missing step is task dispatch."
+    },
+    {
+      "exp_id": "EXP-122",
+      "title": "Worker task dispatch path trace",
+      "status": "CLOSED",
+      "conclusion": "SignalSema fires 13/12 on ODD, ZERO on EVEN. Dispatch step missing."
+    },
+    {
+      "exp_id": "EXP-123",
+      "title": "IL2CPP dispatch thread investigation",
+      "status": "CLOSED",
+      "conclusion": "IL2CPP thread 0x804F88AA0 is GC scavenger. Semaphore 0x83 is SuspendSemaphore."
+    },
+    {
+      "exp_id": "EXP-124",
+      "title": "Main thread job dispatch investigation",
+      "status": "CLOSED",
+      "conclusion": "BREAKTHROUGH: main thread blocks on WaitSema(0x81) at 0x804F6E9E6."
+    },
+    {
+      "exp_id": "EXP-125",
+      "title": "Find missing signal source for semaphore 0x81",
+      "status": "CLOSED",
+      "conclusion": "ZERO lock xadd/inc/add [reg+0x90] in all 8 PRX modules. (Note: missed eboot.bin — see EXP-137)"
+    },
+    {
+      "exp_id": "EXP-126",
+      "title": "Artificial SignalSema + vblank/event search",
+      "status": "CLOSED",
+      "conclusion": "Vblank/event hypothesis REJECTED. No sceVideoOutAddVblankEvent, no sceKernelWaitEventFlag."
+    },
+    {
+      "exp_id": "EXP-127",
+      "title": "Multi-hypothesis investigation",
+      "status": "CLOSED",
+      "conclusion": "HLE correct; 459 SignalSema callers in eboot but unreachable. Bootstrap not submitted (~70% confidence)."
+    },
+    {
+      "exp_id": "EXP-128",
+      "title": "Bootstrap initialization gap analysis",
+      "status": "CLOSED",
+      "conclusion": "Main thread blocks DURING real_init. Dispatch loop called from 0x804F4560E."
+    },
+    {
+      "exp_id": "EXP-129",
+      "title": "Multi-hypothesis bootstrap investigation",
+      "status": "CLOSED",
+      "conclusion": "Producer candidate 0x801028d80 has 0 callers.",
+      "superseded_by": "EXP-133"
+    },
+    {
+      "exp_id": "EXP-130",
+      "title": "Trace producer function pointer table",
+      "status": "CLOSED",
+      "conclusion": "RELA entry exists but file value 0x0 is pre-relocation normal.",
+      "superseded_by": "EXP-132"
+    },
+    {
+      "exp_id": "EXP-131",
+      "title": "RELA relocation processing audit",
+      "status": "CLOSED",
+      "conclusion": "Hypothesized TryLoadTableBytes failure. REJECTED by EXP-132.",
+      "superseded_by": "EXP-132"
+    },
+    {
+      "exp_id": "EXP-132",
+      "title": "Multi-branch validation before fix",
+      "status": "CLOSED",
+      "conclusion": "RELA table loaded successfully (50,450 relocations). EXP-131 REJECTED."
+    },
+    {
+      "exp_id": "EXP-133",
+      "title": "Multi-hypothesis root cause investigation",
+      "status": "CLOSED",
+      "conclusion": "Producer 0x801028d80 is UNREACHABLE dead code. RELA false trail closed."
+    },
+    {
+      "exp_id": "EXP-134",
+      "title": "Find the REAL producer of semaphore 0x81",
+      "status": "CLOSED",
+      "conclusion": "458/459 SignalSema callers never executed. Dispatch loop is direct call."
+    },
+    {
+      "exp_id": "EXP-135",
+      "title": "Multi-hypothesis: find missing signal path",
+      "status": "CLOSED",
+      "conclusion": "Static analysis exhausted. Claimed [r14+0x90] never incremented — OVERTURNED by EXP-137.",
+      "superseded_by": "EXP-137"
+    },
+    {
+      "exp_id": "EXP-136",
+      "title": "Full investigation reassessment (EXP-000 → EXP-135)",
+      "status": "CLOSED",
+      "conclusion": "BREAKTHROUGH: arch_init_gc (NID XAKDgxcra6k) returns NOT_FOUND at exp118_run.log:8315."
+    },
+    {
+      "exp_id": "EXP-137",
+      "title": "6-phase matrix investigation",
+      "status": "CLOSED",
+      "conclusion": "CRITICAL: TryCallGuestFunction RAX propagation bug found (Backend.cs:3500). Overturns EXP-055 and EXP-135."
+    },
+    {
+      "exp_id": "EXP-138",
+      "title": "TryCallGuestFunction RAX propagation fix",
+      "status": "PATCH_APPLIED",
+      "conclusion": "5 changes to DirectExecutionBackend.cs + 1 to NativeWorker.cs. Committed as 9cef960. Build + runtime validation PENDING (no dotnet SDK in sandbox).",
+      "commit": "9cef960",
+      "awaiting": ["build", "dreaming_sarah_regression", "arise_regression", "yatzi_validation"]
+    },
+    {
+      "exp_id": "EXP-139",
+      "title": "arch_init_gc / arch_raise_user validation (POST-EXP-138)",
+      "status": "PENDING",
+      "conclusion": "Gated on EXP-138. May be downstream of RAX bug or independent.",
+      "gated_on": "EXP-138"
+    },
+    {
+      "exp_id": "EXP-140",
+      "title": "Unity Job System / Baselib audit",
+      "status": "PENDING",
+      "conclusion": "60+ icalls identified, 0 implemented. Gated on EXP-138.",
+      "gated_on": "EXP-138"
+    },
+    {
+      "exp_id": "EXP-141",
+      "title": "Worker thread state audit",
+      "status": "STATIC_COMPLETE",
+      "conclusion": "Not a scheduling bug. 0x84 ResumeSemaphore is the missing signal.",
+      "gated_on": "EXP-138"
+    },
+    {
+      "exp_id": "EXP-142",
+      "title": "Resolver full regression audit",
+      "status": "PENDING",
+      "conclusion": "Closes EXP-026..137 loop. Gated on EXP-138.",
+      "gated_on": "EXP-138"
+    },
+    {
+      "exp_id": "EXP-143",
+      "title": "IL2CPP runtime initialization audit",
+      "status": "STATIC_COMPLETE",
+      "conclusion": "Most subtests need runtime. Gated on EXP-138.",
+      "gated_on": "EXP-138"
+    },
+    {
+      "exp_id": "EXP-144",
+      "title": "VideoOut / Equeue / GPU / AGC validation",
+      "status": "STATIC_COMPLETE",
+      "conclusion": "Gated on bootstrap fix. sceKernelWaitEqueue has known bug.",
+      "gated_on": "EXP-138 + EXP-139 + EXP-140"
+    },
+    {
+      "exp_id": "EXP-145",
+      "title": "Emergency workarounds + full HLE export sweep",
+      "status": "PARTIAL",
+      "conclusion": "10/16 HLE files audited. Fallback if all else fails.",
+      "gated_on": "EXP-138 + EXP-139 + EXP-140"
+    }
+  ]
+}
