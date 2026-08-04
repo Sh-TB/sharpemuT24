@@ -1,0 +1,7 @@
+// Add after line 351 (after the TryGetValue check):
+// EXP-078: Log SignalSema handle for debugging
+if (signalCount > 0)
+{
+    var tid = Environment.CurrentManagedThreadId;
+    Console.Error.WriteLine($"[EXP078-SIGNAL] tid={tid} handle=0x{handle:X} count={signalCount} name='{semaphore.Name}'");
+}

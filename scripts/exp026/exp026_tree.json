@@ -1,0 +1,2417 @@
+{
+  "list_head_ptr_addr": 34505832200,
+  "list_head_struct_addr": 137438969632,
+  "root_node_addr": 137439114304,
+  "node_struct_size": 48,
+  "node_field_offsets": {
+    "right": 0,
+    "parent": 8,
+    "left": 16,
+    "color": 24,
+    "matched_flag": 25,
+    "symbol_name": 32,
+    "func_impl": 40
+  },
+  "nodes": {
+    "0x2000027440": {
+      "addr": 137439114304,
+      "idx": 1,
+      "name": "il2cpp_class_num_fields",
+      "left": 137439118144,
+      "right": 137439112512,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028340": {
+      "addr": 137439118144,
+      "idx": 2,
+      "name": "il2cpp_format_stack_trace",
+      "left": 137439123520,
+      "right": 137439118784,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029840": {
+      "addr": 137439123520,
+      "idx": 3,
+      "name": "il2cpp_object_header_size",
+      "left": 137439131072,
+      "right": 137439109056,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b5c0": {
+      "addr": 137439131072,
+      "idx": 4,
+      "name": "il2cpp_string_new_len",
+      "left": 137439132736,
+      "right": 137439108288,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bc40": {
+      "addr": 137439132736,
+      "idx": 5,
+      "name": "il2cpp_thread_get_top_frame",
+      "left": 137439113664,
+      "right": 137439131712,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000271c0": {
+      "addr": 137439113664,
+      "idx": 6,
+      "name": "il2cpp_type_get_name_chunked",
+      "left": 137439124160,
+      "right": 137439133760,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029ac0": {
+      "addr": 137439124160,
+      "idx": 7,
+      "name": "il2cpp_unity_liveness_allocate_struct",
+      "left": 137439124416,
+      "right": 137439133632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029bc0": {
+      "addr": 137439124416,
+      "idx": 8,
+      "name": "il2cpp_unity_liveness_calculation_from_statics",
+      "left": 137439124672,
+      "right": 137439124288,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029cc0": {
+      "addr": 137439124672,
+      "idx": 9,
+      "name": "il2cpp_unity_liveness_free_struct",
+      "left": 137439128896,
+      "right": 137439124544,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002ad40": {
+      "addr": 137439128896,
+      "idx": 10,
+      "name": "il2cpp_value_box",
+      "left": 137438969632,
+      "right": 137439138112,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000003f20": {
+      "addr": 137438969632,
+      "idx": 11,
+      "name": "<SENTINEL>",
+      "left": 137439128896,
+      "right": 137439109184,
+      "flag_19": 1,
+      "color": 1,
+      "func_ptr": 0
+    },
+    "0x2000026040": {
+      "addr": 137439109184,
+      "idx": 12,
+      "name": "il2cpp_add_internal_call",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002d140": {
+      "addr": 137439138112,
+      "idx": 13,
+      "name": "il2cpp_unity_set_android_network_up_state_func",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029c40": {
+      "addr": 137439124544,
+      "idx": 14,
+      "name": "il2cpp_unity_liveness_finalize",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029b40": {
+      "addr": 137439124288,
+      "idx": 15,
+      "name": "il2cpp_unity_liveness_calculation_from_root",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bfc0": {
+      "addr": 137439133632,
+      "idx": 16,
+      "name": "il2cpp_type_get_type",
+      "left": 137439134656,
+      "right": 137439133504,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c3c0": {
+      "addr": 137439134656,
+      "idx": 17,
+      "name": "il2cpp_type_is_static",
+      "left": 137439118272,
+      "right": 137439134016,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000283c0": {
+      "addr": 137439118272,
+      "idx": 18,
+      "name": "il2cpp_unhandled_exception",
+      "left": 137439136704,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cbc0": {
+      "addr": 137439136704,
+      "idx": 19,
+      "name": "il2cpp_unity_install_unitytls_interface",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c140": {
+      "addr": 137439134016,
+      "idx": 20,
+      "name": "il2cpp_type_is_byref",
+      "left": 137439134784,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c440": {
+      "addr": 137439134784,
+      "idx": 21,
+      "name": "il2cpp_type_is_pointer_type",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bf40": {
+      "addr": 137439133504,
+      "idx": 22,
+      "name": "il2cpp_type_get_object",
+      "left": 137439134528,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c340": {
+      "addr": 137439134528,
+      "idx": 23,
+      "name": "il2cpp_type_get_reflection_name",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c040": {
+      "addr": 137439133760,
+      "idx": 24,
+      "name": "il2cpp_type_get_class_or_element_class",
+      "left": 137439133888,
+      "right": 137439134272,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c0c0": {
+      "addr": 137439133888,
+      "idx": 25,
+      "name": "il2cpp_type_get_name",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c240": {
+      "addr": 137439134272,
+      "idx": 26,
+      "name": "il2cpp_type_equals",
+      "left": 137439134144,
+      "right": 137439132480,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c1c0": {
+      "addr": 137439134144,
+      "idx": 27,
+      "name": "il2cpp_type_get_attrs",
+      "left": 137438969632,
+      "right": 137439134400,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c2c0": {
+      "addr": 137439134400,
+      "idx": 28,
+      "name": "il2cpp_type_get_assembly_qualified_name",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bb40": {
+      "addr": 137439132480,
+      "idx": 29,
+      "name": "il2cpp_thread_walk_frame_stack",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b840": {
+      "addr": 137439131712,
+      "idx": 30,
+      "name": "il2cpp_thread_current",
+      "left": 137439132096,
+      "right": 137439131328,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b9c0": {
+      "addr": 137439132096,
+      "idx": 31,
+      "name": "il2cpp_thread_get_all_attached_threads",
+      "left": 137439132992,
+      "right": 137439131968,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bd40": {
+      "addr": 137439132992,
+      "idx": 32,
+      "name": "il2cpp_thread_get_frame_at",
+      "left": 137439133248,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002be40": {
+      "addr": 137439133248,
+      "idx": 33,
+      "name": "il2cpp_thread_get_stack_depth",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b940": {
+      "addr": 137439131968,
+      "idx": 34,
+      "name": "il2cpp_thread_detach",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b6c0": {
+      "addr": 137439131328,
+      "idx": 35,
+      "name": "il2cpp_string_new_wrapper",
+      "left": 137439131840,
+      "right": 137439131200,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b8c0": {
+      "addr": 137439131840,
+      "idx": 36,
+      "name": "il2cpp_thread_attach",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b640": {
+      "addr": 137439131200,
+      "idx": 37,
+      "name": "il2cpp_string_new_utf16",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025cc0": {
+      "addr": 137439108288,
+      "idx": 38,
+      "name": "il2cpp_set_temp_dir",
+      "left": 137439122368,
+      "right": 137439127872,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000293c0": {
+      "addr": 137439122368,
+      "idx": 39,
+      "name": "il2cpp_stop_gc_world",
+      "left": 137439130688,
+      "right": 137439116992,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b440": {
+      "addr": 137439130688,
+      "idx": 40,
+      "name": "il2cpp_string_length",
+      "left": 137439130944,
+      "right": 137439131456,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b540": {
+      "addr": 137439130944,
+      "idx": 41,
+      "name": "il2cpp_string_new",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b740": {
+      "addr": 137439131456,
+      "idx": 42,
+      "name": "il2cpp_string_intern",
+      "left": 137439131584,
+      "right": 137439130816,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b7c0": {
+      "addr": 137439131584,
+      "idx": 43,
+      "name": "il2cpp_string_is_interned",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b4c0": {
+      "addr": 137439130816,
+      "idx": 44,
+      "name": "il2cpp_string_chars",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027ec0": {
+      "addr": 137439116992,
+      "idx": 45,
+      "name": "il2cpp_stats_dump_to_file",
+      "left": 137439117120,
+      "right": 137439107904,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027f40": {
+      "addr": 137439117120,
+      "idx": 46,
+      "name": "il2cpp_stats_get_value",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025b40": {
+      "addr": 137439107904,
+      "idx": 47,
+      "name": "il2cpp_shutdown",
+      "left": 137439122496,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029440": {
+      "addr": 137439122496,
+      "idx": 48,
+      "name": "il2cpp_start_gc_world",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a940": {
+      "addr": 137439127872,
+      "idx": 49,
+      "name": "il2cpp_property_get_set_method",
+      "left": 137439108544,
+      "right": 137439126848,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025dc0": {
+      "addr": 137439108544,
+      "idx": 50,
+      "name": "il2cpp_set_commandline_arguments_utf16",
+      "left": 137439108160,
+      "right": 137439130048,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025c40": {
+      "addr": 137439108160,
+      "idx": 51,
+      "name": "il2cpp_set_data_dir",
+      "left": 137439135936,
+      "right": 137439108032,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c8c0": {
+      "addr": 137439135936,
+      "idx": 52,
+      "name": "il2cpp_set_find_plugin_callback",
+      "left": 137439108928,
+      "right": 137439137984,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025f40": {
+      "addr": 137439108928,
+      "idx": 53,
+      "name": "il2cpp_set_memory_callbacks",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002d0c0": {
+      "addr": 137439137984,
+      "idx": 54,
+      "name": "il2cpp_set_default_thread_affinity",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025bc0": {
+      "addr": 137439108032,
+      "idx": 55,
+      "name": "il2cpp_set_config_dir",
+      "left": 137439108672,
+      "right": 137439108800,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025e40": {
+      "addr": 137439108672,
+      "idx": 56,
+      "name": "il2cpp_set_config_utf16",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025ec0": {
+      "addr": 137439108800,
+      "idx": 57,
+      "name": "il2cpp_set_config",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b1c0": {
+      "addr": 137439130048,
+      "idx": 58,
+      "name": "il2cpp_runtime_invoke_convert_args",
+      "left": 137439130432,
+      "right": 137439109312,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b340": {
+      "addr": 137439130432,
+      "idx": 59,
+      "name": "il2cpp_runtime_object_init_exception",
+      "left": 137439108416,
+      "right": 137439130304,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025d40": {
+      "addr": 137439108416,
+      "idx": 60,
+      "name": "il2cpp_set_commandline_arguments",
+      "left": 137438969632,
+      "right": 137439130560,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b3c0": {
+      "addr": 137439130560,
+      "idx": 61,
+      "name": "il2cpp_runtime_unhandled_exception_policy_set",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b2c0": {
+      "addr": 137439130304,
+      "idx": 62,
+      "name": "il2cpp_runtime_object_init",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000260c0": {
+      "addr": 137439109312,
+      "idx": 63,
+      "name": "il2cpp_resolve_icall",
+      "left": 137439129920,
+      "right": 137439136448,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b140": {
+      "addr": 137439129920,
+      "idx": 64,
+      "name": "il2cpp_runtime_invoke",
+      "left": 137438969632,
+      "right": 137439130176,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b240": {
+      "addr": 137439130176,
+      "idx": 65,
+      "name": "il2cpp_runtime_class_init",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cac0": {
+      "addr": 137439136448,
+      "idx": 66,
+      "name": "il2cpp_register_debugger_agent_transport",
+      "left": 137439136064,
+      "right": 137439117632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c940": {
+      "addr": 137439136064,
+      "idx": 67,
+      "name": "il2cpp_register_log_callback",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028140": {
+      "addr": 137439117632,
+      "idx": 68,
+      "name": "il2cpp_raise_exception",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a540": {
+      "addr": 137439126848,
+      "idx": 69,
+      "name": "il2cpp_profiler_set_events",
+      "left": 137439127744,
+      "right": 137439127104,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a8c0": {
+      "addr": 137439127744,
+      "idx": 70,
+      "name": "il2cpp_property_get_get_method",
+      "left": 137439128000,
+      "right": 137439127616,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a9c0": {
+      "addr": 137439128000,
+      "idx": 71,
+      "name": "il2cpp_property_get_name",
+      "left": 137439128128,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002aa40": {
+      "addr": 137439128128,
+      "idx": 72,
+      "name": "il2cpp_property_get_parent",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a840": {
+      "addr": 137439127616,
+      "idx": 73,
+      "name": "il2cpp_property_get_flags",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a640": {
+      "addr": 137439127104,
+      "idx": 74,
+      "name": "il2cpp_profiler_install_allocation",
+      "left": 137439127360,
+      "right": 137439123776,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a740": {
+      "addr": 137439127360,
+      "idx": 75,
+      "name": "il2cpp_profiler_install_fileio",
+      "left": 137439127232,
+      "right": 137439126976,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a6c0": {
+      "addr": 137439127232,
+      "idx": 76,
+      "name": "il2cpp_profiler_install_gc",
+      "left": 137439127488,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a7c0": {
+      "addr": 137439127488,
+      "idx": 77,
+      "name": "il2cpp_profiler_install_thread",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a5c0": {
+      "addr": 137439126976,
+      "idx": 78,
+      "name": "il2cpp_profiler_install_enter_leave",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029940": {
+      "addr": 137439123776,
+      "idx": 79,
+      "name": "il2cpp_offset_of_array_length_in_array_object_header",
+      "left": 137439126720,
+      "right": 137439128768,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a4c0": {
+      "addr": 137439126720,
+      "idx": 80,
+      "name": "il2cpp_profiler_install",
+      "left": 137438969632,
+      "right": 137439133376,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bec0": {
+      "addr": 137439133376,
+      "idx": 81,
+      "name": "il2cpp_override_stack_backtrace",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002acc0": {
+      "addr": 137439128768,
+      "idx": 82,
+      "name": "il2cpp_object_unbox",
+      "left": 137439123904,
+      "right": 137439128640,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000299c0": {
+      "addr": 137439123904,
+      "idx": 83,
+      "name": "il2cpp_offset_of_array_bounds_in_array_object_header",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002ac40": {
+      "addr": 137439128640,
+      "idx": 84,
+      "name": "il2cpp_object_new",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025fc0": {
+      "addr": 137439109056,
+      "idx": 85,
+      "name": "il2cpp_get_corlib",
+      "left": 137439124800,
+      "right": 137439120832,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029d40": {
+      "addr": 137439124800,
+      "idx": 86,
+      "name": "il2cpp_method_get_return_type",
+      "left": 137439129024,
+      "right": 137439125184,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002adc0": {
+      "addr": 137439129024,
+      "idx": 87,
+      "name": "il2cpp_monitor_enter",
+      "left": 137439129152,
+      "right": 137439125568,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002ae40": {
+      "addr": 137439129152,
+      "idx": 88,
+      "name": "il2cpp_monitor_try_enter",
+      "left": 137439118400,
+      "right": 137439129408,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028440": {
+      "addr": 137439118400,
+      "idx": 89,
+      "name": "il2cpp_native_stack_trace",
+      "left": 137439128384,
+      "right": 137439129664,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002ab40": {
+      "addr": 137439128384,
+      "idx": 90,
+      "name": "il2cpp_object_get_size",
+      "left": 137439128512,
+      "right": 137439128256,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002abc0": {
+      "addr": 137439128512,
+      "idx": 91,
+      "name": "il2cpp_object_get_virtual_method",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002aac0": {
+      "addr": 137439128256,
+      "idx": 92,
+      "name": "il2cpp_object_get_class",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b040": {
+      "addr": 137439129664,
+      "idx": 93,
+      "name": "il2cpp_monitor_wait",
+      "left": 137438969632,
+      "right": 137439129792,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002b0c0": {
+      "addr": 137439129792,
+      "idx": 94,
+      "name": "il2cpp_monitor_try_wait",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002af40": {
+      "addr": 137439129408,
+      "idx": 95,
+      "name": "il2cpp_monitor_pulse",
+      "left": 137439129536,
+      "right": 137439129280,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002afc0": {
+      "addr": 137439129536,
+      "idx": 96,
+      "name": "il2cpp_monitor_pulse_all",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002aec0": {
+      "addr": 137439129280,
+      "idx": 97,
+      "name": "il2cpp_monitor_exit",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a040": {
+      "addr": 137439125568,
+      "idx": 98,
+      "name": "il2cpp_method_is_inflated",
+      "left": 137439125696,
+      "right": 137439126208,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a0c0": {
+      "addr": 137439125696,
+      "idx": 99,
+      "name": "il2cpp_method_is_instance",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a2c0": {
+      "addr": 137439126208,
+      "idx": 100,
+      "name": "il2cpp_method_has_attribute",
+      "left": 137439125440,
+      "right": 137439126464,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029fc0": {
+      "addr": 137439125440,
+      "idx": 101,
+      "name": "il2cpp_method_is_generic",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a3c0": {
+      "addr": 137439126464,
+      "idx": 102,
+      "name": "il2cpp_method_get_token",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029ec0": {
+      "addr": 137439125184,
+      "idx": 103,
+      "name": "il2cpp_method_get_from_reflection",
+      "left": 137439125312,
+      "right": 137439107776,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029f40": {
+      "addr": 137439125312,
+      "idx": 104,
+      "name": "il2cpp_method_get_object",
+      "left": 137439125824,
+      "right": 137439125056,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a140": {
+      "addr": 137439125824,
+      "idx": 105,
+      "name": "il2cpp_method_get_param_count",
+      "left": 137439126592,
+      "right": 137439125952,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a440": {
+      "addr": 137439126592,
+      "idx": 106,
+      "name": "il2cpp_method_get_param_name",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a1c0": {
+      "addr": 137439125952,
+      "idx": 107,
+      "name": "il2cpp_method_get_param",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029e40": {
+      "addr": 137439125056,
+      "idx": 108,
+      "name": "il2cpp_method_get_name",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025ac0": {
+      "addr": 137439107776,
+      "idx": 109,
+      "name": "il2cpp_init_utf16",
+      "left": 137439124928,
+      "right": 137439135296,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029dc0": {
+      "addr": 137439124928,
+      "idx": 110,
+      "name": "il2cpp_method_get_declaring_type",
+      "left": 137439126336,
+      "right": 137439132224,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a340": {
+      "addr": 137439126336,
+      "idx": 111,
+      "name": "il2cpp_method_get_flags",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002ba40": {
+      "addr": 137439132224,
+      "idx": 112,
+      "name": "il2cpp_is_vm_thread",
+      "left": 137439126080,
+      "right": 137439136320,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002a240": {
+      "addr": 137439126080,
+      "idx": 113,
+      "name": "il2cpp_method_get_class",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002ca40": {
+      "addr": 137439136320,
+      "idx": 114,
+      "name": "il2cpp_is_debugger_attached",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c640": {
+      "addr": 137439135296,
+      "idx": 115,
+      "name": "il2cpp_image_get_entry_point",
+      "left": 137439135040,
+      "right": 137439134912,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c540": {
+      "addr": 137439135040,
+      "idx": 116,
+      "name": "il2cpp_image_get_name",
+      "left": 137439107648,
+      "right": 137439135168,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000025a40": {
+      "addr": 137439107648,
+      "idx": 117,
+      "name": "il2cpp_init",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c5c0": {
+      "addr": 137439135168,
+      "idx": 118,
+      "name": "il2cpp_image_get_filename",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c4c0": {
+      "addr": 137439134912,
+      "idx": 119,
+      "name": "il2cpp_image_get_assembly",
+      "left": 137439135424,
+      "right": 137439117888,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c6c0": {
+      "addr": 137439135424,
+      "idx": 120,
+      "name": "il2cpp_image_get_class_count",
+      "left": 137438969632,
+      "right": 137439135552,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c740": {
+      "addr": 137439135552,
+      "idx": 121,
+      "name": "il2cpp_image_get_class",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028240": {
+      "addr": 137439117888,
+      "idx": 122,
+      "name": "il2cpp_get_exception_argument_null",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028dc0": {
+      "addr": 137439120832,
+      "idx": 123,
+      "name": "il2cpp_gc_is_disabled",
+      "left": 137439120960,
+      "right": 137439120576,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028e40": {
+      "addr": 137439120960,
+      "idx": 124,
+      "name": "il2cpp_gc_set_mode",
+      "left": 137439121728,
+      "right": 137439121984,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029140": {
+      "addr": 137439121728,
+      "idx": 125,
+      "name": "il2cpp_gc_wbarrier_set_field",
+      "left": 137439122880,
+      "right": 137439120448,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000295c0": {
+      "addr": 137439122880,
+      "idx": 126,
+      "name": "il2cpp_gchandle_new",
+      "left": 137439123008,
+      "right": 137439123264,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029640": {
+      "addr": 137439123008,
+      "idx": 127,
+      "name": "il2cpp_gchandle_new_weakref",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029740": {
+      "addr": 137439123264,
+      "idx": 128,
+      "name": "il2cpp_gchandle_free",
+      "left": 137439123136,
+      "right": 137439123392,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000296c0": {
+      "addr": 137439123136,
+      "idx": 129,
+      "name": "il2cpp_gchandle_get_target",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000297c0": {
+      "addr": 137439123392,
+      "idx": 130,
+      "name": "il2cpp_gchandle_foreach_get_target",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028c40": {
+      "addr": 137439120448,
+      "idx": 131,
+      "name": "il2cpp_gc_start_incremental_collection",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029240": {
+      "addr": 137439121984,
+      "idx": 132,
+      "name": "il2cpp_gc_set_external_allocation_tracker",
+      "left": 137439121216,
+      "right": 137439121344,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028f40": {
+      "addr": 137439121216,
+      "idx": 133,
+      "name": "il2cpp_gc_set_max_time_slice_ns",
+      "left": 137438969632,
+      "right": 137439122112,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000292c0": {
+      "addr": 137439122112,
+      "idx": 134,
+      "name": "il2cpp_gc_set_external_wbarrier_tracker",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028fc0": {
+      "addr": 137439121344,
+      "idx": 135,
+      "name": "il2cpp_gc_is_incremental",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028cc0": {
+      "addr": 137439120576,
+      "idx": 136,
+      "name": "il2cpp_gc_disable",
+      "left": 137439121088,
+      "right": 137439120192,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028ec0": {
+      "addr": 137439121088,
+      "idx": 137,
+      "name": "il2cpp_gc_get_max_time_slice_ns",
+      "left": 137439121472,
+      "right": 137439122240,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029040": {
+      "addr": 137439121472,
+      "idx": 138,
+      "name": "il2cpp_gc_get_used_size",
+      "left": 137439121856,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000291c0": {
+      "addr": 137439121856,
+      "idx": 139,
+      "name": "il2cpp_gc_has_strict_wbarriers",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029340": {
+      "addr": 137439122240,
+      "idx": 140,
+      "name": "il2cpp_gc_foreach_heap",
+      "left": 137439121600,
+      "right": 137439120704,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000290c0": {
+      "addr": 137439121600,
+      "idx": 141,
+      "name": "il2cpp_gc_get_heap_size",
+      "left": 137438969632,
+      "right": 137439122752,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029540": {
+      "addr": 137439122752,
+      "idx": 142,
+      "name": "il2cpp_gc_free_fixed",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028d40": {
+      "addr": 137439120704,
+      "idx": 143,
+      "name": "il2cpp_gc_enable",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028b40": {
+      "addr": 137439120192,
+      "idx": 144,
+      "name": "il2cpp_gc_collect",
+      "left": 137439120320,
+      "right": 137439135808,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028bc0": {
+      "addr": 137439120320,
+      "idx": 145,
+      "name": "il2cpp_gc_collect_a_little",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c840": {
+      "addr": 137439135808,
+      "idx": 146,
+      "name": "il2cpp_free_captured_memory_snapshot",
+      "left": 137439122624,
+      "right": 137439109568,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000294c0": {
+      "addr": 137439122624,
+      "idx": 147,
+      "name": "il2cpp_gc_alloc_fixed",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000261c0": {
+      "addr": 137439109568,
+      "idx": 148,
+      "name": "il2cpp_free",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000285c0": {
+      "addr": 137439118784,
+      "idx": 149,
+      "name": "il2cpp_field_get_parent",
+      "left": 137439119424,
+      "right": 137439136192,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028840": {
+      "addr": 137439119424,
+      "idx": 150,
+      "name": "il2cpp_field_has_attribute",
+      "left": 137439119680,
+      "right": 137439119168,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028940": {
+      "addr": 137439119680,
+      "idx": 151,
+      "name": "il2cpp_field_static_get_value",
+      "left": 137439118016,
+      "right": 137439119552,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000282c0": {
+      "addr": 137439118016,
+      "idx": 152,
+      "name": "il2cpp_format_exception",
+      "left": 137438969632,
+      "right": 137439119808,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000289c0": {
+      "addr": 137439119808,
+      "idx": 153,
+      "name": "il2cpp_field_static_set_value",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000288c0": {
+      "addr": 137439119552,
+      "idx": 154,
+      "name": "il2cpp_field_set_value",
+      "left": 137439119936,
+      "right": 137439120064,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028a40": {
+      "addr": 137439119936,
+      "idx": 155,
+      "name": "il2cpp_field_set_value_object",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028ac0": {
+      "addr": 137439120064,
+      "idx": 156,
+      "name": "il2cpp_field_is_literal",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028740": {
+      "addr": 137439119168,
+      "idx": 157,
+      "name": "il2cpp_field_get_value",
+      "left": 137439119296,
+      "right": 137439119040,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000287c0": {
+      "addr": 137439119296,
+      "idx": 158,
+      "name": "il2cpp_field_get_value_object",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000286c0": {
+      "addr": 137439119040,
+      "idx": 159,
+      "name": "il2cpp_field_get_type",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c9c0": {
+      "addr": 137439136192,
+      "idx": 160,
+      "name": "il2cpp_debugger_set_agent_options",
+      "left": 137439117760,
+      "right": 137439132352,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000281c0": {
+      "addr": 137439117760,
+      "idx": 161,
+      "name": "il2cpp_exception_from_name_msg",
+      "left": 137439118656,
+      "right": 137439117248,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028540": {
+      "addr": 137439118656,
+      "idx": 162,
+      "name": "il2cpp_field_get_name",
+      "left": 137439118912,
+      "right": 137439118528,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028640": {
+      "addr": 137439118912,
+      "idx": 163,
+      "name": "il2cpp_field_get_offset",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000284c0": {
+      "addr": 137439118528,
+      "idx": 164,
+      "name": "il2cpp_field_get_flags",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027fc0": {
+      "addr": 137439117248,
+      "idx": 165,
+      "name": "il2cpp_domain_get",
+      "left": 137439117504,
+      "right": 137439117376,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000280c0": {
+      "addr": 137439117504,
+      "idx": 166,
+      "name": "il2cpp_domain_get_assemblies",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000028040": {
+      "addr": 137439117376,
+      "idx": 167,
+      "name": "il2cpp_domain_assembly_open",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bac0": {
+      "addr": 137439132352,
+      "idx": 168,
+      "name": "il2cpp_current_thread_walk_frame_stack",
+      "left": 137439136960,
+      "right": 137439132864,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002ccc0": {
+      "addr": 137439136960,
+      "idx": 169,
+      "name": "il2cpp_custom_attrs_from_method",
+      "left": 137439137344,
+      "right": 137439136832,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002ce40": {
+      "addr": 137439137344,
+      "idx": 170,
+      "name": "il2cpp_custom_attrs_has_attr",
+      "left": 137439136576,
+      "right": 137439137216,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cb40": {
+      "addr": 137439136576,
+      "idx": 171,
+      "name": "il2cpp_debug_get_method_info",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cdc0": {
+      "addr": 137439137216,
+      "idx": 172,
+      "name": "il2cpp_custom_attrs_get_attr",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cc40": {
+      "addr": 137439136832,
+      "idx": 173,
+      "name": "il2cpp_custom_attrs_from_class",
+      "left": 137439137088,
+      "right": 137439137472,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cd40": {
+      "addr": 137439137088,
+      "idx": 174,
+      "name": "il2cpp_custom_attrs_from_field",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cec0": {
+      "addr": 137439137472,
+      "idx": 175,
+      "name": "il2cpp_custom_attrs_construct",
+      "left": 137439137600,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cf40": {
+      "addr": 137439137600,
+      "idx": 176,
+      "name": "il2cpp_custom_attrs_free",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bcc0": {
+      "addr": 137439132864,
+      "idx": 177,
+      "name": "il2cpp_current_thread_get_frame_at",
+      "left": 137439132608,
+      "right": 137439114560,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bbc0": {
+      "addr": 137439132608,
+      "idx": 178,
+      "name": "il2cpp_current_thread_get_top_frame",
+      "left": 137438969632,
+      "right": 137439133120,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002bdc0": {
+      "addr": 137439133120,
+      "idx": 179,
+      "name": "il2cpp_current_thread_get_stack_depth",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027540": {
+      "addr": 137439114560,
+      "idx": 180,
+      "name": "il2cpp_class_value_size",
+      "left": 137438969632,
+      "right": 137439137728,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002cfc0": {
+      "addr": 137439137728,
+      "idx": 181,
+      "name": "il2cpp_class_set_userdata",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026d40": {
+      "addr": 137439112512,
+      "idx": 182,
+      "name": "il2cpp_class_get_fields",
+      "left": 137439111744,
+      "right": 137439110464,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026a40": {
+      "addr": 137439111744,
+      "idx": 183,
+      "name": "il2cpp_class_has_parent",
+      "left": 137439111232,
+      "right": 137439112640,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026840": {
+      "addr": 137439111232,
+      "idx": 184,
+      "name": "il2cpp_class_is_generic",
+      "left": 137439111104,
+      "right": 137439111488,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000267c0": {
+      "addr": 137439111104,
+      "idx": 185,
+      "name": "il2cpp_class_is_inited",
+      "left": 137439111616,
+      "right": 137439111360,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000269c0": {
+      "addr": 137439111616,
+      "idx": 186,
+      "name": "il2cpp_class_is_subclass_of",
+      "left": 137439114432,
+      "right": 137439115072,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000274c0": {
+      "addr": 137439114432,
+      "idx": 187,
+      "name": "il2cpp_class_is_valuetype",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027740": {
+      "addr": 137439115072,
+      "idx": 188,
+      "name": "il2cpp_class_is_interface",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000268c0": {
+      "addr": 137439111360,
+      "idx": 189,
+      "name": "il2cpp_class_is_inflated",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026940": {
+      "addr": 137439111488,
+      "idx": 190,
+      "name": "il2cpp_class_is_assignable_from",
+      "left": 137439114688,
+      "right": 137439114176,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000275c0": {
+      "addr": 137439114688,
+      "idx": 191,
+      "name": "il2cpp_class_is_blittable",
+      "left": 137439115968,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027ac0": {
+      "addr": 137439115968,
+      "idx": 192,
+      "name": "il2cpp_class_is_enum",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000273c0": {
+      "addr": 137439114176,
+      "idx": 193,
+      "name": "il2cpp_class_instance_size",
+      "left": 137439114944,
+      "right": 137439115840,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000276c0": {
+      "addr": 137439114944,
+      "idx": 194,
+      "name": "il2cpp_class_is_abstract",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027a40": {
+      "addr": 137439115840,
+      "idx": 195,
+      "name": "il2cpp_class_has_references",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026dc0": {
+      "addr": 137439112640,
+      "idx": 196,
+      "name": "il2cpp_class_get_nested_types",
+      "left": 137439112896,
+      "right": 137439113408,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026ec0": {
+      "addr": 137439112896,
+      "idx": 197,
+      "name": "il2cpp_class_get_properties",
+      "left": 137439115456,
+      "right": 137439113920,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000278c0": {
+      "addr": 137439115456,
+      "idx": 198,
+      "name": "il2cpp_class_get_type",
+      "left": 137439137856,
+      "right": 137439116352,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002d040": {
+      "addr": 137439137856,
+      "idx": 199,
+      "name": "il2cpp_class_get_userdata_offset",
+      "left": 137439115712,
+      "right": 137439115584,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000279c0": {
+      "addr": 137439115712,
+      "idx": 200,
+      "name": "il2cpp_class_has_attribute",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027940": {
+      "addr": 137439115584,
+      "idx": 201,
+      "name": "il2cpp_class_get_type_token",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027c40": {
+      "addr": 137439116352,
+      "idx": 202,
+      "name": "il2cpp_class_get_rank",
+      "left": 137439116608,
+      "right": 137439113024,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027d40": {
+      "addr": 137439116608,
+      "idx": 203,
+      "name": "il2cpp_class_get_static_field_data",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026f40": {
+      "addr": 137439113024,
+      "idx": 204,
+      "name": "il2cpp_class_get_property_from_name",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000272c0": {
+      "addr": 137439113920,
+      "idx": 205,
+      "name": "il2cpp_class_get_parent",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000270c0": {
+      "addr": 137439113408,
+      "idx": 206,
+      "name": "il2cpp_class_get_method_from_name",
+      "left": 137439113536,
+      "right": 137439116096,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027140": {
+      "addr": 137439113536,
+      "idx": 207,
+      "name": "il2cpp_class_get_name",
+      "left": 137439113792,
+      "right": 137439113280,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027240": {
+      "addr": 137439113792,
+      "idx": 208,
+      "name": "il2cpp_class_get_namespace",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027040": {
+      "addr": 137439113280,
+      "idx": 209,
+      "name": "il2cpp_class_get_methods",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027b40": {
+      "addr": 137439116096,
+      "idx": 210,
+      "name": "il2cpp_class_get_image",
+      "left": 137439112768,
+      "right": 137439114816,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026e40": {
+      "addr": 137439112768,
+      "idx": 211,
+      "name": "il2cpp_class_get_interfaces",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027640": {
+      "addr": 137439114816,
+      "idx": 212,
+      "name": "il2cpp_class_get_flags",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026540": {
+      "addr": 137439110464,
+      "idx": 213,
+      "name": "il2cpp_bounded_array_class_get",
+      "left": 137439112000,
+      "right": 137439109824,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026b40": {
+      "addr": 137439112000,
+      "idx": 214,
+      "name": "il2cpp_class_from_name",
+      "left": 137439116480,
+      "right": 137439110848,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027cc0": {
+      "addr": 137439116480,
+      "idx": 215,
+      "name": "il2cpp_class_get_data_size",
+      "left": 137439112256,
+      "right": 137439115328,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026c40": {
+      "addr": 137439112256,
+      "idx": 216,
+      "name": "il2cpp_class_get_element_class",
+      "left": 137439112384,
+      "right": 137439114048,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026cc0": {
+      "addr": 137439112384,
+      "idx": 217,
+      "name": "il2cpp_class_get_events",
+      "left": 137439113152,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026fc0": {
+      "addr": 137439113152,
+      "idx": 218,
+      "name": "il2cpp_class_get_field_from_name",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027340": {
+      "addr": 137439114048,
+      "idx": 219,
+      "name": "il2cpp_class_get_declaring_type",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027840": {
+      "addr": 137439115328,
+      "idx": 220,
+      "name": "il2cpp_class_from_type",
+      "left": 137439116864,
+      "right": 137439112128,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027e40": {
+      "addr": 137439116864,
+      "idx": 221,
+      "name": "il2cpp_class_get_bitmap",
+      "left": 137439116736,
+      "right": 137439116224,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027dc0": {
+      "addr": 137439116736,
+      "idx": 222,
+      "name": "il2cpp_class_get_bitmap_size",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000027bc0": {
+      "addr": 137439116224,
+      "idx": 223,
+      "name": "il2cpp_class_get_assemblyname",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026bc0": {
+      "addr": 137439112128,
+      "idx": 224,
+      "name": "il2cpp_class_from_system_type",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000266c0": {
+      "addr": 137439110848,
+      "idx": 225,
+      "name": "il2cpp_class_for_each",
+      "left": 137439111872,
+      "right": 137439115200,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026ac0": {
+      "addr": 137439111872,
+      "idx": 226,
+      "name": "il2cpp_class_from_il2cpp_type",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000277c0": {
+      "addr": 137439115200,
+      "idx": 227,
+      "name": "il2cpp_class_array_element_size",
+      "left": 137439110976,
+      "right": 137439135680,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026740": {
+      "addr": 137439110976,
+      "idx": 228,
+      "name": "il2cpp_class_enum_basetype",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x200002c7c0": {
+      "addr": 137439135680,
+      "idx": 229,
+      "name": "il2cpp_capture_memory_snapshot",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000262c0": {
+      "addr": 137439109824,
+      "idx": 230,
+      "name": "il2cpp_array_length",
+      "left": 137439110208,
+      "right": 137439109440,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026440": {
+      "addr": 137439110208,
+      "idx": 231,
+      "name": "il2cpp_array_new_specific",
+      "left": 137439110720,
+      "right": 137439110080,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026640": {
+      "addr": 137439110720,
+      "idx": 232,
+      "name": "il2cpp_assembly_get_image",
+      "left": 137438969632,
+      "right": 137439123648,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000298c0": {
+      "addr": 137439123648,
+      "idx": 233,
+      "name": "il2cpp_array_object_header_size",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000263c0": {
+      "addr": 137439110080,
+      "idx": 234,
+      "name": "il2cpp_array_new",
+      "left": 137439110336,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000264c0": {
+      "addr": 137439110336,
+      "idx": 235,
+      "name": "il2cpp_array_new_full",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026140": {
+      "addr": 137439109440,
+      "idx": 236,
+      "name": "il2cpp_alloc",
+      "left": 137439110592,
+      "right": 137439109184,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x20000265c0": {
+      "addr": 137439110592,
+      "idx": 237,
+      "name": "il2cpp_array_element_size",
+      "left": 137439109952,
+      "right": 137439109696,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026340": {
+      "addr": 137439109952,
+      "idx": 238,
+      "name": "il2cpp_array_get_byte_length",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000026240": {
+      "addr": 137439109696,
+      "idx": 239,
+      "name": "il2cpp_array_class_get",
+      "left": 137438969632,
+      "right": 137439124032,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    },
+    "0x2000029a40": {
+      "addr": 137439124032,
+      "idx": 240,
+      "name": "il2cpp_allocation_granularity",
+      "left": 137438969632,
+      "right": 137438969632,
+      "flag_19": 0,
+      "color": 0,
+      "func_ptr": 34442413936
+    }
+  }
+}
