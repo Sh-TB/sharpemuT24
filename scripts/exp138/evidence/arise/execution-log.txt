@@ -1,0 +1,1394 @@
+[DEBUG] SharpEmu starting with 1 args
+[INFO][SharpEmu.Diagnostics] DiagnosticEngine.cs:83 DiagnosticEngine initialized: /home/z/my-project/SharpEmu/diagnostics/sessions/eboot-20260804_163946
+[DIAG-HOOKS] Diagnostics activated in DirectExecutionBackend
+[DIAG] Intelligence Engine activated: profile=Compatibility
+[DIAG] Subsystems: CPU Trace, Crash Writer, Memory Map, GPU State, Thread Debug, Syscall, File IO, HLE Quality
+[DIAGNOSTICS] Engine initialized: /home/z/my-project/SharpEmu/diagnostics/sessions/eboot-20260804_163946
+[DIAGNOSTICS] Live session: /home/z/my-project/SharpEmu/diagnostics/live/session.json
+[INFO][SharpEmu.CLI] Program.cs:281 SharpEmu UNOFFICIAL — https://github.com/sharpemu/sharpemu
+
+Local build (not produced by CI).
+[INFO][SharpEmu.CLI] Program.cs:282 Host hardware: CPU: 2 logical processors; GPU: unknown; RAM: unknown.
+[DEBUG] Full path: /tmp/arise/eboot.bin
+[DEBUG] Creating runtime...
+[LOADER][INFO] Kernel TSC frequency: 3200042636 Hz (calibrated-rdtsc)
+[HLE] Warmed 3632 type initializers (1 threw) + JIT-compiled 21602 methods (113 skipped) across 13 HLE assemblies, plus 3165 framework type initializers.
+[INFO][Aerolib] Aerolib.cs:150 Loaded 154457 NID entries from binary resource
+[DEBUG] Running: /tmp/arise/eboot.bin
+[RUNTIME] Loading: /tmp/arise/eboot.bin
+
+========== Boot Dependency Report ==========
+App0 root       : /tmp/arise
+Engine          : Native C/C++
+Engine detail   : Native C/C++
+Coverage        : 25.0% (1/4 required files present)
+Critical miss   : 0
+Critical encrypt: 0
+Can boot        : YES
+
+Required files:
+
+  [★★★★★] eboot.bin
+      Path       : eboot.bin
+      Description: Main executable
+      Exists     : YES
+      Size       : 24.8 MB
+      Magic      : 0x4F153D1D
+      Format     : SELF(fSELF)
+      Encrypted  : NO
+      Loadable   : YES
+      Priority   : Critical
+      Status     : OK (24.8 MB)
+
+  [★★☆☆☆] sce_sys/about/right.sprx
+      Path       : sce_sys/about/right.sprx
+      Description: About page module
+      Exists     : NO
+      Priority   : Low
+      Status     : MISSING
+
+  [★★☆☆☆] sce_module/libc.prx
+      Path       : sce_module/libc.prx
+      Description: C runtime (OPTIONAL — SharpEmu has built-in HLE for libc)
+      Exists     : NO
+      Priority   : Low
+      Status     : MISSING
+
+  [★★☆☆☆] sce_module/libSceNpCppWebApi.prx
+      Path       : sce_module/libSceNpCppWebApi.prx
+      Description: PlayStation Network WebApi (if game uses PSN)
+      Exists     : NO
+      Priority   : Low
+      Status     : MISSING
+
+
+Recommendations:
+  • 3 non-critical file(s) missing — game may boot but be incomplete. Upload 'sce_sys/about/right.sprx' to improve coverage.
+
+Next required file to upload: sce_sys/about/right.sprx
+============================================
+
+[FORMAT] eboot.bin magic=0x4F153D1D SELF(fSELF) Decrypted Ready (fSELF)
+[LOADER] param.json not found (no root path / unknown layout).
+[LOADER][TLS] load_start clear=True next=1 assigned=1 has_pt_tls=True
+Total image size needed: 0x18EDBC8 (26139592 bytes)
+[LOADER] Segment 0: VAddr=0x0000000800000000, FileSize=0x10001BC, MemSize=0x10001BC, Align=0x4000
+[LOADER] Segment 1: VAddr=0x0000000801004000, FileSize=0x54B953, MemSize=0x54B953, Align=0x4000
+[LOADER] Segment 3: VAddr=0x0000000801550000, FileSize=0xFB438, MemSize=0xFB438, Align=0x4000
+[LOADER] Segment 7: VAddr=0x000000080164C000, FileSize=0x57FC0, MemSize=0x818F0, Align=0x4000
+[LOADER] Segment 8: VAddr=0x00000008016CD8F0, FileSize=0x2202D8, MemSize=0x2202D8, Align=0x4000
+[LOADER][TLS] Module 1 TLS template: memsz=0x2C39 filesz=0x0 align=0x10 static_offset=0x2C40 total_static=0x2C40
+[LOADER] TryLoadTableBytes: trying location=0x18ED018, size=0xBB0, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8018ED018
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8018ED018
+[LOADER] Dynamic Info: StrTab=0x16CD8F0, StrTabSize=0x36F7
+[LOADER] Dynamic Info: SymTab=0x16D0FE8, SymTabSize=0x4920
+[LOADER] Dynamic Info: Rela=0x16D9BB0, RelaSize=0x211BD8
+[LOADER] Dynamic Info: JmpRel=0x16D5908, JmpRelSize=0x42A8
+[LOADER] Dynamic Info: PltGot=0x1648378
+[LOADER] TLS module id: 1
+[LOADER] HasImportMetadata: True
+[LOADER] TryLoadTableBytes: trying location=0x16D9BB0, size=0x211BD8, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8016D9BB0
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8016D9BB0
+[LOADER] TryLoadTableBytes: trying location=0x16D5908, size=0x42A8, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8016D5908
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8016D5908
+[LOADER] ImageBase runtime: 0x0000000800000000
+[LOADER] Processing 91120 relocations...
+[LOADER] TryLoadTableBytes: trying location=0x16CD8F0, size=0x36F7, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8016CD8F0
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8016CD8F0
+[LOADER] TryLoadTableBytes: trying location=0x16D0FE8, size=0x4920, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8016D0FE8
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8016D0FE8
+[LOADER] Found 778 unique NIDs, 91120 descriptors
+[LOADER] CreateImportStubMapping: nids=777, required=0x3090, map_size=0x4000
+[LOADER] Created 777 import stubs
+[LOADER] TryLoadTableBytes: trying location=0x18ED018, size=0xBB0, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8018ED018
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8018ED018
+[LOADER] TryLoadTableBytes: trying location=0x16CD8F0, size=0x36F7, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8016CD8F0
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8016CD8F0
+[LOADER] TryLoadTableBytes: trying location=0x16D0FE8, size=0x4920, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8016D0FE8
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8016D0FE8
+[LOADER] TryLoadTableBytes: trying location=0x18ED018, size=0xBB0, imageBase=0x800000000
+[LOADER] TryLoadTableBytes: trying guest address 0x8018ED018
+[LOADER] TryLoadTableBytes: loaded from guest memory at 0x8018ED018
+[LOADER][TEST] ResolveMappedAddressOrFallback addr=0x10 imageBase=0x0000000800000000
+[LOADER][TEST] -> resolved raw 0x0000000800000010
+[LOADER][TEST] ResolveMappedAddressOrFallback addr=0x10 imageBase=0x0000000800000000
+[LOADER][TEST] -> resolved raw 0x0000000800000010
+[LOADER] Initializers discovered: preinit=0, init=1
+[LOADER] ELF e_entry: 0x0000000000000070
+[LOADER] Generation: Gen5 (PS5)
+[LOADER] Using image base: 0x0000000800000000
+[LOADER] Final entry point: 0x0000000800000070
+[LOADER] ProcParam: 0x000000080164B3D8
+[LOADER] PH[0]: type=Load, vaddr=0x0000000000000000 -> 0x0000000800000000, memsz=0x10001BC
+[LOADER] PH[1]: type=Load, vaddr=0x0000000001004000 -> 0x0000000801004000, memsz=0x54B953
+[LOADER] PH[2]: type=GnuEhFrame, vaddr=0x0000000001004000 -> 0x0000000801004000, memsz=0x823BC
+[LOADER][TLS] load_done assigned=1 next=2
+[RUNTIME] Registered module handle=1 name=eboot.bin base=0x0000000800000000 size=0x00000000018EDBC8
+[RUNTIME] Entry: 0x0000000800000070
+[RUNTIME] Imported data rebind: rebound=3, unresolved=9507
+[RUNTIME] Dispatching, gen: Gen5
+[RUNTIME] About to call DispatchEntry with entryPoint=0x0000000800000070
+[DISPATCHER] === DispatchEntry START ===
+[DISPATCHER] entryPoint=0x0000000800000070, generation=Gen5
+[DISPATCHER] DispatchEntryCore STARTING...
+[LOADER][INFO] POSIX signal exception bridge installed (SIGSEGV/SIGBUS/SIGILL)
+[LOADER][INFO] === Execute START ===
+[LOADER][INFO] EntryPoint: 0x0000000800000070, ImportStubs: 777
+[LOADER][INFO] RuntimeSymbols: 4
+[LOADER][INFO] ExportCheck fputs: libc:fputs
+[LOADER][INFO] ExportCheck map_direct: libKernel:sceKernelMapDirectMemory
+[LOADER][INFO] Setting up 777 import stubs...
+[INTRINSIC-CHECK] strcmp stub at 0x00007000000004B0 -> intrinsic 0x00007F718EF73000
+[LOADER][INFO] Setup 777/777 import stubs (direct bridge, lle_redirects=0)
+[LOADER][INFO] TLS handler at 0x00000007FF000000
+[LOADER][INFO] Patched 72 TLS loads, 0 TLS stores, 0 stack-canary accesses, 0 SSE4a EXTRQ blends
+[LOADER][INFO] ExecuteEntry starting at 0x0000000800000070
+[LOADER][INFO] RSP=0x00006FFFF01FFF98, RDI=0x00006FFFF01FFFA0
+[LOADER][INFO] StackTop: 0x00006FFFF01FFF98
+[LOADER][INFO] Calling guest entry...
+[LOADER][TRACE] Import#1: libc:_init_env (bzQExy189ZI)
+[LOADER][TRACE] bzQExy189ZI#1: rdi=0x00006FFFF01FFFA0 rsi=0x00006FFDD0000000 rdx=0x0000000000000000 ret=0x0000000800000089
+[LOADER][TRACE] Import#2: libc:atexit (8G2LB+A3rzg)
+[LOADER][TRACE] 8G2LB+A3rzg#2: rdi=0x00006FFDD0000000 rsi=0x00006FFDD0000000 rdx=0x0000000000000000 ret=0x0000000800000091
+[LOADER][TRACE] Import#3: libc:atexit (8G2LB+A3rzg)
+[LOADER][TRACE] 8G2LB+A3rzg#3: rdi=0x0000000801000170 rsi=0x00006FFDD0000000 rdx=0x0000000000000000 ret=0x000000080000009D
+[LOADER][TRACE] Import#4: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#5: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#6: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#7: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#7: func=0x000000080001BDA0 arg=0x00000008016CD8C0 dso=0x000000080165C010 ret=0x0000000800000064
+[LOADER][TRACE] Import#8: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#8: func=0x0000000800FF4210 arg=0x00000008016CD860 dso=0x000000080165C010 ret=0x0000000800FF475B
+[LOADER][TRACE] Import#9: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#10: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#10: func=0x00000008004D5D20 arg=0x00000008016CD890 dso=0x000000080165C010 ret=0x0000000800FF4794
+[LOADER][TRACE] Import#11: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#11: func=0x0000000800FF4240 arg=0x00000008016CD898 dso=0x000000080165C010 ret=0x0000000800000064
+[LOADER][TRACE] Import#12: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#12: func=0x000000080001BDA0 arg=0x00000008016CCC98 dso=0x000000080165C010 ret=0x0000000800FE8A3F
+[LOADER][TRACE] Import#13: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#13: func=0x000000080001BDA0 arg=0x00000008016CCCC0 dso=0x000000080165C010 ret=0x0000000800FE8A96
+[LOADER][TRACE] Import#14: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#14: func=0x000000080001BDA0 arg=0x00000008016CCCE8 dso=0x000000080165C010 ret=0x0000000800FE8AED
+[LOADER][TRACE] Import#15: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#15: func=0x000000080001BDA0 arg=0x00000008016CCD10 dso=0x000000080165C010 ret=0x0000000800FE8B44
+[LOADER][TRACE] Import#16: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#16: func=0x000000080001BDA0 arg=0x00000008016CCD38 dso=0x000000080165C010 ret=0x0000000800FE8B9B
+[LOADER][TRACE] Import#17: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#17: func=0x000000080001BDA0 arg=0x00000008016CCD60 dso=0x000000080165C010 ret=0x0000000800FE8BF2
+[LOADER][TRACE] Import#18: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#18: func=0x000000080001BDA0 arg=0x00000008016CCD88 dso=0x000000080165C010 ret=0x0000000800FE8C49
+[LOADER][TRACE] Import#19: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#19: func=0x000000080001BDA0 arg=0x00000008016CCDB0 dso=0x000000080165C010 ret=0x0000000800FE8CA0
+[LOADER][TRACE] Import#20: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#20: func=0x000000080001BDA0 arg=0x00000008016CCDD8 dso=0x000000080165C010 ret=0x0000000800FE8CF7
+[LOADER][TRACE] Import#21: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#21: func=0x000000080001BDA0 arg=0x00000008016CCE00 dso=0x000000080165C010 ret=0x0000000800FE8D4E
+[LOADER][TRACE] Import#22: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#22: func=0x000000080001BDA0 arg=0x00000008016CCE28 dso=0x000000080165C010 ret=0x0000000800FE8DA5
+[LOADER][TRACE] Import#23: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#23: func=0x000000080001BDA0 arg=0x00000008016CCE50 dso=0x000000080165C010 ret=0x0000000800FE8DFC
+[LOADER][TRACE] Import#24: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#24: func=0x000000080001BDA0 arg=0x00000008016CCE78 dso=0x000000080165C010 ret=0x0000000800FE8E53
+[LOADER][TRACE] Import#25: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#25: func=0x000000080001BDA0 arg=0x00000008016CCEA0 dso=0x000000080165C010 ret=0x0000000800FE8EAA
+[LOADER][TRACE] Import#26: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#26: func=0x000000080001BDA0 arg=0x00000008016CCEC8 dso=0x000000080165C010 ret=0x0000000800FE8F01
+[LOADER][TRACE] Import#27: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#27: func=0x000000080001BDA0 arg=0x00000008016CCEF0 dso=0x000000080165C010 ret=0x0000000800FE8F58
+[LOADER][TRACE] Import#28: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#28: func=0x000000080001BDA0 arg=0x00000008016CCF18 dso=0x000000080165C010 ret=0x0000000800FE8FAF
+[LOADER][TRACE] Import#29: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#29: func=0x000000080001BDA0 arg=0x00000008016CCF40 dso=0x000000080165C010 ret=0x0000000800FE9006
+[LOADER][TRACE] Import#30: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#30: func=0x000000080001BDA0 arg=0x00000008016CCAE0 dso=0x000000080165C010 ret=0x0000000800FE905D
+[LOADER][TRACE] Import#31: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#31: func=0x000000080001BDA0 arg=0x00000008016CCF68 dso=0x000000080165C010 ret=0x0000000800FE90B4
+[LOADER][TRACE] Import#32: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#33: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#34: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#35: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#35: func=0x000000080001BDA0 arg=0x00000008016CCF90 dso=0x000000080165C010 ret=0x0000000800FE910B
+[LOADER][TRACE] Import#36: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#36: func=0x000000080001BDA0 arg=0x00000008016CCFB8 dso=0x000000080165C010 ret=0x0000000800FE9162
+[LOADER][TRACE] Import#37: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#37: func=0x000000080001BDA0 arg=0x00000008016CCB30 dso=0x000000080165C010 ret=0x0000000800FE91B9
+[LOADER][TRACE] Import#38: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#38: func=0x000000080001BDA0 arg=0x00000008016CCFE0 dso=0x000000080165C010 ret=0x0000000800FE9210
+[LOADER][TRACE] Import#39: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#39: func=0x000000080001BDA0 arg=0x00000008016CD008 dso=0x000000080165C010 ret=0x0000000800FE9267
+[LOADER][TRACE] Import#40: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#40: func=0x000000080001BDA0 arg=0x00000008016CD030 dso=0x000000080165C010 ret=0x0000000800FE92BE
+[LOADER][TRACE] Import#41: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#41: func=0x000000080001BDA0 arg=0x00000008016CCAB8 dso=0x000000080165C010 ret=0x0000000800FE9315
+[LOADER][TRACE] Import#42: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#42: func=0x000000080001BDA0 arg=0x00000008016CD058 dso=0x000000080165C010 ret=0x0000000800FE936C
+[LOADER][TRACE] Import#43: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#43: func=0x000000080001BDA0 arg=0x00000008016CCB08 dso=0x000000080165C010 ret=0x0000000800FE93C3
+[LOADER][TRACE] Import#44: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#44: func=0x000000080001BDA0 arg=0x00000008016CD080 dso=0x000000080165C010 ret=0x0000000800FE941A
+[LOADER][TRACE] Import#45: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#45: func=0x000000080001BDA0 arg=0x00000008016CD0A8 dso=0x000000080165C010 ret=0x0000000800FE9471
+[LOADER][TRACE] Import#46: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#46: func=0x000000080001BDA0 arg=0x00000008016CD0D0 dso=0x000000080165C010 ret=0x0000000800FE94C8
+[LOADER][TRACE] Import#47: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#47: func=0x000000080001BDA0 arg=0x00000008016CD0F8 dso=0x000000080165C010 ret=0x0000000800FE951F
+[LOADER][TRACE] Import#48: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#48: func=0x000000080001BDA0 arg=0x00000008016CD120 dso=0x000000080165C010 ret=0x0000000800FE9576
+[LOADER][TRACE] Import#49: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#49: func=0x000000080001BDA0 arg=0x00000008016CD148 dso=0x000000080165C010 ret=0x0000000800FE95CD
+[LOADER][TRACE] Import#50: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#50: func=0x000000080001BDA0 arg=0x00000008016CD170 dso=0x000000080165C010 ret=0x0000000800FE9624
+[LOADER][TRACE] Import#51: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#51: func=0x000000080001BDA0 arg=0x00000008016CD198 dso=0x000000080165C010 ret=0x0000000800FE967B
+[LOADER][TRACE] Import#52: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#52: func=0x000000080001BDA0 arg=0x00000008016CD1C0 dso=0x000000080165C010 ret=0x0000000800FE96D2
+[LOADER][TRACE] Import#53: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#53: func=0x000000080001BDA0 arg=0x00000008016CD1E8 dso=0x000000080165C010 ret=0x0000000800FE9729
+[LOADER][TRACE] Import#54: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#54: func=0x000000080001BDA0 arg=0x00000008016CD210 dso=0x000000080165C010 ret=0x0000000800FE9780
+[LOADER][TRACE] Import#55: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#55: func=0x000000080001BDA0 arg=0x00000008016CD238 dso=0x000000080165C010 ret=0x0000000800FE97D7
+[LOADER][TRACE] Import#56: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#56: func=0x000000080001BDA0 arg=0x00000008016CD260 dso=0x000000080165C010 ret=0x0000000800FE982E
+[LOADER][TRACE] Import#57: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#57: func=0x000000080001BDA0 arg=0x00000008016CD288 dso=0x000000080165C010 ret=0x0000000800FE9885
+[LOADER][TRACE] Import#58: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#58: func=0x000000080001BDA0 arg=0x00000008016CD2B0 dso=0x000000080165C010 ret=0x0000000800FE98DC
+[LOADER][TRACE] Import#59: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#59: func=0x000000080001BDA0 arg=0x00000008016CD2D8 dso=0x000000080165C010 ret=0x0000000800FE9933
+[LOADER][TRACE] Import#60: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#60: func=0x000000080001BDA0 arg=0x00000008016CD300 dso=0x000000080165C010 ret=0x0000000800FE998A
+[LOADER][TRACE] Import#61: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#61: func=0x000000080001BDA0 arg=0x00000008016CD328 dso=0x000000080165C010 ret=0x0000000800FE99E1
+[LOADER][TRACE] Import#62: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#62: func=0x000000080001BDA0 arg=0x00000008016CD350 dso=0x000000080165C010 ret=0x0000000800FE9A38
+[LOADER][TRACE] Import#63: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#63: func=0x000000080001BDA0 arg=0x00000008016CD378 dso=0x000000080165C010 ret=0x0000000800FE9A8F
+[LOADER][TRACE] Import#64: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] __cxa_atexit#64: func=0x000000080001BDA0 arg=0x00000008016CD3A0 dso=0x000000080165C010 ret=0x0000000800FE9AE6
+[LOADER][TRACE] Import#65: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#66: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#67: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#68: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#69: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#70: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#71: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#72: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#73: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#74: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#75: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#76: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#77: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#78: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#79: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#80: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#81: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#82: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#83: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#84: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#85: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#86: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#87: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#88: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#89: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#90: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#91: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#92: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#93: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#94: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#95: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#96: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#97: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#98: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#99: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#100: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#101: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#102: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#103: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#104: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#105: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#106: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#107: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#108: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#109: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#110: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#111: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#112: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#113: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#114: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#115: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#116: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#117: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#118: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#119: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#120: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#121: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#122: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#123: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#124: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#125: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#126: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#127: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#128: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#129: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#130: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#131: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#132: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#133: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#134: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#135: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#136: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#137: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#138: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#139: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#140: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#141: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#142: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#143: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#144: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#145: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#146: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#148: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#150: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#151: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#152: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#153: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#154: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#155: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#156: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#157: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#158: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#159: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#160: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#161: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#162: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#163: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#164: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#165: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#166: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#167: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#168: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#169: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#170: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#171: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#172: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#173: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#175: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#177: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#178: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#179: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#180: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#181: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#182: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#183: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#184: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#185: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#186: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#187: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#188: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#189: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#190: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#191: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#192: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#193: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#194: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#195: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#196: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#197: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#198: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#199: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#200: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#201: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#202: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#203: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#204: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#205: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#206: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#207: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#208: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#209: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#210: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#211: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#212: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#213: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#214: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#215: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#216: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#217: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#218: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#219: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#220: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#221: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#222: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#223: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#224: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#225: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#226: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#227: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#228: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#229: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#230: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#231: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#232: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#233: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#235: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#237: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#238: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#239: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#240: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#241: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#242: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#243: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#244: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#245: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#246: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#247: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#248: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#249: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#250: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#251: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#252: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#253: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#254: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#255: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#256: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#257: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#258: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#259: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#260: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#261: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#262: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#263: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#264: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#265: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#266: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#267: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#268: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#269: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#270: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#271: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#272: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#273: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#274: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#275: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#276: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#277: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#278: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#279: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#280: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#281: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#282: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#283: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#284: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#285: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#286: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#287: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#288: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#289: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#290: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#291: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#292: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#293: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#294: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#295: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#296: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#297: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#298: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#299: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#300: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#301: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#302: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#303: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#304: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#305: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#306: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#307: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#308: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#309: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#310: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#311: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#312: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#313: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#314: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#315: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#316: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#317: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#318: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#319: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#320: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#321: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#322: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#323: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#324: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#325: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#326: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#327: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#328: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#329: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#330: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#331: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#332: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#333: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#334: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#335: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#336: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#337: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#338: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#339: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#340: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#341: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#342: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#343: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#344: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#345: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#346: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#347: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#348: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#349: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#350: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#351: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#352: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#353: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#354: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#355: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#356: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#357: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#358: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#359: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#360: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#361: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#362: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#363: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#364: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#365: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#366: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#367: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#368: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#369: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#370: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#371: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#372: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#373: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#374: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#375: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#376: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#377: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#378: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#379: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#380: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#381: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#382: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#383: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#384: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#385: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#386: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#387: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#388: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#389: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#390: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#391: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#392: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#393: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#394: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#395: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#396: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#397: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#398: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#399: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#400: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#900: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#901: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#902: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#903: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#904: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#905: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#906: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#907: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#908: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#909: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#910: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#911: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#912: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#913: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#914: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#915: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#916: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#917: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#918: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#919: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#920: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#921: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#922: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#923: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#924: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#925: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#926: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#927: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#928: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#929: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#930: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#931: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#932: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#933: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#934: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#935: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#936: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#937: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#938: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#939: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#940: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#941: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#942: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#943: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#944: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#945: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#946: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#947: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#948: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#949: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#950: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#951: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#952: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#953: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#954: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#955: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#956: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#957: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#958: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#959: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#960: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#961: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#962: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#963: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#964: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#965: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#966: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#967: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#968: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#969: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#970: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#971: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#972: pztV4AF18iI
+[LOADER][WARN] Import#972 unresolved: nid=pztV4AF18iI ret=0x000000080010FDF1 rdi=0x00006FFFF01FFF00 rsi=0x00006FFFF01FFF04 rdx=0x000000080165C010 rcx=0x00000008013E5572 r8=0x0000000000000000 r9=0x0000000036841CD2
+[LOADER][TRACE] Import#973: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#974: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#975: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#976: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#977: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#978: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#979: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#980: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#981: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#982: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#983: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#984: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#985: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#986: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#987: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#988: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#989: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#990: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#991: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#992: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#993: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#994: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#995: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#996: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#997: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#998: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#999: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1000: libc:__cxa_atexit (tsvEmnenz48)
+[DIAG-VERIFY] Import #1000 OK: libc::libc:__cxa_atexit ret=0x0000000000000000
+[LOADER][TRACE] Import#1001: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1002: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1003: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1004: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1005: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1006: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1007: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1008: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1009: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1010: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1011: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1012: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1013: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1014: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1015: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1016: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1017: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1018: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1019: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1020: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1020: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003E4F20 rsi=0x00000008016B8770 rdx=0x000000080165C010 rcx=0x00000008014147FB
+[LOADER][TRACE] ImportNV#1020: rbx=0x0000000801649FD8 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1020: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1020: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1020: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1021: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] ImportCtx#1021: nid=YaHc3GS7y7g ret=0x00000008001592BE rdi=0x00000008016B8578 rsi=0x0000000000000002 rdx=0x000000080165C010 rcx=0x00000008014147FB
+[LOADER][TRACE] ImportNV#1021: rbx=0x00000008016B8578 rbp=0x00006FFFF01FFF10 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1021: rsp=0x00006FFFF01FFF08 [0]=0x00000008001592BE [20]=0x0000000000000001 [40]=0x0000000000000001
+[LOADER][TRACE] ImportStack#1021: rsp=0x00006FFFF01FFF08 [0]=0x00000008001592BE [8]=0x00006FFFF01FFF30 [10]=0x00000008003E4AC6 [18]=0x0000000801649FD0 [20]=0x0000000000000001 [28]=0x00006FFFF01FFF50 [30]=0x0000000800000064 [38]=0x00006FFDD0000000 [40]=0x0000000000000001
+[LOADER][TRACE] ImportRet#1021: nid=YaHc3GS7y7g result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1022: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1022: nid=tsvEmnenz48 ret=0x00000008003E4ADF rdi=0x00000008001592E0 rsi=0x00000008016B8578 rdx=0x000000080165C010 rcx=0x00000008014147FB
+[LOADER][TRACE] ImportNV#1022: rbx=0x00000008016B8578 rbp=0x00006FFFF01FFF30 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x000000080165C010 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1022: rsp=0x00006FFFF01FFF18 [0]=0x00000008003E4ADF [20]=0x0000000800000064 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportStack#1022: rsp=0x00006FFFF01FFF18 [0]=0x00000008003E4ADF [8]=0x0000000801649FD0 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF50 [20]=0x0000000800000064 [28]=0x00006FFDD0000000 [30]=0x0000000000000001 [38]=0x00006FFFF01FFF80 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportRet#1022: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1023: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1023: nid=tsvEmnenz48 ret=0x00000008003E4B2B rdi=0x00000008003E0F60 rsi=0x00000008016B8580 rdx=0x000000080165C010 rcx=0x00000008016B85A8
+[LOADER][TRACE] ImportNV#1023: rbx=0x00000008016B8578 rbp=0x00006FFFF01FFF30 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x000000080165C010 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1023: rsp=0x00006FFFF01FFF18 [0]=0x00000008003E4B2B [20]=0x0000000800000064 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportStack#1023: rsp=0x00006FFFF01FFF18 [0]=0x00000008003E4B2B [8]=0x0000000801649FD0 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF50 [20]=0x0000000800000064 [28]=0x00006FFDD0000000 [30]=0x0000000000000001 [38]=0x00006FFFF01FFF80 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportRet#1023: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1024: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1024: nid=tsvEmnenz48 ret=0x00000008003E4BCB rdi=0x00000008003E1FC0 rsi=0x00000008016B86C8 rdx=0x000000080165C010 rcx=0x00000008013FABFB
+[LOADER][TRACE] ImportNV#1024: rbx=0x00000008016B86C8 rbp=0x00006FFFF01FFF30 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x000000080165C010 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1024: rsp=0x00006FFFF01FFF18 [0]=0x00000008003E4BCB [20]=0x0000000800000064 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportStack#1024: rsp=0x00006FFFF01FFF18 [0]=0x00000008003E4BCB [8]=0x0000000801649FD0 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF50 [20]=0x0000000800000064 [28]=0x00006FFDD0000000 [30]=0x0000000000000001 [38]=0x00006FFFF01FFF80 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportRet#1024: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1025: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1025: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x000000080001BDA0 rsi=0x00000008016B86F8 rdx=0x000000080165C010 rcx=0x00000008013FABFB
+[LOADER][TRACE] ImportNV#1025: rbx=0x0000000801649FD0 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1025: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1025: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1025: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1026: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1026: nid=tsvEmnenz48 ret=0x00000008003DF5D6 rdi=0x00000008003D9240 rsi=0x00000008016B8508 rdx=0x000000080165C010 rcx=0x00000008013E9D5E
+[LOADER][TRACE] ImportNV#1026: rbx=0x00000008016B8508 rbp=0x00006FFFF01FFF30 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x000000080165C010 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1026: rsp=0x00006FFFF01FFF18 [0]=0x00000008003DF5D6 [20]=0x0000000800000064 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportStack#1026: rsp=0x00006FFFF01FFF18 [0]=0x00000008003DF5D6 [8]=0x0000000801649FC8 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF50 [20]=0x0000000800000064 [28]=0x00006FFDD0000000 [30]=0x0000000000000001 [38]=0x00006FFFF01FFF80 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportRet#1026: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1027: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1027: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003DB380 rsi=0x00000008016B8538 rdx=0x000000080165C010 rcx=0x0000000801413085
+[LOADER][TRACE] ImportNV#1027: rbx=0x0000000801649FC8 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1027: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1027: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1027: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1028: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1028: nid=tsvEmnenz48 ret=0x00000008003D88F6 rdi=0x00000008003D5860 rsi=0x00000008016B8458 rdx=0x000000080165C010 rcx=0x000000080140E518
+[LOADER][TRACE] ImportNV#1028: rbx=0x00000008016B8458 rbp=0x00006FFFF01FFF30 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x000000080165C010 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1028: rsp=0x00006FFFF01FFF18 [0]=0x00000008003D88F6 [20]=0x0000000800000064 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportStack#1028: rsp=0x00006FFFF01FFF18 [0]=0x00000008003D88F6 [8]=0x0000000801649FC0 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF50 [20]=0x0000000800000064 [28]=0x00006FFDD0000000 [30]=0x0000000000000001 [38]=0x00006FFFF01FFF80 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportRet#1028: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1029: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1029: nid=tsvEmnenz48 ret=0x00000008003D892E rdi=0x00000008003D5890 rsi=0x00000008016B8480 rdx=0x000000080165C010 rcx=0x000000080140CBCA
+[LOADER][TRACE] ImportNV#1029: rbx=0x00000008016B8480 rbp=0x00006FFFF01FFF30 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x000000080165C010 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1029: rsp=0x00006FFFF01FFF18 [0]=0x00000008003D892E [20]=0x0000000800000064 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportStack#1029: rsp=0x00006FFFF01FFF18 [0]=0x00000008003D892E [8]=0x0000000801649FC0 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF50 [20]=0x0000000800000064 [28]=0x00006FFDD0000000 [30]=0x0000000000000001 [38]=0x00006FFFF01FFF80 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportRet#1029: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1030: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1030: nid=tsvEmnenz48 ret=0x00000008003D8966 rdi=0x00000008003D5B10 rsi=0x00000008016B84A8 rdx=0x000000080165C010 rcx=0x00000008013EFD88
+[LOADER][TRACE] ImportNV#1030: rbx=0x00000008016B84A8 rbp=0x00006FFFF01FFF30 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x000000080165C010 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1030: rsp=0x00006FFFF01FFF18 [0]=0x00000008003D8966 [20]=0x0000000800000064 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportStack#1030: rsp=0x00006FFFF01FFF18 [0]=0x00000008003D8966 [8]=0x0000000801649FC0 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF50 [20]=0x0000000800000064 [28]=0x00006FFDD0000000 [30]=0x0000000000000001 [38]=0x00006FFFF01FFF80 [40]=0x00000008000000A2
+[LOADER][TRACE] ImportRet#1030: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1031: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1031: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D5C20 rsi=0x00000008016B84D0 rdx=0x000000080165C010 rcx=0x00000008013EB71B
+[LOADER][TRACE] ImportNV#1031: rbx=0x0000000801649FC0 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1031: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1031: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1031: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1032: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1032: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D55B0 rsi=0x00000008016B8430 rdx=0x000000080165C010 rcx=0x00000008013E6F24
+[LOADER][TRACE] ImportNV#1032: rbx=0x0000000801649FB8 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1032: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1032: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1032: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1033: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1033: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D5300 rsi=0x00000008016B8408 rdx=0x000000080165C010 rcx=0x00000008013FC684
+[LOADER][TRACE] ImportNV#1033: rbx=0x0000000801649FB0 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1033: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1033: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1033: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1034: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1034: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D4CD0 rsi=0x00000008016B83E0 rdx=0x000000080165C010 rcx=0x00000008013FF4FE
+[LOADER][TRACE] ImportNV#1034: rbx=0x0000000801649FA8 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1034: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1034: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1034: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1035: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1035: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D4BA0 rsi=0x00000008016B83B8 rdx=0x000000080165C010 rcx=0x00000008013E9D3E
+[LOADER][TRACE] ImportNV#1035: rbx=0x0000000801649FA0 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1035: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1035: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1035: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1036: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1036: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D4840 rsi=0x00000008016B8390 rdx=0x000000080165C010 rcx=0x00000008013FC667
+[LOADER][TRACE] ImportNV#1036: rbx=0x0000000801649F98 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1036: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1036: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1036: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1037: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1037: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D44A0 rsi=0x00000008016B8368 rdx=0x000000080165C010 rcx=0x00000008013E9D2B
+[LOADER][TRACE] ImportNV#1037: rbx=0x0000000801649F90 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1037: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1037: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1037: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1038: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1038: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D3FD0 rsi=0x00000008016B8340 rdx=0x000000080165C010 rcx=0x000000080140E507
+[LOADER][TRACE] ImportNV#1038: rbx=0x0000000801649F88 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1038: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1038: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1038: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1039: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1039: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D3980 rsi=0x00000008016B8318 rdx=0x000000080165C010 rcx=0x000000080140CC4D
+[LOADER][TRACE] ImportNV#1039: rbx=0x0000000801649F80 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1039: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1039: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1039: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1040: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] ImportCtx#1040: nid=tsvEmnenz48 ret=0x0000000800000064 rdi=0x00000008003D36D0 rsi=0x00000008016B82F0 rdx=0x000000080165C010 rcx=0x000000080141150C
+[LOADER][TRACE] ImportNV#1040: rbx=0x0000000801649F78 rbp=0x00006FFFF01FFF50 r12=0x0000000000000000 r13=0x00007F6D34000C58 r14=0x0000000000000001 r15=0x00006FFFF01FFFA8
+[LOADER][TRACE] ImportStackHead#1040: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [20]=0x00000008000000A2 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportStack#1040: rsp=0x00006FFFF01FFF38 [0]=0x0000000800000064 [8]=0x00006FFDD0000000 [10]=0x0000000000000001 [18]=0x00006FFFF01FFF80 [20]=0x00000008000000A2 [28]=0x0000000800000070 [30]=0x00007F6D4B810AA0 [38]=0x00007F71130190F8 [40]=0x00007F6D4B810A18
+[LOADER][TRACE] ImportRet#1040: nid=tsvEmnenz48 result=ORBIS_GEN2_OK rax=0x0000000000000000
+[LOADER][TRACE] Import#1041: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1042: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1043: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1044: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1045: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1046: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1047: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1048: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1049: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1050: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1051: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1052: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1053: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1054: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1055: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1056: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1057: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1058: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1059: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1060: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1061: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1062: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1063: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1064: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1065: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1066: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1067: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1068: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1069: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1070: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1071: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1072: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1073: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1074: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1075: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1076: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1077: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1078: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1079: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1080: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1081: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1082: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1083: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1084: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1085: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1086: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1087: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1088: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1089: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1090: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1091: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1092: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1093: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1094: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1095: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1096: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1097: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1098: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1099: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1100: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1101: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1102: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1103: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1104: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1105: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1106: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1107: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1108: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1109: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1110: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1111: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1112: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1113: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1114: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1115: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1116: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1117: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1118: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1119: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1120: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1121: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1122: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1123: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1124: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1125: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1126: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1127: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1128: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1129: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1130: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1131: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1132: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1133: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1134: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1135: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1136: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1137: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1138: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1139: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1140: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1141: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1142: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1143: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1144: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1145: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1146: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#1147: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#1148: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1149: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1150: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1151: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1152: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1153: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1154: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1155: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1156: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1157: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1158: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1159: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1160: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1161: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1162: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1163: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1164: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1165: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1166: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1167: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1168: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1169: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1170: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1171: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1172: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1173: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1174: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1175: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1176: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1177: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1178: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1179: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1180: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1181: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1184: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1185: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1186: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1187: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#1189: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1190: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1191: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1193: libc:printf (hcuQgD53UxM)
+[DEBUG][PRINF] Warning : calling getTimeMarker before initializing TimeMgr::singleton
+[LOADER][TRACE] Import#1194: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1195: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1196: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1197: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1198: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#1199: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1200: libc:_Mtx_lock (iS4aWbUonl0)
+[LOADER][TRACE] Import#1201: libc:_Mtx_unlock (gTuXQwP9rrs)
+[LOADER][TRACE] Import#1202: libc:_Mtx_lock (iS4aWbUonl0)
+[LOADER][TRACE] Import#1203: libc:_Mtx_unlock (gTuXQwP9rrs)
+[LOADER][TRACE] Import#1204: libc:_Mtx_lock (iS4aWbUonl0)
+[LOADER][TRACE] Import#1205: libc:_Mtx_unlock (gTuXQwP9rrs)
+[LOADER][TRACE] Import#1206: libc:_Mtx_lock (iS4aWbUonl0)
+[LOADER][TRACE] Import#1207: libc:_Mtx_unlock (gTuXQwP9rrs)
+[LOADER][TRACE] Import#1208: libc:_Mtx_lock (iS4aWbUonl0)
+[LOADER][TRACE] Import#1209: libc:_Mtx_unlock (gTuXQwP9rrs)
+[LOADER][TRACE] Import#1210: libc:_Mtx_lock (iS4aWbUonl0)
+[LOADER][TRACE] Import#1211: libc:_Mtx_unlock (gTuXQwP9rrs)
+[LOADER][TRACE] Import#1212: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#1213: libc:__cxa_guard_acquire (3GPpjQdAMTw)
+[LOADER][TRACE] Import#1214: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1215: libc:__cxa_guard_release (9rAeANT2tyE)
+[LOADER][TRACE] Import#1217: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1218: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#1219: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1220: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1221: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1222: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1223: libKernel:sem_init (pDuPEf3m4fI)
+[LOADER][WARN] Import#1223 result: ORBIS_GEN2_ERROR_MEMORY_FAULT (pDuPEf3m4fI) rdi=0x00007F6D34F47C68 rsi=0x0000000000000000 rdx=0x0000000000000000 rcx=0x00007F6D34F50141 ret=0x0000000800157468
+[LOADER][TRACE] Import#1224: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1225: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1226: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1227: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1228: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1229: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1230: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1231: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1232: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1233: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1234: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1235: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1236: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1237: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1238: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1239: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1240: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1241: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1242: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1243: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1244: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1245: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1246: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1247: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1248: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1249: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1250: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1251: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1252: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1253: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1254: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1255: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1256: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1257: libc:malloc (gQX+4GDQjpM)
+[LOADER][TRACE] Import#1258: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1259: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1260: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#1261: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1262: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#1263: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1264: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1265: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1266: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1267: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1268: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1269: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1270: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1271: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1272: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1273: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1274: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1275: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1276: libc:strcat (Ls4tzzhimqQ)
+[LOADER][TRACE] Import#1277: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1278: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1279: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#1280: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1281: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1282: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1283: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1284: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1285: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#1286: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1287: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1288: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1289: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1290: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1291: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[LOADER][TRACE] Import#1292: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1293: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1294: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#1295: libc:__cxa_atexit (tsvEmnenz48)
+[LOADER][TRACE] Import#1296: libc:_Mtx_init (YaHc3GS7y7g)
+[LOADER][TRACE] Import#1297: libc:_Cnd_init (SreZybSRWpU)
+[LOADER][TRACE] Import#1298: libKernel:sceKernelGetDirectMemorySize (pO96TwzOm5E)
+[LOADER][TRACE] Import#1299: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[LOADER][TRACE] Import#1300: libKernel:sceKernelMapDirectMemory (L-Q3LEjIbgA)
+[DEBUG][PRINF] Warning : calling getTimeMarker before initializing TimeMgr::singleton
+[DEBUG][PRINF] Debug Info : Step 2.
+[DEBUG][PRINF] Debug Info : Step 3.
+[LOADER][TRACE] Import#1536: libKernel:sceKernelAllocateDirectMemory (rTXw65xmLIA)
+[DEBUG][PRINF] Debug Info : Step 4.
+[LOADER][WARN] Import#1667 result: ORBIS_GEN2_ERROR_INVALID_ARGUMENT (X-Nm5KLREeg) rdi=0x00006FFFF01FF8FC rsi=0x000000080140F16F rdx=0x0000000801658D00 rcx=0x0000000000000000 ret=0x0000000800C700FC
+[LOADER][TRACE] posix-signal#1: sig=11 rip=0x0000000800170FB2 fault=0x00000001FE000000 access=1 rsp=0x00006FFFF01FF940
+[UNMAPPED] #1 WRITE rip=0x0000000800170FB2 fault=0x00000001FE000000 instr='mov qword ptr [rax],0' len=7
+  RAX=0x00000001FE000000 RBX=0x0000000000000030 RCX=0xFFFFFFFFFFFFFFF0 RDX=0x0000000000000040
+  RSI=0x000000080140D9C2 RDI=0x00000008016A7D50 R8=0x00000001FE000000 R9=0x0000000000000001
+  R10=0x0000000000FA11D0 R11=0x00007F71120323A0 R12=0x00000000014004F0 R13=0xFFFFFFFFFFFFFFFF
+  R14=0xFFFFFFFFFFFFFFC0 R15=0x0000000001400500 RBP=0x00006FFFF01FF990 RSP=0x00006FFFF01FF940
+  thread=0x0000000000000000 name='?'
+[LOADER][TRACE] posix-signal#1: recovered=True new_rip=0x0000000800170FB9
+[LOADER][TRACE] posix-signal#2: sig=11 rip=0x0000000800170FB2 fault=0x00000001FE000040 access=1 rsp=0x00006FFFF01FF940
+[UNMAPPED] #2 WRITE rip=0x0000000800170FB2 fault=0x00000001FE000040 instr='mov qword ptr [rax],0' len=7
+  RAX=0x00000001FE000040 RBX=0x0000000000000050 RCX=0x0000000000000010 RDX=0x000000000000003F
+  RSI=0x000000080140D9C2 RDI=0x00000008016A7D50 R8=0x00000001FE000040 R9=0x00000000FFFFFFFF
+  R10=0x0000000000FA1228 R11=0x00007F71120323A0 R12=0x00000000014004F0 R13=0xFFFFFFFFFFFFFFFF
+  R14=0xFFFFFFFFFFFFFFC0 R15=0x0000000001400520 RBP=0x00006FFFF01FF990 RSP=0x00006FFFF01FF940
+  thread=0x0000000000000000 name='?'
+[LOADER][TRACE] posix-signal#2: recovered=True new_rip=0x0000000800170FB9
+
+[VIDEOOUT] ============================================
+[VIDEOOUT] Backend Selection:
+[VIDEOOUT] ============================================
+[VIDEOOUT]     GPU Available: True
+[VIDEOOUT]     Forced Headless: False
+[VIDEOOUT]     Reason: GPU detected, using Vulkan
+
+[VIDEOOUT] Using:
+[VIDEOOUT]   VulkanVideoPresenter (default)
+[VIDEOOUT] ============================================
+
+[INFO][SharpEmu.VideoOutManager] VideoOutManager.cs:139 Backend selected: VulkanVideoPresenter (default) (reason: GPU detected, using Vulkan)
+[LOADER][WARN] Import#1716 unresolved: nid=hMAe+TWS9mQ ret=0x000000080017F37D rdi=0x00006FFFF01FF618 rsi=0x000000080155FEA8 rdx=0x0000000801567078 rcx=0x0000000000000000 r8=0x0000000000000001 r9=0x00000000FFFFFFFF
+[LOADER][TRACE] posix-signal#3: sig=11 rip=0x000000080017F382 fault=0xFFFFFFFF80020102 access=0 rsp=0x00006FFFF01FF1F0
+[UNMAPPED] #3 READ rip=0x000000080017F382 fault=0xFFFFFFFF80020102 instr='vmovups ymm0,[rax+100h]' len=8
+  RAX=0xFFFFFFFF80020002 RBX=0x0000000005400040 RCX=0x0000000000000000 RDX=0x0000000801567078
+  RSI=0x000000080155FEA8 RDI=0x00006FFFF01FF618 R8=0x0000000000000001 R9=0x00000000FFFFFFFF
+  R10=0x0000000000FA122A R11=0x00007F71120323A0 R12=0x0000000000000000 R13=0x00007F6D34EDD370
+  R14=0x00007F6D34EDD370 R15=0x00006FFFF01FF618 RBP=0x00006FFFF01FF5D0 RSP=0x00006FFFF01FF1F0
+  thread=0x0000000000000000 name='?'
+[LOADER][TRACE] posix-signal#3: recovered=True new_rip=0x000000080017F38A
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_vs_a3cd97ea_vs.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_fs_3488995a_ps.ags
+[LOADER][TRACE] posix-signal#4: sig=11 rip=0x00000008001717AB fault=0x00000001FE000080 access=1 rsp=0x00006FFFF01FF610
+[UNMAPPED] #4 WRITE rip=0x00000008001717AB fault=0x00000001FE000080 instr='vmovups [rax],ymm0' len=4
+  RAX=0x00000001FE000080 RBX=0x00006FFFF01FF6E8 RCX=0x3F8000003F800000 RDX=0x00000000FFFFFFFF
+  RSI=0x0000000000000000 RDI=0x00000000014009A0 R8=0x00000001FE000080 R9=0x00000000FFFFFFFF
+  R10=0x0000000000FA1236 R11=0x00007F71120323A0 R12=0x00006FFFF01FF618 R13=0x00007F6D34EDD370
+  R14=0x00006FFFF01FF680 R15=0x00006FFFF01FF750 RBP=0x00006FFFF01FF930 RSP=0x00006FFFF01FF610
+  thread=0x0000000000000000 name='?'
+[LOADER][TRACE] posix-signal#4: recovered=True new_rip=0x00000008001717AF
+[LOADER][TRACE] posix-signal#5: sig=11 rip=0x00000008001717AF fault=0x00000001FE0000A0 access=1 rsp=0x00006FFFF01FF610
+[UNMAPPED] #5 WRITE rip=0x00000008001717AF fault=0x00000001FE0000A0 instr='mov [rax+20h],rcx' len=4
+  RAX=0x00000001FE000080 RBX=0x00006FFFF01FF6E8 RCX=0x3F8000003F800000 RDX=0x00000000FFFFFFFF
+  RSI=0x0000000000000000 RDI=0x00000000014009A0 R8=0x00000001FE000080 R9=0x00000000FFFFFFFF
+  R10=0x0000000000FA1236 R11=0x00007F71120323A0 R12=0x00006FFFF01FF618 R13=0x00007F6D34EDD370
+  R14=0x00006FFFF01FF680 R15=0x00006FFFF01FF750 RBP=0x00006FFFF01FF930 RSP=0x00006FFFF01FF610
+  thread=0x0000000000000000 name='?'
+[LOADER][TRACE] posix-signal#5: recovered=True new_rip=0x00000008001717B3
+[LOADER][TRACE] posix-signal#6: sig=11 rip=0x00000008001717B7 fault=0x00000001FE0000A8 access=1 rsp=0x00006FFFF01FF610
+[LOADER][TRACE] posix-signal#6: recovered=True new_rip=0x00000008001717BC
+[LOADER][TRACE] posix-signal#7: sig=11 rip=0x00000008001717BC fault=0x00000001FE0000B8 access=1 rsp=0x00006FFFF01FF610
+[LOADER][TRACE] posix-signal#7: recovered=True new_rip=0x00000008001717C3
+[LOADER][TRACE] posix-signal#8: sig=11 rip=0x00000008001717C3 fault=0x00000001FE0000BC access=1 rsp=0x00006FFFF01FF610
+[LOADER][TRACE] posix-signal#8: recovered=True new_rip=0x00000008001717C8
+[LOADER][TRACE] posix-signal#9: sig=11 rip=0x00000008001717C8 fault=0x00000001FE0000CC access=1 rsp=0x00006FFFF01FF610
+[LOADER][TRACE] posix-signal#9: recovered=True new_rip=0x00000008001717CF
+[LOADER][TRACE] posix-signal#10: sig=11 rip=0x0000000800171816 fault=0x00000001FE000100 access=1 rsp=0x00006FFFF01FF610
+[LOADER][TRACE] posix-signal#10: recovered=True new_rip=0x0000000800171819
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/texts/en.lproj/localizable.strings
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/texts/localizable.strings
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/texts/en.lproj/localizable.strings
+[DEBUG][PRINF] DefaultTextMgr: file 'Texts/en.lproj/Localizable.strings' not found
+[LOADER][INFO] Scheduled guest thread 'unlockTrophies' handle=0x00007F6D34F47C90 entry=0x0000000800187770 arg=0x0000000000000000 priority=700 host_priority=Normal affinity=0x7F
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/gd/feedbacks/feedbacksconfig.bin
+[DEBUG][PRINF] loadFeedBacksConfig res = 0
+[LOADER][WARN] Import#3206 result: ORBIS_GEN2_ERROR_MEMORY_FAULT (pDuPEf3m4fI) rdi=0x00007F6D3406EC28 rsi=0x0000000000000000 rdx=0x0000000000000000 rcx=0x00007F6D34F64631 ret=0x0000000800118976
+[LOADER][WARN] Import#3209 result: ORBIS_GEN2_ERROR_MEMORY_FAULT (pDuPEf3m4fI) rdi=0x00007F6D3406C318 rsi=0x0000000000000000 rdx=0x0000000000000000 rcx=0x00007F6D3408D261 ret=0x00000008001189D0
+[LOADER][WARN] Import#3212 result: ORBIS_GEN2_ERROR_MEMORY_FAULT (pDuPEf3m4fI) rdi=0x00007F6D348FB9C8 rsi=0x0000000000000000 rdx=0x0000000000000000 rcx=0x00007F6D34F74DC1 ret=0x0000000800118A2B
+[LOADER][WARN] Import#3215 result: ORBIS_GEN2_ERROR_MEMORY_FAULT (pDuPEf3m4fI) rdi=0x00007F6D18001388 rsi=0x0000000000000000 rdx=0x0000000000000000 rcx=0x00007F6D34F75591 ret=0x0000000800118A88
+[LOADER][WARN] Import#3218 result: ORBIS_GEN2_ERROR_MEMORY_FAULT (pDuPEf3m4fI) rdi=0x00007F6D3406D288 rsi=0x0000000000000000 rdx=0x0000000000000000 rcx=0x00007F6D34F75D61 ret=0x0000000800118AE3
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F76C20 entry=0x0000000800185BF0 arg=0x00000000078029A8 priority=700 host_priority=Normal affinity=0x1FFF
+[NID-COUNTS] 1D0H2KNjshE=0 hsi9drzHR2k=0
+[DIAG-VERIFY] Import #2000 OK: libc::libc:malloc ret=0x00007F6D34F799C0
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F7A500 entry=0x0000000800185BF0 arg=0x0000000007802BA8 priority=700 host_priority=Normal affinity=0x1FFF
+[DIAG-VERIFY] Import #1000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F7E030 entry=0x0000000800185BF0 arg=0x0000000007802DA8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F80790 entry=0x0000000800185BF0 arg=0x0000000007802FA8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F84880 entry=0x0000000800185BF0 arg=0x00000000078031A8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F88970 entry=0x0000000800185BF0 arg=0x00000000078033A8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F8CAB0 entry=0x0000000800185BF0 arg=0x00000000078035A8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F8F2C0 entry=0x0000000800185BF0 arg=0x00000000078037A8 priority=700 host_priority=Normal affinity=0x1FFF
+[DIAG-VERIFY] Import #2000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F939F0 entry=0x0000000800185BF0 arg=0x00000000078039A8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F97DE0 entry=0x0000000800185BF0 arg=0x0000000007803BA8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34F9C010 entry=0x0000000800185BF0 arg=0x0000000007803DA8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'JobMgr::WorkerThread' handle=0x00007F6D34FA0240 entry=0x0000000800185BF0 arg=0x0000000007803FA8 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][INFO] Scheduled guest thread 'Loading Thread' handle=0x00007F6D35014CF0 entry=0x0000000800185BF0 arg=0x0000000004000338 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][WARN] Import#6991 unresolved: nid=MjQ5oH6b620 ret=0x0000000800A9348B rdi=0x000000000500A338 rsi=0x0000000000020207 rdx=0x0000000000000000 rcx=0x0000000000000000 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#6992 unresolved: nid=7hd4bRJuLMg ret=0x0000000800A934A2 rdi=0x0000000000000000 rsi=0x00006FFFF01FF990 rdx=0x0000000000000000 rcx=0x0000000000000000 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#6993 unresolved: nid=MPBXfoxd+eo ret=0x0000000800A934B5 rdi=0x0000000000000000 rsi=0x0000000000000000 rdx=0x0000000000000006 rcx=0x0000000000000000 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#6994 unresolved: nid=iILsKSo5Syg ret=0x0000000800A934CA rdi=0x0000000000000000 rsi=0x0000000000000400 rdx=0x0000000000000000 rcx=0x0000000000000000 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#6995 unresolved: nid=4AQlc0jE9PQ ret=0x0000000800A934F9 rdi=0x0000000000000000 rsi=0x0000000000000000 rdx=0x00006FFFF01FF960 rcx=0x0000000000000000 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#6998 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x0000000000807750 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7001 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x00000000008076F0 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[DIAG-VERIFY] Import #3000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[LOADER][WARN] Import#7004 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x0000000000807750 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7007 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x00000000008076F0 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7010 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x00000000008076F0 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7013 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x00000000008076F0 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7016 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x00000000008076F0 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7019 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x0000000000807750 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7022 unresolved: nid=L51FfEMZa4o ret=0x0000000800A9367D rdi=0x0000000000000000 rsi=0x00000000008076F0 rdx=0x0000000000000000 rcx=0x00006FFFF01FF908 r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7023 unresolved: nid=o2hcK6F8Ih4 ret=0x0000000800A935B8 rdi=0x0000000000000000 rsi=0x000000000500A398 rdx=0x0000000000000079 rcx=0x000000000000007A r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7024 unresolved: nid=y2ybsIQ073A ret=0x0000000800A935CF rdi=0x0000000000000000 rsi=0x0000000801411D97 rdx=0x000000000500A388 rcx=0x000000000000007A r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7025 unresolved: nid=y2ybsIQ073A ret=0x0000000800A935E6 rdi=0x0000000000000000 rsi=0x00000008013F9CFA rdx=0x000000000500A390 rcx=0x000000000000007A r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7026 unresolved: nid=GqL992msUmo ret=0x0000000800A935FA rdi=0x0000000000000000 rsi=0x00000008013F9CFA rdx=0x000000000500A390 rcx=0x000000000000007A r8=0x0000000000000000 r9=0x0000000000000000
+[LOADER][WARN] Import#7027 unresolved: nid=GqL992msUmo ret=0x0000000800A9360E rdi=0x0000000000000000 rsi=0x00000008013F9CFA rdx=0x000000000500A390 rcx=0x000000000000007A r8=0x0000000000000000 r9=0x0000000000000000
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/gfx2/vaus.drawablerepo.bin
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/gfx2/aliases.drawablealiases.bin
+[LOADER][WARN] Import#7042 unresolved: nid=RQXLbdT2lc4 ret=0x000000080010801B rdi=0x0000000000000F00 rsi=0x0000000000000870 rdx=0x0000000000000006 rcx=0x0000000000000001 r8=0x0000000000018000 r9=0x0000000002C00000
+[LOADER][WARN] Import#7043 unresolved: nid=RQXLbdT2lc4 ret=0x000000080010802A rdi=0x0000000000000F00 rsi=0x0000000000000870 rdx=0x0000000000000006 rcx=0x0000000000000001 r8=0x0000000000018000 r9=0x0000000002C00000
+[LOADER][WARN] Import#7047 result: ORBIS_GEN2_ERROR_INVALID_ARGUMENT (pWLG7WOpVcw) rdi=0x00000000FFFFFFFF rsi=0x00000008014035AF rdx=0x000000000000000D rcx=0x0000000000000000 ret=0x000000080017FC3D
+[LOADER][WARN] Import#7050 unresolved: nid=RQXLbdT2lc4 ret=0x000000080010801B rdi=0x0000000000000F00 rsi=0x0000000000000870 rdx=0x000000000000002F rcx=0x0000000000000001 r8=0x0000000000000000 r9=0x0000000000000003
+[LOADER][WARN] Import#7051 unresolved: nid=RQXLbdT2lc4 ret=0x000000080010802A rdi=0x0000000000000F00 rsi=0x0000000000000870 rdx=0x000000000000002F rcx=0x0000000000000001 r8=0x0000000000000000 r9=0x0000000000000003
+[LOADER][WARN] Import#7056 result: ORBIS_GEN2_ERROR_INVALID_ARGUMENT (pWLG7WOpVcw) rdi=0x00000000FFFFFFFF rsi=0x0000000801404CAD rdx=0x0000000000000013 rcx=0x0000000000000000 ret=0x000000080017FC3D
+[DIAG-VERIFY] Import #4000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[LOADER][WARN] Import#7070 unresolved: nid=RQXLbdT2lc4 ret=0x000000080010801B rdi=0x0000000000000F00 rsi=0x0000000000000870 rdx=0x0000000000000006 rcx=0x0000000000000001 r8=0x0000000000018000 r9=0x0000000000000008
+[LOADER][WARN] Import#7071 unresolved: nid=RQXLbdT2lc4 ret=0x000000080010802A rdi=0x0000000000000F00 rsi=0x0000000000000870 rdx=0x0000000000000006 rcx=0x0000000000000001 r8=0x0000000000018000 r9=0x0000000000000008
+[LOADER][WARN] Import#7075 result: ORBIS_GEN2_ERROR_INVALID_ARGUMENT (pWLG7WOpVcw) rdi=0x00000000FFFFFFFF rsi=0x00000008014035AF rdx=0x000000000000000D rcx=0x0000000000000000 ret=0x000000080017FC3D
+[LOADER][WARN] Import#7078 unresolved: nid=RQXLbdT2lc4 ret=0x000000080010801B rdi=0x0000000000000F00 rsi=0x0000000000000870 rdx=0x000000000000002F rcx=0x0000000000000001 r8=0x0000000000000000 r9=0x0000000000000003
+[LOADER][WARN] Import#7079 unresolved: nid=RQXLbdT2lc4 ret=0x000000080010802A rdi=0x0000000000000F00 rsi=0x0000000000000870 rdx=0x000000000000002F rcx=0x0000000000000001 r8=0x0000000000000000 r9=0x0000000000000003
+[LOADER][WARN] Import#7083 result: ORBIS_GEN2_ERROR_INVALID_ARGUMENT (pWLG7WOpVcw) rdi=0x00000000FFFFFFFF rsi=0x0000000801404CAD rdx=0x0000000000000013 rcx=0x0000000000000000 ret=0x000000080017FC3D
+[DIAG-VERIFY] Import #5000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #6000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #1000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #7000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #2000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #8000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #3000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[LOADER][INFO] Linux X11 session detected; requested GLFW X11 backend explicitly.
+[DIAG-VERIFY] Import #9000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #4000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #10000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #5000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[LOADER][WARN] Import#7098 result: ORBIS_GEN2_ERROR_MEMORY_FAULT (pDuPEf3m4fI) rdi=0x00007F6D34F52828 rsi=0x0000000000000000 rdx=0x0000000000000000 rcx=0x00007F6D34F52A41 ret=0x00000008000DC01F
+[LOADER][INFO] Scheduled guest thread 'Saving Thread' handle=0x00007F6D35017710 entry=0x0000000800185BF0 arg=0x0000000001400E60 priority=700 host_priority=Normal affinity=0x1FFF
+[LOADER][WARN] Import#7140 result: -2137063416 (ZP4e7rlzOUk) rdi=0x00006FFFF01FF760 rsi=0x00006FFFF01FF720 rdx=0x0000000000000000 rcx=0x0000000000000005 r8=0x000000000000002B r9=0x0000000801426F2C ret=0x000000080016F28A
+[LOADER][WARN] Import#7143 result: ORBIS_GEN2_ERROR_NOT_FOUND (xeYO4u7uyJ0) rdi=0x00006FFFF01FF6D0 rsi=0x00000008013F612B rdx=0x000000080140359C rcx=0xC0DEC0DECAFEBA00 ret=0x000000080016F4DD
+[LOADER][WARN] Import#7145 unresolved: nid=527zZ46M9IM ret=0x0000000800743377 rdi=0x0000000000000000 rsi=0x0000000000000000 rdx=0x00000000018002F0 rcx=0x0000000001800200 r8=0x0000000000000000 r9=0x0000000801426F2C
+[LOADER][WARN] Import#7146 unresolved: nid=GqL992msUmo ret=0x0000000800743394 rdi=0x0000000000000000 rsi=0x0000000000000000 rdx=0x00000000018002F0 rcx=0x0000000001800200 r8=0x0000000000000000 r9=0x0000000801426F2C
+[LOADER][WARN] Import#7147 unresolved: nid=527zZ46M9IM ret=0x00000008007433AE rdi=0x0000000000000000 rsi=0x0000000000000000 rdx=0x00000000018002F0 rcx=0x0000000001800200 r8=0x0000000000000000 r9=0x0000000801426F2C
+[LOADER][WARN] Import#7148 unresolved: nid=GqL992msUmo ret=0x00000008007433CB rdi=0x0000000000000000 rsi=0x0000000000000000 rdx=0x00000000018002F0 rcx=0x0000000001800200 r8=0x0000000000000000 r9=0x0000000801426F2C
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/texts/en.lproj/localizable.strings
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/texts/localizable.strings
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/texts/en.lproj/localizable.strings
+[DEBUG][PRINF] DefaultTextMgr: file 'Texts/en.lproj/Localizable.strings' not found
+[LOADER][WARN] Import#7166 result: ORBIS_GEN2_ERROR_NOT_FOUND (xeYO4u7uyJ0) rdi=0x00006FFFF01FF740 rsi=0x00000008013F612B rdx=0x000000080140359C rcx=0xC0DEC0DECAFEBA00 ret=0x000000080016F4DD
+[DEBUG][PRINF] StatsMgr::loadData() success: 0
+[LOADER][WARN] Import#23556 result: ORBIS_GEN2_ERROR_NOT_FOUND (xeYO4u7uyJ0) rdi=0x00006FFFF01FF720 rsi=0x00000008013F612B rdx=0x000000080140359C rcx=0xC0DEC0DECAFEBA00 ret=0x000000080016F4DD
+[DEBUG][PRINF] VausAchievementsMgr::loadData() success: 0
+[LOADER][WARN] Import#23562 result: ORBIS_GEN2_ERROR_NOT_FOUND (xeYO4u7uyJ0) rdi=0x00006FFFF01FF740 rsi=0x00000008013F612B rdx=0x000000080140359C rcx=0xC0DEC0DECAFEBA00 ret=0x000000080016F4DD
+[DEBUG][PRINF] UnlockableMgr::loadData() success: 0
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/gd/graphic/tilesets/tilesets.bin
+[LOADER][WARN] Import#24068 result: ORBIS_GEN2_ERROR_INVALID_ARGUMENT (YCV5dGGBcCo) rdi=0x00007F6D34F52828 rsi=0x000000080140F58F rdx=0x0000000000000000 rcx=0x0000000000000000 ret=0x00000008000DC3D8
+[DIAG-VERIFY] Import #11000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #6000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #12000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #7000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #8000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_vs.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_fs.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_fs_459408ad_ps.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_vs_c0d20036_vs.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_fs_22649126_ps.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_vs_780d6b96_vs.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_fs_7b86ba49_ps.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_fs_fe33d8aa_ps.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_vs_a80d5059_vs.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/text_r8_fs_76d914f6_ps.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/text_r8_fs_0ff7897d_ps.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/basic_vs_909142bd_vs.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/text_r8_fs_2e51fb31_ps.ags
+[DEBUG][PRINF] ERROR PS5FileMgr::load /app0/resources/shaders/2d/text_r8_fs_739b9472_ps.ags
+[LOADER][WARN] Import#28578 unresolved: nid=M3wFXbYQtAA ret=0x0000000800189B78 rdi=0x0000000000000000 rsi=0x00000008016A2FF8 rdx=0x0000000002400540 rcx=0x0000000000000000 r8=0x000000000000002B r9=0x0000000000000001
+[LOADER][WARN] Import#28581 unresolved: nid=cpCOXWMgha0 ret=0x0000000800000557 rdi=0x00006FFFF01FFEB2 rsi=0x00006FFFF01FFE82 rdx=0x000000000000000A rcx=0x0000000000000000 r8=0x000000000000002B r9=0x0000000000000001
+[LOADER][WARN] Import#28582 unresolved: nid=xEszJVGpybs ret=0x000000080000058D rdi=0x00006FFFF01FFF00 rsi=0x0000000000000015 rdx=0x00000008013E4990 rcx=0x00000000FFFFFDC2 r8=0x000000000000002B r9=0x0000000000000001
+[LOADER][WARN] Import#28584 result: ORBIS_GEN2_ERROR_TRY_AGAIN (rTXw65xmLIA) rdi=0x0000000000000000 rsi=0x0000000400000000 rdx=0xFFFFFFFF80400000 rcx=0x0000000000000000 ret=0x00000008001851C2
+[LOADER][TRACE] posix-signal#11: sig=11 rip=0x00007F718EF63009 fault=0xFFFFFFFFFFFFFFFF access=1 rsp=0x00006FFFF01FFBE8
+[LOADER][TRACE] posix-signal#11: recovered=True new_rip=0x00007F718EF6300B
+[LOADER][TRACE] posix-signal#12: sig=11 rip=0x0000000800000E45 fault=0x0000000000000018 access=1 rsp=0x00006FFFF01FFCA0
+[LOADER][TRACE] posix-signal#12: recovered=True new_rip=0x0000000800000E49
+[LOADER][TRACE] posix-signal#13: sig=11 rip=0x0000000800000EC3 fault=0x0000000000000020 access=1 rsp=0x00006FFFF01FFCA0
+[LOADER][TRACE] posix-signal#13: recovered=True new_rip=0x0000000800000EC8
+[LOADER][TRACE] posix-signal#14: sig=11 rip=0x00007F718EFC1006 fault=0x0000000000000020 access=1 rsp=0x00006FFFF01FFCE8
+[LOADER][TRACE] posix-signal#14: recovered=True new_rip=0x00007F718EFC1008
+[LOADER][TRACE] posix-signal#15: sig=11 rip=0x00000008000010F9 fault=0xFFFFFFFF80020022 access=1 rsp=0x00006FFFF01FFCF0
+[LOADER][TRACE] posix-signal#15: recovered=True new_rip=0x00000008000010FE
+[DIAG-VERIFY] Import #13000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #14000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[LOADER][ERROR] ImportDispatchGatewayManaged exception: OutOfMemoryException: Array dimensions exceeded supported range.
+[LOADER][TRACE] posix-signal#16: sig=11 rip=0x00007F718EFC1006 fault=0x0000000000000020 access=1 rsp=0x00006FFFF01FFC78
+[LOADER][TRACE] posix-signal#16: recovered=True new_rip=0x00007F718EFC1008
+[LOADER][WARN] Import#28587 result: ORBIS_GEN2_ERROR_TRY_AGAIN (rTXw65xmLIA) rdi=0x0000000000000000 rsi=0x0000000400000000 rdx=0xFFFFFFFF80400000 rcx=0x0000000000000000 ret=0x00000008001851C2
+[DEBUG][PRINF] Config::getSingleton()->DefaultUsername = (null)
+[DIAG-VERIFY] Import #9000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #10000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #15000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #16000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #11000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #12000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #17000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #18000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[DIAG-VERIFY] Import #13000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DIAG-VERIFY] Import #14000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
+[DEBUG][PRINF] StormancerComMgr::setSilent(true)
+[LOADER][WARN] Import#33566 result: ORBIS_GEN2_ERROR_TRY_AGAIN (rTXw65xmLIA) rdi=0x0000000000000000 rsi=0x0000000400000000 rdx=0xFFFFFFFF80400000 rcx=0x0000000000000000 ret=0x00000008001851C2
+[LOADER][WARN] Import#33567 unresolved: nid=tQIo+GIPklo ret=0x0000000800001116 rdi=0x00000008013EDB1F rsi=0x0000000000000020 rdx=0xFFFFFFFFFFFFFFFF rcx=0x0000000000000000 r8=0x0000000003400058 r9=0xFFFFFFFF80400001
+[LOADER][INFO] =========================================
+[LOADER][INFO] NATIVE EXCEPTION CAUGHT!
+[LOADER][INFO]   Code: 0xC000001D
+[LOADER][INFO]   Exception Address: 0x0000000800001116
+[LOADER][INFO]   RIP: 0x0000000800001116
+[LOADER][INFO]   Host thread: managed=4 name='SharpEmu Emulation'
+[LOADER][INFO]   RAX: 0xFFFFFFFF80020002
+[LOADER][INFO]   RBX: 0xFFFFFFFFFFFFFFFF
+[LOADER][INFO]   RCX: 0x0000000000000000
+[LOADER][INFO]   RDX: 0xFFFFFFFFFFFFFFFF
+[LOADER][INFO]   RSI: 0x0000000000000020
+[LOADER][INFO]   RDI: 0x00000008013EDB1F
+[LOADER][INFO]   RBP: 0x00006FFFF01FFC10
+[LOADER][INFO]   RSP: 0x00006FFFF01FFBF0
+[LOADER][INFO]   R8 : 0x0000000003400058
+[LOADER][INFO]   R9 : 0xFFFFFFFF80400001
+[LOADER][INFO]   R10: 0x0000000000FA139C
+[LOADER][INFO]   R11: 0x00007F71120323A0
+[LOADER][INFO]   R12: 0x000000000B8001E0
+[LOADER][INFO]   R13: 0x000000000B000400
+[LOADER][INFO]   R14: 0x0000000000000020
+[LOADER][INFO]   R15: 0x000000000B8001D8
+[LOADER][INFO]   Flags: 0x00000000
+[LOADER][INFO]   Stack qwords (RSP..):
+[LOADER][WARNING]   Could not read stack qwords.
+[DIAG-VERIFY] Import #19000 OK: libKernel::libKernel:sceKernelMprotectInternal ret=0x0000000000000000
+[LOADER][INFO]   fault-register-rbx window @0xFFFFFFFFFFFFFFFF:
+[LOADER][INFO]     +0x00: <unreadable>
+[LOADER][INFO]   fault-register-rdi window @0x00000008013EDB1F:
+[LOADER][INFO]     +0x00: 0x7420676E69727473 [ZT4ODD2Ts9o+0x741FE80134843483 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x08: 0x00676E6F6C206F6F [ZT4ODD2Ts9o+0x66EF0237322F7F (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x10: 0x657A6973206E6962 [ZT4ODD2Ts9o+0x6579EA05EB802972 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x18: 0x6F6C667265766F20 [ZT4ODD2Ts9o+0x6F6BE70530882F30 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x20: 0x6F42776569560077 [ZT4ODD2Ts9o+0x6F41F7F83467C087 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x28: 0x6F42676E69646E75 [ZT4ODD2Ts9o+0x6F41E80134762E85 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x30: 0x6400444774704378 [ZT4ODD2Ts9o+0x63FFC4DA3F820388 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x38: 0x656D695468746165 [ZT4ODD2Ts9o+0x656CE9E733862175 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x40: 0x63697473616C4500 [ZT4ODD2Ts9o+0x6368F5062C7E0510 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x48: 0x4774704365766F4D [ZT4ODD2Ts9o+0x4773F0D630882F5D (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x50: 0x7261656E694C0044 [ZT4ODD2Ts9o+0x7260E601345DC054 (0x00007F6D34EE3FF0)]
+[LOADER][INFO]     +0x58: 0x0074704365766F4D [ZT4ODD2Ts9o+0x73F0D630882F5D (0x00007F6D34EE3FF0)]
+[LOADER][INFO]   fault-register-r13 window @0x000000000B000400:
+[LOADER][INFO]     +0x00: 0x00000008015F2550
+[LOADER][INFO]     +0x08: 0x0000000000000000
+[LOADER][INFO]     +0x10: 0x0000000000000000
+[LOADER][INFO]     +0x18: 0x0000000000000000
+[LOADER][INFO]     +0x20: 0x0000000000000000
+[LOADER][INFO]     +0x28: 0x00000008015F26E0
+[LOADER][INFO]     +0x30: 0x0000000000000000
+[LOADER][INFO]     +0x38: 0x0000000000000000
+[LOADER][INFO]     +0x40: 0x0000000000000000
+[LOADER][INFO]     +0x48: 0x000000000000FFFF
+[LOADER][INFO]     +0x50: 0x0000000000000000
+[LOADER][INFO]     +0x58: 0x0000000007805820
+[LOADER][INFO]   Frame chain (RBP walk):
+[LOADER][WARNING]   Could not walk RBP frame chain.
+[LOADER][INFO]   Type: Illegal Instruction
+[LOADER][INFO]   Code at RIP: 0F 0B 48 8D 3D DE 15 3F 01 E8 9C C4 FF 00 0F 0B
+[LOADER][STUB] DumpRecentImportTrace() called
+[LOADER][INFO] =========================================
+[DIAG-VERIFY] Import #15000 OK: libKernel::libKernel:Cj_Fw5q1tUo_stub ret=0x0000000000000000
