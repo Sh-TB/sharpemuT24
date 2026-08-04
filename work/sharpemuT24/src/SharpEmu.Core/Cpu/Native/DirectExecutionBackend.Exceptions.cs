@@ -24,6 +24,13 @@ public sealed partial class DirectExecutionBackend
         private static byte _icallTraceOriginalByte;
         private static int _icallTraceCount;
         private static bool _icallTraceEntryMode; // true = entry (log RDI), false = return (log RAX)
+        // EXP-145: Generic RIP trace via INT3 patch
+        private static ulong _ripTraceAddress1;
+        private static byte _ripTraceOriginalByte1;
+        private static ulong _ripTraceAddress2;
+        private static byte _ripTraceOriginalByte2;
+        private static ulong _ripTraceAddress3;
+        private static byte _ripTraceOriginalByte3;
 
         private unsafe void SetupExceptionHandler()
         {
@@ -160,6 +167,49 @@ public sealed partial class DirectExecutionBackend
                         if (exceptionCode == 2147483651u && rip == _icallTraceAddress && _icallTraceAddress != 0)
                         {
                                 return TryHandleIcallTrace(contextRecord, rip);
+                        }
+                        // EXP-145: Generic RIP trace via INT3 patch
+                        // Note: POSIX signal handler may increment RIP before VectoredHandler sees it
+                        // So we check both rip and rip-1
+                        if (exceptionCode == 2147483651u)
+                        {
+                                ulong checkRip = rip;
+                                if (rip == _ripTraceAddress1 || rip - 1 == _ripTraceAddress1)
+                                {
+                                        if (_ripTraceAddress1 != 0)
+                                        {
+                                                ulong t_rdi = ReadCtxU64(contextRecord, 128);
+                                                ulong t_rsi = ReadCtxU64(contextRecord, 136);
+                                                ulong t_rax = ReadCtxU64(contextRecord, 120);
+                                                Console.Error.WriteLine($"[RIP-TRACE] HIT slot=1 addr=0x{_ripTraceAddress1:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                WriteCtxU64Icall(contextRecord, 248, _ripTraceAddress1 + 1);
+                                                return -1;
+                                        }
+                                }
+                                if (rip == _ripTraceAddress2 || rip - 1 == _ripTraceAddress2)
+                                {
+                                        if (_ripTraceAddress2 != 0)
+                                        {
+                                                ulong t_rdi = ReadCtxU64(contextRecord, 128);
+                                                ulong t_rsi = ReadCtxU64(contextRecord, 136);
+                                                ulong t_rax = ReadCtxU64(contextRecord, 120);
+                                                Console.Error.WriteLine($"[RIP-TRACE] HIT slot=2 addr=0x{_ripTraceAddress2:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                WriteCtxU64Icall(contextRecord, 248, _ripTraceAddress2 + 1);
+                                                return -1;
+                                        }
+                                }
+                                if (rip == _ripTraceAddress3 || rip - 1 == _ripTraceAddress3)
+                                {
+                                        if (_ripTraceAddress3 != 0)
+                                        {
+                                                ulong t_rdi = ReadCtxU64(contextRecord, 128);
+                                                ulong t_rsi = ReadCtxU64(contextRecord, 136);
+                                                ulong t_rax = ReadCtxU64(contextRecord, 120);
+                                                Console.Error.WriteLine($"[RIP-TRACE] HIT slot=3 addr=0x{_ripTraceAddress3:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                WriteCtxU64Icall(contextRecord, 248, _ripTraceAddress3 + 1);
+                                                return -1;
+                                        }
+                                }
                         }
                         if (exceptionCode == MSVC_CPP_EXCEPTION)
                         {
@@ -1656,6 +1706,26 @@ public sealed partial class DirectExecutionBackend
                         return 64u;
                 }
                 return 4u;
+        }
+
+        // EXP-145: Install INT3 at arbitrary address for RIP tracing
+        public unsafe void InstallRipTrace(int slot, ulong address)
+        {
+                if (address == 0) return;
+                byte* addr = (byte*)address;
+                byte original = *addr;
+                uint oldProtect = 0;
+                VirtualProtect((void*)address, (nuint)1, 64u, &oldProtect);
+                *addr = 0xCC;
+                VirtualProtect((void*)address, (nuint)1, oldProtect, &oldProtect);
+                FlushInstructionCache(GetCurrentProcess(), (void*)address, (nuint)1);
+                switch (slot)
+                {
+                        case 1: _ripTraceAddress1 = address; _ripTraceOriginalByte1 = original; break;
+                        case 2: _ripTraceAddress2 = address; _ripTraceOriginalByte2 = original; break;
+                        case 3: _ripTraceAddress3 = address; _ripTraceOriginalByte3 = original; break;
+                }
+                Console.Error.WriteLine($"[RIP-TRACE] INT3 installed at slot {slot} addr=0x{address:X16} (original=0x{original:X2})");
         }
 
         // EXP-143: Install INT3 patch at il2cpp_resolve_icall to trace icall resolution

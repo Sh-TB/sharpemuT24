@@ -132,6 +132,19 @@ public sealed class CpuDispatcher : ICpuDispatcher, IDisposable
                 nativeBackend.InstallIcallTrace(0x804ED8780);
             }
 
+            // EXP-145: Install RIP traces after Il2cppUserAssemblies.prx module_start
+            if (moduleName.Contains("Il2cppUserAssemblies") &&
+                string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_TRACE_RIP"), "1", StringComparison.Ordinal) &&
+                _nativeCpuBackend is SharpEmu.Core.Cpu.Native.DirectExecutionBackend ripBackend)
+            {
+                // Slot 1: Producer function entry (eboot @ 0x15DCD0)
+                ripBackend.InstallRipTrace(1, 0x80015DCD0);
+                // Slot 2: Producer caller (eboot @ 0x1EDB28)
+                ripBackend.InstallRipTrace(2, 0x8001EDB28);
+                // Slot 3: Dispatch loop entry (PRX @ 0x299E6 + PRX base 0x804CD5000 = 0x804F6E9E6)
+                ripBackend.InstallRipTrace(3, 0x804F6E9E6);
+            }
+
             return result;
         }
         catch (Exception ex)
