@@ -9,44 +9,44 @@
 
 ---
 
-## بخش 1 — قوانین اصلی (همیشه باید خوانده و رعایت شود)
+## Part 1 — Core Rules (must always be read and followed)
 
-این فایل باید قبل از هر تغییر کد، دیباگ، تست یا تصمیم معماری خوانده شود.
+This file must be read before any code change, debug, test, or architecture decision.
 
-### 6 Golden Rules (قوانین طلایی دائمی)
+### 6 Golden Rules (permanent golden rules)
 
-#### Rule 1 — Golden Test First (مهم‌ترین قانون)
+#### Rule 1 — Golden Test First (most important rule)
 
-قبل از هر تغییر:
-- تست‌های Golden موجود باید بررسی شوند.
-- هر بازی که قبلاً PASS شده، دیگر فرضیه نیست؛ Fact تایید شده است.
-- چیزی که قبلاً اجرا شده را نباید دوباره به عنوان «احتمال» گزارش کرد.
+Before any change:
+- Existing Golden Tests must be checked.
+- Any game that has previously PASSed is no longer a hypothesis; it is a confirmed fact.
+- Something that has already run must not be reported again as a "possibility."
 
-مثال — Dreaming Sarah:
+Example — Dreaming Sarah:
 
-❌ اشتباه:
+Wrong:
 ```
-احتمال اجرا 70-80%
+Execution probability 70-80%
 ```
 
-✅ صحیح:
+Correct:
 ```
 Dreaming Sarah = CONFIRMED GOLDEN BASELINE
 ```
 
-هر تغییر باید بررسی کند:
-- آیا Golden Test خراب شده؟
-- آیا رفتار قبلی حفظ شده؟
+Every change must check:
+- Has the Golden Test been broken?
+- Has previous behavior been preserved?
 
 #### Rule 2 — GitHub Commit Required
 
-هیچ کاری کامل نیست مگر اینکه:
-1. تغییرات commit شوند.
-2. Push شوند.
-3. لینک GitHub ارائه شود.
-4. نتیجه commit گزارش شود.
+No work is complete unless:
+1. Changes are committed.
+2. Changes are pushed.
+3. GitHub URL is provided.
+4. Commit result is reported.
 
-فرمت گزارش:
+Report format:
 ```
 Commit:
 Hash:
@@ -55,26 +55,26 @@ GitHub URL:
 HTTP Status:
 ```
 
-اگر نتوان push کرد:
-- باید دلیل دقیق نوشته شود.
+If push fails:
+- The exact reason must be written.
 
 #### Rule 3 — Runtime Test Over Static Guess
 
-هیچ نتیجه‌ای بدون تست واقعی اعلام نشود.
+No result may be declared without a real test.
 
-سه سطح نتیجه:
-- **PASS** — تست اجرا شده و موفق بوده.
-- **FAIL** — تست اجرا شده و شکست خورده.
-- **BLOCKED** — امکان تست وجود نداشته.
+Three result levels:
+- **PASS** — test was executed and succeeded.
+- **FAIL** — test was executed and failed.
+- **BLOCKED** — test could not be executed.
 
-مثال:
+Example:
 
-❌
+Wrong:
 ```
-احتمالا مشکل حل شده
+The problem is probably solved
 ```
 
-✅
+Correct:
 ```
 Static verification PASS
 Runtime validation BLOCKED (missing dotnet SDK)
@@ -82,14 +82,14 @@ Runtime validation BLOCKED (missing dotnet SDK)
 
 #### Rule 4 — Suspicious Issue = Immediate Test
 
-اگر در هر مرحله مورد مشکوکی دیده شد:
-- نباید فقط ثبت شود.
-- باید همان لحظه:
-  1. یک فرضیه ساخته شود.
-  2. تست کوچک نوشته شود.
-  3. نتیجه ثبت شود.
+If a suspicious item is observed at any stage:
+- It must not just be logged.
+- Immediately:
+  1. Form a hypothesis.
+  2. Write a minimal test.
+  3. Record the result.
 
-چرخه:
+Cycle:
 ```
 Observation
  ↓
@@ -104,9 +104,9 @@ Decision
 
 #### Rule 5 — Existing Diagnostics First
 
-قبل از ساخت Debug جدید، سیستم‌های موجود باید بررسی شوند.
+Before building new debug code, existing systems must be checked.
 
-اول استفاده:
+Use first:
 - DebugIntelligenceEngine
 - Guest Call Stack
 - HLE Debugger
@@ -116,37 +116,37 @@ Decision
 - Frame Capture
 - Crash Analyzer
 
-قانون: **New Debug Code = Last Option**
+Rule: **New Debug Code = Last Option**
 
 #### Rule 6 — No Re-investigation of Closed Paths
 
-مسیرهایی که قبلاً بررسی و رد شده‌اند:
-- نباید دوباره بررسی شوند مگر با Evidence جدید.
+Paths that have been previously investigated and rejected:
+- Must not be re-investigated unless there is new evidence.
 
-قبل از شروع Investigation، خواندن:
+Before starting an investigation, read:
 - `.agent_state/closed_paths.md`
 - `.agent_state/known_facts.md`
 - `.agent_state/experiment_history.json`
 
 ---
 
-## بخش 2 — قوانین دوره‌ای (هر چند وقت یکبار یادآوری شود)
+## Part 2 — Periodic Rules (to be reviewed every few sessions)
 
-این بخش را Agent هر چند Session یکبار دوباره بخواند.
+The agent should re-read this section every few sessions.
 
 ### SHARPEMU_DEBUG_PROTOCOL
 
 #### 1. Evidence First
-هر ادعا باید یکی از این‌ها داشته باشد:
+Every claim must have one of:
 - Log
 - Test result
 - Code reference
 - Commit
 
 #### 2. Experiment Numbering
-هر Investigation: `EXP-XXX`
+Every investigation: `EXP-XXX`
 
-ساختار:
+Structure:
 ```
 EXP-138
  ├── Hypothesis
@@ -156,48 +156,48 @@ EXP-138
  └── Verdict
 ```
 
-#### 3. کوچک‌ترین تغییر ممکن
-Patch باید:
-- محدود باشد.
-- قابل revert باشد.
-- فقط یک فرضیه را تست کند.
+#### 3. Smallest Possible Change
+A patch must:
+- Be limited in scope.
+- Be revertible.
+- Test only one hypothesis.
 
 #### 4. Regression Order
-ترتیب تست همیشه:
+Test order is always:
 1. Golden Game (Dreaming Sarah)
 2. Known Working Games (Arise)
 3. Regression Games
 4. New Target (Yatzi)
 
 #### 5. Dreaming Sarah Rule
-- وضعیت: **CONFIRMED WORKING**
-- وظیفه: بعد از هر تغییر، اجرا شود برای Regression.
-- موارد بررسی: Frames, Colors, Crash, Framebuffer, Resolver
+- Status: **CONFIRMED WORKING**
+- Duty: after every change, run for regression check.
+- Check items: Frames, Colors, Crash, Framebuffer, Resolver
 
 #### 6. Arise Rule
-- هدف: بررسی GPU Memory Regression
-- چک: GPU mapping, Memory fault, NID resolve, Framebuffer
+- Goal: check GPU Memory Regression
+- Check: GPU mapping, Memory fault, NID resolve, Framebuffer
 
 #### 7. Yatzi Rule
-- Yatzi فقط بعد از PASS شدن Dreaming Sarah و Arise.
-- بررسی: Resolver, IL2CPP, Semaphore, Rendering Pipeline
+- Yatzi only after Dreaming Sarah and Arise PASS.
+- Check: Resolver, IL2CPP, Semaphore, Rendering Pipeline
 
 #### 8. Build Requirement
-قبل از Runtime:
+Before runtime:
 ```bash
 dotnet build -c Release
 ```
-اگر Build نشد: نباید Runtime نتیجه‌گیری شود.
+If build fails: no runtime conclusion may be drawn.
 
 #### 9. Sandbox Limitation Reporting
-اگر محیط محدود است (مثلا dotnet SDK missing, No GPU, No Vulkan device):
-- باید واضح نوشته شود.
+If the environment is limited (e.g., dotnet SDK missing, No GPU, No Vulkan device):
+- This must be clearly stated.
 
 #### 10. Static Verification ≠ Runtime Validation
-- Static: Code looks correct
-- Runtime: Actual execution works
+- Static: code looks correct
+- Runtime: actual execution works
 
-این دو جدا گزارش شوند.
+These two must be reported separately.
 
 ---
 
@@ -212,9 +212,9 @@ Title:  EXP-138: Apply TryCallGuestFunction RAX propagation fix
 
 ### Root Cause Found
 
-**مشکل:** Guest callback return value lost
+**Problem:** Guest callback return value lost
 
-**قبل:**
+**Before:**
 ```
 Host RAX
  ↓
@@ -229,7 +229,7 @@ IL2CPP fails
 Unity Job System deadlock
 ```
 
-**بعد:**
+**After:**
 ```
 nativeReturn
  ↓
@@ -244,11 +244,11 @@ Guest receives real value
 
 | Change | What | Goal |
 |--------|------|------|
-| 1 | `CallNativeEntry`: `int` → `ulong` | حفظ pointer های 64-bit |
+| 1 | `CallNativeEntry`: `int` → `ulong` | Preserve 64-bit pointers |
 | 2 | `ExecuteGuestThreadEntry`: added `context.Rax = nativeReturn` | Write-back host RAX |
 | 3 | `ExecuteGuestContinuationEntry`: added `context.Rax = nativeReturn` | Same write-back for continuation |
-| 4 | `num6`: `int` → `ulong` | جلوگیری از pointer truncation |
-| 5 | Format: `X8` → `X16` | نمایش کامل address |
+| 4 | `num6`: `int` → `ulong` | Prevent pointer truncation |
+| 5 | Format: `X8` → `X16` | Display full address |
 
 #### NativeWorker.cs
 
@@ -260,10 +260,10 @@ Guest receives real value
 
 #### Static Verification
 
-**وضعیت:** ✅ PASS
+**Status:** ✅ PASS
 
-| مورد | نتیجه |
-|------|-------|
+| Item | Result |
+|------|--------|
 | CallNativeEntry ulong | PASS |
 | Delegate signature | PASS |
 | RAX propagation | PASS |
@@ -274,11 +274,11 @@ Guest receives real value
 
 #### Runtime Validation
 
-**وضعیت:** ❌ BLOCKED
+**Status:** ❌ BLOCKED
 
-**دلیل:** No dotnet SDK
+**Reason:** No dotnet SDK
 
-**مشکل:**
+**Problem:**
 ```
 dotnet: command not found
 ```
@@ -294,7 +294,7 @@ git pull origin main
 dotnet build -c Release
 ```
 
-### Step 2 — Dreaming Sarah Golden Test (اجباری)
+### Step 2 — Dreaming Sarah Golden Test (mandatory)
 
 ```bash
 SHARPEMU_HEADLESS=1 \
@@ -313,19 +313,19 @@ SHARPEMU_CAPTURE=1 \
 ./SharpEmu.CLI --game arise --timeout 30
 ```
 
-**بررسی:**
+**Check:**
 - No GPU memory fault
 - No new unresolved NID
 - Framebuffer valid
 
-### Step 4 — Yatzi (فقط بعد از PASS قبلی)
+### Step 4 — Yatzi (only after previous PASS)
 
 ```bash
 SHARPEMU_SEMA_FAST_PATH=0 \
 ./SharpEmu.CLI --game yatzi --timeout 60
 ```
 
-**جمع‌آوری:**
+**Collect:**
 ```bash
 grep "RESOLVER-TRACE" yatzi-exp138.log
 grep "RAX=0x0000000000000000" yatzi-exp138.log | wc -l
@@ -333,9 +333,9 @@ grep "sema.signal handle=0x81" yatzi-exp138.log
 grep "sema.signal handle=0x84" yatzi-exp138.log
 ```
 
-**انتظار:**
-- قبل: NULL resolver = 232
-- بعد: NULL resolver = 0
+**Expected:**
+- Before: NULL resolver = 232
+- After: NULL resolver = 0
 
 ---
 
@@ -346,7 +346,7 @@ Commit: 36a91fa
 Title:  docs: Add Agent Core Rules + Universal Debug SOP + .agent_state
 ```
 
-**فایل‌ها:**
+**Files:**
 - `docs/AGENT_CORE_RULES.md`
 - `docs/SOP/SHARPEMU_DEBUG_PROTOCOL.md`
 - `.agent_state/current_state.md`
@@ -357,12 +357,12 @@ Title:  docs: Add Agent Core Rules + Universal Debug SOP + .agent_state
 
 ---
 
-## وضعیت کلی پروژه
+## Overall Project Status
 
-### درصد پیشرفت تخمینی
+### Estimated Progress
 
-| بخش | وضعیت |
-|------|-------|
+| Area | Status |
+|------|--------|
 | Root Cause Investigation | 90% |
 | Diagnostics Infrastructure | 70% |
 | Documentation | 100% |
@@ -370,11 +370,11 @@ Title:  docs: Add Agent Core Rules + Universal Debug SOP + .agent_state
 | Runtime Validation | 0% (Blocked) |
 | Yatzi Resolution | Pending |
 
-### مرحله بعدی واقعی
+### Next Real Step
 
-دیگر نباید برگردیم به EXP-0 تا EXP-135.
+Do not go back to EXP-0 through EXP-135.
 
-**مرحله بعد:**
+**Next step:**
 ```
 EXP-138 Runtime Validation
         ↓
