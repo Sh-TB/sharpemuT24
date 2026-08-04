@@ -3495,3 +3495,37 @@ Stage Summary:
 - The EXP-113 trajectory concern ("EXP-089 ≈ EXP-112") was correct in spirit — both arrived at "missing trigger" but neither had the binary evidence. EXP-136 has that evidence.
 - Fix path: implement arch_init_gc (and arch_raise_user) in SharpEmu. Re-run Yatzi with FAST_PATH=0. Predict: bootstrap job submitted → semaphore 0x81 signaled → workers receive tasks → first frame eventually rendered.
 - Lesson documented in EXP-136: when auditing runtime logs, never trust [DIAG-VERIFY] "OK" messages — always cross-check return values. And always reverse-resolve NIDs to human-readable names.
+
+---
+Task ID: 137
+Agent: main agent (Super Z)
+Task: EXP-137 — Full investigation reassessment (6-phase matrix per user request). Phase 1 knowledge map; Phase 2A job submission path; Phase 2B semaphore 0x81 validation; Phase 2C worker queue counter map; Phase 3A semaphore ABI audit; Phase 3B worker thread state dump; Phase 4 Unity Job internal calls; Phase 5 resolver regression audit; Phase 6 previous false leads recheck.
+
+Work Log:
+- Created EXP-137.md placeholder and pushed to GitHub FIRST per mandatory preservation rule (commit a1e52a5).
+- Launched parallel subagents for each phase to maximize throughput.
+- Phase 1: Read all 69 EXP reports + worklog + CHECKPOINT, classified findings as CONFIRMED (33) / REJECTED (4) / SUPERSEDED (21) / PARTIAL (7) / UNKNOWN (5).
+- Phase 2A: Validated EXP-136's arch_init_gc finding. Confirmed XAKDgxcra6k = arch_init_gc via Ps5Nid.cs SHA1+salt algorithm. Confirmed Yatzi Il2cppUserAssemblies.prx AND PS5Util.prx both import it (literal NID string in binaries). Confirmed SharpEmu has ZERO implementation. Identified 7 ranked candidates for "first Unity worker job" function — top candidate is Unity.Jobs.LowLevel.Unsafe.JobsUtility::Schedule_Injected (IL2CPP icall).
+- Phase 2B: Validated semaphore 0x81 lifecycle. Confirmed NEVER signaled across all 3 logs (exp118, testA, testB). Confirmed HLE source is correct (no lost-signal paths in FAST_PATH=0 mode). Identified missing signal chain: SignalSema(0x84) -> resume Thread-X from WaitSema(0x83) -> Thread-X signals 0x81 -> host wakes.
+- Phase 2C: Overturned EXP-135. Found 11 producer increments of [reg+0x90] across binaries; ONE specifically at eboot.bin @ 0x159d52 (inc dword [r14+0x90] in func@0x159cd0) using same r14 base as consumer. Also identified atomicity mismatch: producer uses non-atomic inc, consumer uses lock xadd.
+- Phase 3A: Confirmed all 3 semaphore exports (CreateSema, WaitSema, SignalSema) match Sony ABI exactly.
+- Phase 3B: Confirmed 14 worker threads all created, started, reached entry, blocked on WaitSema. NOT a scheduling bug.
+- Phase 4: Confirmed SharpEmu implements ZERO Unity Job System icalls. Confirmed il2cpp_resolve_icall HLE stub at line 2569 is DEAD CODE (TryResolveIl2CppApiAddress is private and never called).
+- Phase 5 — CRITICAL: Discovered TryCallGuestFunction return-value propagation bug. At Backend.cs:3500, returnValue = context[CpuRegister.Rax] reads the INNER CpuContext.Rax (always 0 due to construction-time default). The direct-execution thunk never writes host RAX back into CpuContext.Rax. Result: every nested guest callback returns 0 to outer guest. THIS IS THE EXP-026 '232 NULL returns' ROOT CAUSE.
+- Phase 6: Revalidated 6 previous false leads. A/B/C/E/F CONFIRMED (rejections hold). D OVERTURNED — EXP-055 was wrong, PRX module_start IS executed successfully.
+- Compiled final EXP-137 report (632 lines) with summary, new findings, tests executed table, confirmed/rejected/unknown sections, next experiments.
+- Committed and pushed to GitHub (commit 8dda3ba). HTTP 200 verified.
+
+Stage Summary:
+- THREE major findings:
+  1. CRITICAL: TryCallGuestFunction return-value bug (Backend.cs:3500) — root cause of EXP-026 '232 NULL returns', affects every nested guest callback
+  2. EXP-055 OVERTURNED: PRX module_start IS executed successfully (all 3 return 0)
+  3. EXP-135 OVERTURNED: Producer inc [r14+0x90] EXISTS at eboot.bin @ 0x159d52
+- Updated root-cause ranking:
+  1. TryCallGuestFunction return-value bug — 45% confidence
+  2. arch_init_gc returning NOT_FOUND (EXP-136) — 25% confidence
+  3. Missing Unity Job System icalls — 15% confidence
+  4. Producer unreachable from main thread bootstrap — 10% confidence
+  5. Other unknown — 5% confidence
+- Fix path identified: EXP-138 (fix TryCallGuestFunction) is the top priority. May cascade-fix IL2CPP API resolution, eliminating need for arch_init_gc HLE stub. Requires dotnet SDK to rebuild SharpEmu.
+- All findings preserved to GitHub at exp-reports/EXP-137.md (commit 8dda3ba).
