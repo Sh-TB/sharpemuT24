@@ -1,0 +1,404 @@
+{
+  "target_address": "0x808D67B98",
+  "target_vaddr_in_prx": "0x4092B98",
+  "flag_array_base": "0x808B55698",
+  "writers": [
+    {
+      "address": "0x804FB1C05",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB5F8C] -> 0x808D67B98",
+      "raw_bytes": "833d8c5fdb0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB1C1B",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "mov dword [rip+0x3DB5F73] -> 0x808D67B98",
+      "raw_bytes": "c705735fdb0301000000",
+      "instruction_length": 10
+    },
+    {
+      "address": "0x804FB1CB4",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB5EDD] -> 0x808D67B98",
+      "raw_bytes": "833ddd5edb0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB1E0F",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB5D82] -> 0x808D67B98",
+      "raw_bytes": "833d825ddb0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB31A2",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB49EF] -> 0x808D67B98",
+      "raw_bytes": "833def49db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB4C12",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB2F7F] -> 0x808D67B98",
+      "raw_bytes": "833d7f2fdb0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB5390",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB2801] -> 0x808D67B98",
+      "raw_bytes": "833d0128db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB5463",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB272E] -> 0x808D67B98",
+      "raw_bytes": "833d2e27db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB55EC",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB25A5] -> 0x808D67B98",
+      "raw_bytes": "833da525db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB575F",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB2432] -> 0x808D67B98",
+      "raw_bytes": "833d3224db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB5BE7",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB1FAA] -> 0x808D67B98",
+      "raw_bytes": "833daa1fdb0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB671B",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB1476] -> 0x808D67B98",
+      "raw_bytes": "833d7614db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB6845",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB134C] -> 0x808D67B98",
+      "raw_bytes": "833d4c13db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB6DEC",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB0DA5] -> 0x808D67B98",
+      "raw_bytes": "833da50ddb0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB752B",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB0666] -> 0x808D67B98",
+      "raw_bytes": "833d6606db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB757F",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB0612] -> 0x808D67B98",
+      "raw_bytes": "833d1206db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB79D1",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB01C0] -> 0x808D67B98",
+      "raw_bytes": "833dc001db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB7AB2",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB00DF] -> 0x808D67B98",
+      "raw_bytes": "833ddf00db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB7B20",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DB0071] -> 0x808D67B98",
+      "raw_bytes": "833d7100db0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB85C9",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAF5C8] -> 0x808D67B98",
+      "raw_bytes": "833dc8f5da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB894D",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAF244] -> 0x808D67B98",
+      "raw_bytes": "833d44f2da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB89B1",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAF1E0] -> 0x808D67B98",
+      "raw_bytes": "833de0f1da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB8E60",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAED31] -> 0x808D67B98",
+      "raw_bytes": "833d31edda0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB93B1",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAE7E0] -> 0x808D67B98",
+      "raw_bytes": "833de0e7da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB9484",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAE70D] -> 0x808D67B98",
+      "raw_bytes": "833d0de7da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB9666",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAE52B] -> 0x808D67B98",
+      "raw_bytes": "833d2be5da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB96B6",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAE4DB] -> 0x808D67B98",
+      "raw_bytes": "833ddbe4da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB9902",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAE28F] -> 0x808D67B98",
+      "raw_bytes": "833d8fe2da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FB9969",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAE228] -> 0x808D67B98",
+      "raw_bytes": "833d28e2da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBA2C7",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAD8CA] -> 0x808D67B98",
+      "raw_bytes": "833dcad8da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBA318",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAD879] -> 0x808D67B98",
+      "raw_bytes": "833d79d8da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBA415",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAD77C] -> 0x808D67B98",
+      "raw_bytes": "833d7cd7da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBA463",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAD72E] -> 0x808D67B98",
+      "raw_bytes": "833d2ed7da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBA499",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAD6F8] -> 0x808D67B98",
+      "raw_bytes": "833df8d6da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBA4FF",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAD692] -> 0x808D67B98",
+      "raw_bytes": "833d92d6da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBA73E",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAD453] -> 0x808D67B98",
+      "raw_bytes": "833d53d4da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBA7F1",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAD3A0] -> 0x808D67B98",
+      "raw_bytes": "833da0d3da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBB31E",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAC873] -> 0x808D67B98",
+      "raw_bytes": "833d73c8da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBB3F5",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAC79C] -> 0x808D67B98",
+      "raw_bytes": "833d9cc7da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBB6BC",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAC4D5] -> 0x808D67B98",
+      "raw_bytes": "833dd5c4da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBBFF8",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DABB99] -> 0x808D67B98",
+      "raw_bytes": "833d99bbda0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBCD54",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DAAE3D] -> 0x808D67B98",
+      "raw_bytes": "833d3daeda0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBF2E0",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA88B1] -> 0x808D67B98",
+      "raw_bytes": "833db188da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBF429",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA8768] -> 0x808D67B98",
+      "raw_bytes": "833d6887da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBF45B",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "mov dword [rip+0x3DA8733] -> 0x808D67B98",
+      "raw_bytes": "c7053387da0301000000",
+      "instruction_length": 10
+    },
+    {
+      "address": "0x804FBF465",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA872C] -> 0x808D67B98",
+      "raw_bytes": "833d2c87da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBF4C5",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA86CC] -> 0x808D67B98",
+      "raw_bytes": "833dcc86da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FBF509",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "mov dword [rip+0x3DA8685] -> 0x808D67B98",
+      "raw_bytes": "c7058586da0301000000",
+      "instruction_length": 10
+    },
+    {
+      "address": "0x804FC03DF",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA77B2] -> 0x808D67B98",
+      "raw_bytes": "833db277da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FC0AA7",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA70EA] -> 0x808D67B98",
+      "raw_bytes": "833dea70da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FC0B50",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA7041] -> 0x808D67B98",
+      "raw_bytes": "833d4170da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FC0B77",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA701A] -> 0x808D67B98",
+      "raw_bytes": "833d1a70da0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FC0C20",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA6F71] -> 0x808D67B98",
+      "raw_bytes": "833d716fda0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FC0C49",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA6F48] -> 0x808D67B98",
+      "raw_bytes": "833d486fda0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FC0D42",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA6E4F] -> 0x808D67B98",
+      "raw_bytes": "833d4f6eda0300",
+      "instruction_length": 7
+    },
+    {
+      "address": "0x804FC0E31",
+      "binary": "Il2cppUserAssemblies.prx",
+      "instruction": "or/and/xor [rip+0x3DA6D60] -> 0x808D67B98",
+      "raw_bytes": "833d606dda0300",
+      "instruction_length": 7
+    }
+  ],
+  "rela_entries": [],
+  "summary": {
+    "total_writers_found": 56,
+    "total_rela_entries": 0
+  }
+}
