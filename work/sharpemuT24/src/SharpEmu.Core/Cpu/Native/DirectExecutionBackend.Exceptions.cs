@@ -201,6 +201,7 @@ public sealed partial class DirectExecutionBackend
                                 if (_ripTraceSingleStepping1 && rip == _ripTraceAddress1 + 1)
                                 {
                                         // Single-step completed for slot 1 — re-patch INT3, clear TF
+                                        ulong postMem1 = 0; try { postMem1 = *(ulong*)0x801E51240UL; } catch { } Console.Error.WriteLine($"[RIP-TRACE] POST slot=1 [0x801E51240]=0x{postMem1:X16}");
                                         RePatchInt3(_ripTraceAddress1, _ripTraceOriginalByte1);
                                         ClearTrapFlag(contextRecord);
                                         _ripTraceSingleStepping1 = false;
@@ -208,6 +209,7 @@ public sealed partial class DirectExecutionBackend
                                 }
                                 if (_ripTraceSingleStepping2 && rip == _ripTraceAddress2 + 1)
                                 {
+                                        ulong postMem2 = 0; try { postMem2 = *(ulong*)0x801E51240UL; } catch { } Console.Error.WriteLine($"[RIP-TRACE] POST slot=2 [0x801E51240]=0x{postMem2:X16}");
                                         RePatchInt3(_ripTraceAddress2, _ripTraceOriginalByte2);
                                         ClearTrapFlag(contextRecord);
                                         _ripTraceSingleStepping2 = false;
@@ -228,7 +230,7 @@ public sealed partial class DirectExecutionBackend
                                                 ulong t_rdi = ReadCtxU64(contextRecord, 128);
                                                 ulong t_rsi = ReadCtxU64(contextRecord, 136);
                                                 ulong t_rax = ReadCtxU64(contextRecord, 120);
-                                                Console.Error.WriteLine($"[RIP-TRACE] HIT slot=1 addr=0x{_ripTraceAddress1:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                ulong t_rdx = ReadCtxU64(contextRecord, 136); ulong t_rbx = ReadCtxU64(contextRecord, 144); ulong t_r14 = ReadCtxU64(contextRecord, 232); ulong memVal = 0; try { memVal = *(ulong*)0x801E51240UL; } catch { } Console.Error.WriteLine($"[RIP-TRACE] HIT slot=1 addr=0x{_ripTraceAddress1:X16} rip=0x{rip:X16} rax=0x{t_rax:X16} rcx=0x{t_rdi:X16} rdx=0x{t_rdx:X16} rbx=0x{t_rbx:X16} r14=0x{t_r14:X16} [0x801E51240]=0x{memVal:X16}");
                                                 // Restore original byte, set TF, advance RIP by 1
                                                 RestoreOriginalByte(_ripTraceAddress1, _ripTraceOriginalByte1);
                                                 SetTrapFlag(contextRecord);
@@ -244,7 +246,7 @@ public sealed partial class DirectExecutionBackend
                                                 ulong t_rdi = ReadCtxU64(contextRecord, 128);
                                                 ulong t_rsi = ReadCtxU64(contextRecord, 136);
                                                 ulong t_rax = ReadCtxU64(contextRecord, 120);
-                                                Console.Error.WriteLine($"[RIP-TRACE] HIT slot=2 addr=0x{_ripTraceAddress2:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                ulong t_rdx = ReadCtxU64(contextRecord, 136); ulong t_rbx = ReadCtxU64(contextRecord, 144); ulong t_r14 = ReadCtxU64(contextRecord, 232); ulong memVal = 0; try { memVal = *(ulong*)0x801E51240UL; } catch { } Console.Error.WriteLine($"[RIP-TRACE] HIT slot=2 addr=0x{_ripTraceAddress2:X16} rip=0x{rip:X16} rax=0x{t_rax:X16} rcx=0x{t_rdi:X16} rdx=0x{t_rdx:X16} rbx=0x{t_rbx:X16} r14=0x{t_r14:X16} [0x801E51240]=0x{memVal:X16}");
                                                 RestoreOriginalByte(_ripTraceAddress2, _ripTraceOriginalByte2);
                                                 SetTrapFlag(contextRecord);
                                                 WriteCtxU64Icall(contextRecord, 248, _ripTraceAddress2 + 1);
@@ -259,7 +261,7 @@ public sealed partial class DirectExecutionBackend
                                                 ulong t_rdi = ReadCtxU64(contextRecord, 128);
                                                 ulong t_rsi = ReadCtxU64(contextRecord, 136);
                                                 ulong t_rax = ReadCtxU64(contextRecord, 120);
-                                                Console.Error.WriteLine($"[RIP-TRACE] HIT slot=3 addr=0x{_ripTraceAddress3:X16} rip=0x{rip:X16} rdi=0x{t_rdi:X16} rsi=0x{t_rsi:X16} rax=0x{t_rax:X16}");
+                                                ulong t_rdx = ReadCtxU64(contextRecord, 136); ulong t_rbx = ReadCtxU64(contextRecord, 144); ulong t_r14 = ReadCtxU64(contextRecord, 232); ulong memVal = 0; try { memVal = *(ulong*)0x801E51240UL; } catch { } Console.Error.WriteLine($"[RIP-TRACE] HIT slot=3 addr=0x{_ripTraceAddress3:X16} rip=0x{rip:X16} rax=0x{t_rax:X16} rcx=0x{t_rdi:X16} rdx=0x{t_rdx:X16} rbx=0x{t_rbx:X16} r14=0x{t_r14:X16} [0x801E51240]=0x{memVal:X16}");
                                                 RestoreOriginalByte(_ripTraceAddress3, _ripTraceOriginalByte3);
                                                 SetTrapFlag(contextRecord);
                                                 WriteCtxU64Icall(contextRecord, 248, _ripTraceAddress3 + 1);

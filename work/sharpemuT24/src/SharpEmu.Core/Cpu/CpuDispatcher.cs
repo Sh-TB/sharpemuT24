@@ -137,10 +137,10 @@ public sealed class CpuDispatcher : ICpuDispatcher, IDisposable
                 string.Equals(Environment.GetEnvironmentVariable("SHARPEMU_TRACE_RIP"), "1", StringComparison.Ordinal) &&
                 _nativeCpuBackend is SharpEmu.Core.Cpu.Native.DirectExecutionBackend ripBackend)
             {
-                // Slot 1: Producer function entry (eboot @ 0x15DCD0)
-                ripBackend.InstallRipTrace(1, 0x80015DCD0);
-                // Slot 2: Producer caller (eboot @ 0x1EDB28)
-                ripBackend.InstallRipTrace(2, 0x8001EDB28);
+                // EXP-160: Slot 1: Store RAX to global (0x8013EF019: mov [0x801E51240], rax)
+                ripBackend.InstallRipTrace(1, 0x8013EF019);
+                // EXP-160: Slot 2: Store 0 to global (0x8007FD8F9: mov qword [0x801E51240], 0)
+                ripBackend.InstallRipTrace(2, 0x8007FD8F9);
                 // Slot 3: Dispatch loop entry (PRX @ 0x299E6 + PRX base 0x804CD5000 = 0x804F6E9E6)
                 ripBackend.InstallRipTrace(3, 0x804F6E9E6);
             }
