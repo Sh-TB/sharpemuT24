@@ -138,11 +138,11 @@ public sealed class CpuDispatcher : ICpuDispatcher, IDisposable
                 _nativeCpuBackend is SharpEmu.Core.Cpu.Native.DirectExecutionBackend ripBackend)
             {
                 // EXP-160: Slot 1: Store RAX to global (0x8013EF019: mov [0x801E51240], rax)
-                ripBackend.InstallRipTrace(1, 0x8013EB87F);
+                ripBackend.InstallRipTrace(1, 0x800804175);
                 // EXP-160: Slot 2: Store 0 to global (0x8007FD8F9: mov qword [0x801E51240], 0)
-                // ripBackend.InstallRipTrace(2, 0x8013EB6FA);
+                ripBackend.InstallRipTrace(2, 0x80080455E);
                 // Slot 3: Dispatch loop entry (PRX @ 0x299E6 + PRX base 0x804CD5000 = 0x804F6E9E6)
-                // ripBackend.InstallRipTrace(3, 0x8013EB710);
+                ripBackend.InstallRipTrace(3, 0x8013EB6B0);
             }
 
             // EXP-149 Step 2: Single-step trace from end of mutex init to dispatch loop entry
