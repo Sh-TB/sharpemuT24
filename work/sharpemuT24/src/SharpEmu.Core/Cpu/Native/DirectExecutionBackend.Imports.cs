@@ -621,6 +621,33 @@ public sealed partial class DirectExecutionBackend
                                 }
                                 else if (string.Equals(importStubEntry.Nid, "r8mvOaWdi28", StringComparison.Ordinal))
                                 {
+                                        // ====================================================================
+                                        // EXP-XXX KNOWLEDGE ARCHIVE (2026-08-08)
+                                        // ====================================================================
+                                        // NID r8mvOaWdi28 = il2cpp_api_lookup_symbol (IL2CPP API resolver)
+                                        //
+                                        // PLT entry: 0x8019374D0 (jmp [0x801D1ACE0], push 0xE7, jmp resolver)
+                                        // PLT GOT slot: 0x801D1ACE0 (DT_JMPREL entry 231, R_X86_64_JUMP_SLOT)
+                                        // Real resolver: 0x804ED9B90 (inside Il2cppUserAssemblies.prx)
+                                        //
+                                        // Called by GOT writer 0x8013FB0B0 (from parent 0x8013FCE40 +0xDDB)
+                                        // 232 times to fill IL2CPP API function pointer table at 0x801ED6320+:
+                                        //   [0x801ED6320] = il2cpp_init -> 0x804ED85D0
+                                        //   [0x801ED6328] = next API function -> (runtime resolved)
+                                        //   ... (232 slots total)
+                                        //
+                                        // Consumer 0x8013EB6B0 calls [0x801ED6320] at +0x19A7 (0x8013ED057).
+                                        // il2cpp_init does NOT return -- enters dispatch loop 0x800AA0170,
+                                        // blocks on WaitSema(0x81). This prevents [0x801E51240] init
+                                        // (writer at consumer +0x3969 = 0x8013EF019, never reached).
+                                        //
+                                        // EXP-138 RAX bug: When PRXs NOT loaded, raxCaptureSlot fix needed
+                                        // (DirectExecutionBackend.cs:5068). When PRXs loaded (proper dir
+                                        // structure), resolver runs natively, RAX flows directly.
+                                        //
+                                        // .NET 10.0.10 crash: TryCallGuestFunction may trigger "Invalid
+                                        // Program" error. EXP-170..173 used earlier .NET 10 without this.
+                                        // ====================================================================
                                         orbisGen2Result = DispatchIl2CppApiLookupSymbol();
                                 }
                                 else if (importStubEntry.Export is { } cachedExport &&

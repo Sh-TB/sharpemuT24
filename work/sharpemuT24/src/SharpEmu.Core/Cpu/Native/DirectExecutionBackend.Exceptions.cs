@@ -195,6 +195,64 @@ public sealed partial class DirectExecutionBackend
                         // The next SIGTRAP (single-step) re-patches INT3 and clears TF.
                         // Note: POSIX signal handler may increment RIP before VectoredHandler sees it
                         // So we check both rip and rip-1
+                        //
+                        // ============================================================================
+                        // EXP-NEXT / EXP-XXX CRITICAL BUG DOCUMENTATION (2026-08-08)
+                        // ============================================================================
+                        // The INT3 handler below has a KNOWN BUG that corrupts multi-byte
+                        // instructions. This bug was discovered in EXP-NEXT and confirmed
+                        // in EXP-XXX with mathematical proof.
+                        //
+                        // BUG: On INT3 hit at address X, the handler:
+                        //   1. Restores the original byte at X (line 235: RestoreOriginalByte)
+                        //   2. Sets TF (trap flag) for single-step (line 236: SetTrapFlag)
+                        //   3. Sets RIP = X+1 (line 237: WriteCtxU64Icall(ctx, 248, addr+1))
+                        //
+                        // For multi-byte instructions, X+1 is the SECOND BYTE of the original
+                        // instruction. The CPU decodes garbage:
+                        //   - FF 15 disp32 (call [rip+disp32], 6 bytes) -> byte at X+1 = 0x15
+                        //     -> CPU executes ADC EAX, imm32 (5 bytes) instead of the call!
+                        //   - E8 disp32 (call rel32, 5 bytes) -> byte at X+1 = disp32[0]
+                        //   - 0F 8x disp32 (jcc rel32, 6 bytes) -> byte at X+1 = 0x8x
+                        //
+                        // MATHEMATICAL PROOF (EXP-NEXT/EXP-XXX):
+                        //   INT3 at 0x8013ED057 (call [0x801ED6320]) -- bytes: FF 15 C3 92 AE 00
+                        //   Before INT3: rax = 0x000000060000007F
+                        //   After INT3 (logged "return"): rax = 0x0000000000AE9342
+                        //   If call NEVER executed and CPU ran ADC EAX, 0x00AE92C3:
+                        //     EAX_before (0x6000007F) + imm32 (0x00AE92C3) = 0x00AE9342
+                        //     -> MATCHES the logged "return value" EXACTLY
+                        //   EXP-173's conclusion that "the call returned with 0xAE9342" is WRONG.
+                        //
+                        // RE-PATCH CONDITION BUG:
+                        //   Line 201 checks: rip == _ripTraceAddress1 + 1
+                        //   But after single-step, RIP = X+1+corrupted_instr_length (NOT X+1)
+                        //   So the re-patch NEVER fires for multi-byte instructions.
+                        //
+                        // WHAT IS VALID:
+                        //   - The INT3 HIT log (line 233) -- registers read BEFORE corruption
+                        //   - The fact that execution reached the INT3 address
+                        //
+                        // WHAT IS INVALID (from EXP-145 through EXP-173):
+                        //   - All post-INT3 register values
+                        //   - All "return values" logged at the next INT3 slot
+                        //   - EXP-173's "call returns with 0xAE9342" (was ADC result)
+                        //
+                        // FIX NEEDED (NOT applied -- would require rebuild + retest):
+                        //   Line 237: Change '_ripTraceAddress1 + 1' to '_ripTraceAddress1'
+                        //             (set RIP BACK to instruction start, not X+1)
+                        //   Line 201: Change 'rip == _ripTraceAddress1 + 1' to
+                        //             '_ripTraceSingleStepping1 && rip > _ripTraceAddress1'
+                        //   Apply same fix to slots 2 and 3 (lines 252, 267, 210, 218)
+                        //
+                        // FUTURE DEBUGGING:
+                        //   Until this fix is applied, use INT3 ONLY for:
+                        //   1. "Did execution reach this address?" (yes/no)
+                        //   2. Register values at the INT3 HIT (before corruption)
+                        //   Do NOT trust any post-INT3 register values.
+                        //   For 1-byte instructions (push rbp = 0x55, ret = 0xC3),
+                        //   the bug does NOT manifest (X+1 is correctly the next instruction).
+                        // ============================================================================
                         if (exceptionCode == 2147483651u)
                         {
                                 // Check if this is a single-step trap from our re-patch logic

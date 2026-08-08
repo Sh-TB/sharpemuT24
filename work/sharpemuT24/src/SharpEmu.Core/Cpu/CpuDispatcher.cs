@@ -447,6 +447,42 @@ public sealed class CpuDispatcher : ICpuDispatcher, IDisposable
         return true;
     }
 
+    // ============================================================================
+    // EXP-166..169 KNOWLEDGE ARCHIVE (2026-08-08) — Entry Parameter / argc
+    // ============================================================================
+    // PS5 games read argc from [RDI] at EBOOT main entry (0x800000070).
+    // The game's parent function 0x8013FCE40 checks:
+    //   +0x22: mov ebx, edi          ; ebx = argc
+    //   +0x50: mov r13d, ebx         ; r13d = argc
+    //   +0x8D: cmp r13d, 2
+    //   +0x91: jl  0x8013FCF55       ; if argc < 2, SKIP initialization
+    //
+    // With argc=1 (default, just "eboot.bin"):
+    //   - jl at +0x91 is TAKEN
+    //   - Init write at +0x24E (0x8013FD08E) is SKIPPED
+    //   - [0x801E518C8] stays NULL
+    //   - Consumer 0x8013EB6B0 takes early exit at +0x72 (je, r14=0)
+    //   - WaitSema(0x81) deadlock
+    //
+    // With argc=2 (via SHARPEMU_GUEST_ARGS="dummy_arg"):
+    //   - jl at +0x91 is NOT taken
+    //   - [0x801E518C8] = 0x00000020000259C0 (NON-NULL)
+    //   - Consumer passes +0x72, reaches +0x19A7
+    //   - BUT [0x801E51240] still NULL (init writer at +0x3969 never reached)
+    //   - Same WaitSema(0x81) deadlock
+    //
+    // CONCLUSION: argc=1 was the FIRST blocker. argc=2 unblocks [0x801E518C8]
+    // but does NOT fix the downstream [0x801E51240] initialization.
+    // The consumer exits at +0x19A7 (call [0x801ED6320] = il2cpp_init)
+    // which does not return.
+    //
+    // Entry parameter structure (written at RSP-0x20):
+    //   +0x00: uint32 argc
+    //   +0x04: uint32 padding (0)
+    //   +0x08: uint64 argv[0] = pointer to "eboot.bin" string
+    //   +0x10: uint64 argv[1] = pointer to first extra arg (or 0)
+    //   +0x18: uint64 argv[2] = pointer to second extra arg (or 0)
+    // ============================================================================
     private static bool InitializeProcessEntryFrame(
         CpuContext context,
         string processImageName,
