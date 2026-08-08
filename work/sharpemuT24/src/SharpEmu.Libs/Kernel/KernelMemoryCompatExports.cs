@@ -1177,6 +1177,143 @@ public static partial class KernelMemoryCompatExports
         return (int)OrbisGen2Result.ORBIS_GEN2_OK;
     }
 
+    // ============================================================================
+    // EXP-179: C++ operator new/delete — PS5 libc compatibility layer
+    // ============================================================================
+    // Based on evidence from EXP-177/178: il2cpp_init blocks on _ZdlPv (operator
+    // delete) because SharpEmu had no HLE handler. These functions delegate to
+    // the existing malloc/free heap.
+    //
+    // Reference: shadPS4 libc implementation history (behavior extracted, not
+    // blindly ported — PS5 runtime evidence validates correctness).
+    //
+    // C++ standard semantics:
+    //   - operator new returns NULL on failure (PS5 convention, not throw)
+    //   - operator delete is a no-op if ptr is NULL (C++ standard)
+    //   - All size/alignment variants delegate to the same heap
+    // ============================================================================
+
+    // --- operator delete ---
+
+    [SysAbiExport(
+        Nid = "z+P+xCnWLBk",
+        ExportName = "_ZdlPv",
+        Target = Generation.Gen4 | Generation.Gen5,
+        LibraryName = "libc")]
+    public static int OperatorDelete(CpuContext ctx)
+    {
+        // void operator delete(void* ptr) noexcept — C++ standard: no-op if ptr is NULL
+        var ptr = ctx[CpuRegister.Rdi];
+        if (ptr != 0) FreeLibcHeap(ptr);
+        ctx[CpuRegister.Rax] = 0;
+        return (int)OrbisGen2Result.ORBIS_GEN2_OK;
+    }
+
+    [SysAbiExport(Nid = "lYDzBVE5mZs", ExportName = "_ZdlPvm", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteSized(CpuContext ctx)
+    {
+        // void operator delete(void* ptr, size_t size) noexcept — size in RSI ignored
+        var ptr = ctx[CpuRegister.Rdi];
+        if (ptr != 0) FreeLibcHeap(ptr);
+        ctx[CpuRegister.Rax] = 0;
+        return (int)OrbisGen2Result.ORBIS_GEN2_OK;
+    }
+
+    [SysAbiExport(Nid = "McsGnqV6yRE", ExportName = "_ZdlPvRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteNothrow(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "1vo6qqqa9F4", ExportName = "_ZdlPvS_", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteAligned(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "bZx+FFSlkUM", ExportName = "_ZdlPvSt11align_val_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteAlignedExplicit(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "Dt9kllUFXS0", ExportName = "_ZdlPvSt11align_val_tRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteAlignedNothrow(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "7VPIYFpwU2A", ExportName = "_ZdlPvmRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteSizedNothrow(CpuContext ctx) => OperatorDeleteSized(ctx);
+
+    [SysAbiExport(Nid = "nwujzxOPXzQ", ExportName = "_ZdlPvmSt11align_val_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteSizedAligned(CpuContext ctx) => OperatorDeleteSized(ctx);
+
+    // --- operator delete[] (array delete) ---
+
+    [SysAbiExport(Nid = "MLWl90SFWNE", ExportName = "_ZdaPv", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteArray(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "FOt55ZNaVJk", ExportName = "_ZdaPvm", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteArraySized(CpuContext ctx) => OperatorDeleteSized(ctx);
+
+    [SysAbiExport(Nid = "m-fSo3EbxNA", ExportName = "_ZdaPvRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteArrayNothrow(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "Suc8W0QPxjw", ExportName = "_ZdaPvS_", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteArrayAligned(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "v09ZcAhZzSc", ExportName = "_ZdaPvSt11align_val_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteArrayAlignedExplicit(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "dH3ucvQhfSY", ExportName = "_ZdaPvSt11align_val_tRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteArrayAlignedNothrow(CpuContext ctx) => OperatorDelete(ctx);
+
+    [SysAbiExport(Nid = "7lCihI18N9I", ExportName = "_ZdaPvmRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteArraySizedNothrow(CpuContext ctx) => OperatorDeleteSized(ctx);
+
+    [SysAbiExport(Nid = "Y1RR+IQy6Pg", ExportName = "_ZdaPvmSt11align_val_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorDeleteArraySizedAligned(CpuContext ctx) => OperatorDeleteSized(ctx);
+
+    // --- operator new ---
+
+    [SysAbiExport(Nid = "fJnpuVVBbKk", ExportName = "_Znwm", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorNew(CpuContext ctx)
+    {
+        // void* operator new(size_t size) — returns NULL on failure (PS5 convention)
+        var size = ctx[CpuRegister.Rdi];
+        ctx[CpuRegister.Rax] =
+            TryAllocateLibcHeap(size, DefaultLibcHeapAlignment, zeroFill: false, out var address)
+                ? address : 0;
+        return (int)OrbisGen2Result.ORBIS_GEN2_OK;
+    }
+
+    [SysAbiExport(Nid = "ryUxD-60bKM", ExportName = "_ZnwmRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorNewNothrow(CpuContext ctx) => OperatorNew(ctx);
+
+    [SysAbiExport(Nid = "3yxLpdKD0RA", ExportName = "_ZnwmSt11align_val_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorNewAligned(CpuContext ctx)
+    {
+        // void* operator new(size_t size, std::align_val_t alignment) — RDI=size, RSI=alignment
+        var size = ctx[CpuRegister.Rdi];
+        var alignment = ctx[CpuRegister.Rsi];
+        var effectiveAlignment = alignment > 0 && (alignment & (alignment - 1)) == 0
+            ? (nuint)alignment : DefaultLibcHeapAlignment;
+        ctx[CpuRegister.Rax] =
+            TryAllocateLibcHeap(size, effectiveAlignment, zeroFill: false, out var address)
+                ? address : 0;
+        return (int)OrbisGen2Result.ORBIS_GEN2_OK;
+    }
+
+    [SysAbiExport(Nid = "iQXBbJbfT5k", ExportName = "_ZnwmSt11align_val_tRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorNewAlignedNothrow(CpuContext ctx) => OperatorNewAligned(ctx);
+
+    // --- operator new[] (array new) ---
+
+    [SysAbiExport(Nid = "hdm0YfMa7TQ", ExportName = "_Znam", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorNewArray(CpuContext ctx) => OperatorNew(ctx);
+
+    [SysAbiExport(Nid = "Jh5qUcwiSEk", ExportName = "_ZnamRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorNewArrayNothrow(CpuContext ctx) => OperatorNew(ctx);
+
+    [SysAbiExport(Nid = "kn-rKRB0pfY", ExportName = "_ZnamSt11align_val_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorNewArrayAligned(CpuContext ctx) => OperatorNewAligned(ctx);
+
+    [SysAbiExport(Nid = "s2eGsgUF9vk", ExportName = "_ZnamSt11align_val_tRKSt9nothrow_t", Target = Generation.Gen4 | Generation.Gen5, LibraryName = "libc")]
+    public static int OperatorNewArrayAlignedNothrow(CpuContext ctx) => OperatorNewAligned(ctx);
+
+    // ============================================================================
+    // End of EXP-179 C++ operator new/delete implementations
+    // ============================================================================
+
     [SysAbiExport(
         Nid = "2X5agFjKxMc",
         ExportName = "calloc",
