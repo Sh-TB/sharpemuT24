@@ -763,6 +763,14 @@ public sealed class SelfLoader : ISelfLoader
                     // null test into a call to an unresolved-import handler.
                     symbolValue = 0;
                 }
+                else if (HleDataSymbols.TryGetAddress(descriptor.ImportNid, out var dataSymbolAddress))
+                {
+                    // EXP-181: Resolve GLOB_DAT relocations for HLE data symbols
+                    // (e.g., __stack_chk_guard, __progname, libc need flags).
+                    // These are DATA symbols, not functions — they need the address
+                    // of the actual data, not an import stub.
+                    symbolValue = dataSymbolAddress;
+                }
                 else
                 {
                     throw new InvalidOperationException($"Import stub not found for NID '{descriptor.ImportNid}'.");
