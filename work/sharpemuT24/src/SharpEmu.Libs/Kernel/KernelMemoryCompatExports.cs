@@ -6311,7 +6311,7 @@ public static partial class KernelMemoryCompatExports
         }
     }
 
-    private static bool TryAllocateLibcHeap(ulong requestedSize, nuint alignment, bool zeroFill, out ulong address)
+    internal static bool TryAllocateLibcHeap(ulong requestedSize, nuint alignment, bool zeroFill, out ulong address)
     {
         address = 0;
         return TryConvertAllocationSize(requestedSize, out var size) &&
@@ -6471,7 +6471,7 @@ public static partial class KernelMemoryCompatExports
         return true;
     }
 
-    private static void FreeLibcHeap(ulong address)
+    internal static void FreeLibcHeap(ulong address)
     {
         if (address == 0)
         {
